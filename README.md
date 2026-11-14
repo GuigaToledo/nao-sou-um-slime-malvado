@@ -21,13 +21,26 @@ A conexão é direta entre os navegadores (WebRTC, via [PeerJS](https://peerjs.c
 |---|---|---|
 | Mover | WASD / setas | Analógico / direcional |
 | Atacar (o Sábio também ataca sozinho) | Espaço | A |
-| Interagir | F | X |
+| Habilidade da forma atual | R | B |
+| Dash (segure para correr) | Shift | X |
+| Interagir (dragão, Ancião) | F | A perto deles |
 | Trocar forma | Q / E | LB / RB |
 | Trocar invocação | Z / C | LT / RT |
 | Árvore de habilidades | K ou Tab | Y |
 | Pausa e salvar | Esc ou P | START |
 | Minimapa · Som | N · M | — |
 | Entrar como jogador 2 a 4 no mesmo PC | — | START no controle novo |
+
+## Elementos
+
+Devorar um monstro de um elemento deixa você imune a ele: Cão Infernal e Orc Xamã (fogo), Lobo Invernal (gelo), Lobo-Chifre (raio), aranhas e Lagarta (veneno), Ankheg (ácido), Ogro e Gigante (terra), Lobo Sombrio (trevas). O Dragão dá fogo e raio. As imunidades aparecem como quadradinhos coloridos no painel e por nome na pausa.
+
+## Novidades da v1.1.0
+
+- Escolha o nome e a cor do seu slime ao criar o jogo (e mude depois em "Mudar nome e cor").
+- Habilidade da forma no botão B, dash e corrida no X.
+- Invocações mais rápidas e mais agressivas.
+- Imunidade a elementos ao devorar monstros elementais.
 
 ## Salvamento
 
