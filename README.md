@@ -29,8 +29,8 @@ O golpe de perto e a magia da forma são **automáticos**. Na forma de Slime, a 
 | Agir: interagir, quebrar paredes rachadas | Espaço ou F | A | AGIR |
 | Dash (segure para correr) | Shift | B | DASH |
 | Magia de cura | H | Y | CURA |
-| Trocar forma | Q / E | LB / LT | setas da roda |
-| Trocar invocação | Z / C | RB / RT | setas da roda |
+| Trocar visual (e poder) | Q / E | LB / LT | setas da roda |
+| Invocação 1 · Invocação 2 | C · Z | RT · RB | setas das rodas |
 | Habilidades e visuais | K ou Tab | Select | ÁRVORE |
 | Menu, mapa do mundo e salvar | Esc ou P | Start | MENU |
 
@@ -72,6 +72,14 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 ## Salvamento
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
+
+## Novidades da v1.7.0
+
+- Você é sempre slime: não existe mais transformação. LB/LT trocam o visual, e cada visual dá poderes. Devorar um monstro libera o visual dele (por exemplo, os Chifres de Diabinho dão sopro de fogo e o Capacete Viking dá a pancada que quebra pedras). Baús e chefes dão 18 visuais especiais, como os Fones de DJ, as Asas de Anjo e o Brotinho.
+- Duas invocações ao mesmo tempo: RT escolhe a primeira e RB a segunda (no teclado, C e Z).
+- Vila dos Slimes: a base agora é uma vila de slimes amigos, e cada tipo de monstro devorado aparece morando lá.
+- Com os Fones de DJ dentro da vila, todo mundo dança, com luzes e música de pista.
+- Chefes mais fortes: mais que o dobro de vida, mais dano e fúria abaixo de 50% de vida.
 
 ## Novidades da v1.6.0
 
