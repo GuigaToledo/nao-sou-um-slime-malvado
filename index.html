@@ -18,7 +18,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v1.4.0";
+const VERSION="v1.4.1";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VW=640,VH=480,FT="'VT323',ui-monospace,monospace";
@@ -548,11 +548,15 @@ function cast(s,k,d,tg,src,cr){const E=CAST_EL[k],H=(m,dd,eff)=>hurt(m,dd,eff,E,
  else if(k==="fire"){spray(s,["#ff8a1f","#ffd84a","#ff4a1a"],320,26);flashes.push({x:s.x+s.fx*60,y:s.y+s.fy*60,r:200,c:"255,140,40",t:.4,m:.4});shake=Math.max(shake,2);sfx("fire");for(const m of monsIn(s.x,s.y,120))if(inCone(s,m,120))H(m,d,3)}
  else if(k==="frost"){spray(s,["#9fe8f5","#ffffff","#5ab8e0"],300,24);flashes.push({x:s.x+s.fx*60,y:s.y+s.fy*60,r:150,c:"140,220,255",t:.35,m:.35});sfx("frost");for(const m of monsIn(s.x,s.y,120))if(inCone(s,m,120))H(m,d*.8,2)}
  else if(k==="stomp"){rings.push({x:s.x,y:s.y,r0:8,r1:80,t:.35,m:.35,c:"#d8b070"});shake=Math.max(shake,7);sfx("stomp");for(let i=0;i<16;i++)burst(s.x+(R()-.5)*60,s.y+(R()-.5)*30,pk(["#8a7a60","#b0a080"]),4,.5,(R()-.5)*100,-R()*90,null,240);for(const m of monsIn(s.x,s.y,80))H(m,d*1.2,4);stompCrack(s.x,s.y,2)}
- else if(k==="charge"){s.dash=.22;s.hs=new Set();shake=Math.max(shake,3)}
+ else if(k==="charge"){if(s.slot!==undefined){/* no jogador, a investida vira um golpe de chifre no lugar: ele nunca anda sozinho */
+   spray(s,["#c89a6a","#efe2c0","#8a5a2e"],280,18);shake=Math.max(shake,4);sfx("stomp");for(const m of monsIn(s.x,s.y,100))if(inCone(s,m,100)){knock(m,s.fx*24,s.fy*24);H(m,d*1.5,4)}}
+  else{s.dash=.22;s.hs=new Set();shake=Math.max(shake,3)}}
  else if(k==="gaze"){spray(s,["#ffe14a","#ffffff"],260,16);flashes.push({x:s.x+s.fx*60,y:s.y+s.fy*60,r:160,c:"255,230,100",t:.3,m:.3});for(const m of monsIn(s.x,s.y,130))if(inCone(s,m,130))H(m,d*.5,1)}
  else if(k==="tornado"){torn.push({x:s.x,y:s.y,dx:s.fx,dy:s.fy,t:2.2,h:0,d,src});sfx("frost")}
  else if(k==="spin"){rings.push({x:s.x,y:s.y,r0:10,r1:72,t:.3,m:.3,c:"#e0e6ee"});sfx("swing");for(let i=0;i<14;i++){const a=i/14*6.283;burst(s.x+Math.cos(a)*40,s.y-6+Math.sin(a)*26,"#e0e6ee",4,.25,Math.cos(a)*120,Math.sin(a)*80)}
   for(const m of monsIn(s.x,s.y,72)){const ex=m.x-s.x,ey=m.y-s.y,r=Math.hypot(ex,ey)||1;knock(m,ex/r*18,ey/r*18);H(m,d*1.3,0)}}
+ else if(k==="blink"&&s.slot!==undefined){const g=tg||{x:s.x+s.fx*90,y:s.y+s.fy*90};for(let i=0;i<18;i++)burst(g.x+(R()-.5)*30,g.y-8+(R()-.5)*30,pk(["#b48aff","#ff4aff","#3a2a4a"]),4,.45,(R()-.5)*100,(R()-.5)*100);sfx("web");
+  rings.push({x:g.x,y:g.y,r0:6,r1:46,t:.3,m:.3,c:"#b48aff"});for(const m of monsIn(g.x,g.y,46))H(m,d*1.6,0)}
  else if(k==="blink"){const g=tg||{x:s.x+s.fx*120,y:s.y+s.fy*120},ex=g.x-s.x,ey=g.y-s.y,r=Math.hypot(ex,ey)||1,n=Math.max(0,r-22);for(let i=0;i<12;i++)burst(s.x+(R()-.5)*20,s.y-8+(R()-.5)*20,pk(["#b48aff","#3a2a4a"]),4,.4,(R()-.5)*60,(R()-.5)*60);
   for(let i=0;i<n;i+=8)mv(s,ex/r*8,ey/r*8);for(let i=0;i<12;i++)burst(s.x+(R()-.5)*20,s.y-8+(R()-.5)*20,pk(["#b48aff","#ff4aff"]),4,.4,(R()-.5)*90,(R()-.5)*90);sfx("web");
   for(const m of monsIn(s.x,s.y,46))H(m,d*1.6,0)}}
@@ -764,8 +768,12 @@ const cpos=e=>{const r=C.getBoundingClientRect();return[(e.clientX-r.left)*VW/r.
 C.addEventListener("pointermove",e=>{[MX,MY]=cpos(e);let over=0;for(const h of HIT)if(MX>=h.x&&MX<=h.x+h.w&&MY>=h.y&&MY<=h.y+h.h){over=1;if(h.hov)h.hov()}C.style.cursor=over?"pointer":"default"});
 C.addEventListener("pointerdown",e=>{ensureAudio();try{C.focus()}catch(x){}const[x,y]=cpos(e);for(const h of [...HIT].reverse())if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){sfx("ok");h.fn();break}});
 const padPrev=[[],[],[],[]],stickPrev=["","","",""];let padNow=[null,null,null,null];
+/* contra drift: guarda onde cada analógico descansa, desconta esse desvio e aplica zona morta de 30% */
+const padRest=[null,null,null,null],DZ=.3;
+function stick(i,x,y){let r=padRest[i];if(!r){r=padRest[i]=[Math.abs(x)<.5?x:0,Math.abs(y)<.5?y:0]}
+ let dx=x-r[0],dy=y-r[1];const m=Math.hypot(dx,dy);if(m<DZ){if(m<.12){r[0]+=(x-r[0])*.02;r[1]+=(y-r[1])*.02}return[0,0]}const k=Math.min(1,(m-DZ)/(1-DZ))/m;return[dx*k,dy*k]}
 function pollPads(){let gp=[];try{gp=navigator.getGamepads?[...navigator.getGamepads()]:[]}catch(e){}
- for(let i=0;i<4;i++){const g=gp[i];if(!g||!g.connected){padNow[i]=null;continue}const b=g.buttons.map(x=>!!(x&&(x.pressed||x.value>.5))),ax=g.axes[0]||0,ay=g.axes[1]||0;
+ for(let i=0;i<4;i++){const g=gp[i];if(!g||!g.connected||g.buttons.length<10||g.axes.length<2){padNow[i]=null;padRest[i]=null;continue}const b=g.buttons.map(x=>!!(x&&(x.pressed||x.value>.5))),[ax,ay]=stick(i,g.axes[0]||0,g.axes[1]||0);
   const sd=Math.abs(ax)>Math.abs(ay)?(ax>.6?"r":ax<-.6?"l":""):(ay>.6?"d":ay<-.6?"u":"");
   padNow[i]={b,ax,ay,pr:b.map((v,j)=>v&&!padPrev[i][j]),se:sd&&sd!==stickPrev[i]?sd:""};padPrev[i]=b;stickPrev[i]=sd;if(padNow[i].pr.some(Boolean))ensureAudio()}}
 /* A: agir (interage e bate, quebra paredes) · B: dash, segure para correr · Y: cura · LB/LT forma · RB/RT invocação · Select árvore · Start menu
@@ -776,7 +784,7 @@ function inputFor(p){const o={mx:0,my:0,atk:0,act:0,fp:0,fn:0,sp:0,sn:0,tree:0,p
   o.skill=KP.KeyR;o.dash=KP.ShiftLeft||KP.ShiftRight;o.run=!!(K.ShiftLeft||K.ShiftRight);o.heal=KP.KeyH;o.fp=KP.KeyQ;o.fn=KP.KeyE;o.sp=KP.KeyZ;o.sn=KP.KeyC;o.tree=KP.KeyK||KP.Tab;o.pause=KP.Escape||KP.KeyP;
   if(MODE==="cel"){o.mx+=TOUCH.mx;o.my+=TOUCH.my;o.atk=o.atk||TOUCH.atk;o.act=o.act||TOUCH.act;o.dash=o.dash||TOUCH.dash;o.run=o.run||TOUCH.run;o.heal=o.heal||TOUCH.heal;o.tree=o.tree||TOUCH.tree;o.pause=o.pause||TOUCH.pause}}
  const g=p.src.pad>=0&&padNow[p.src.pad];
- if(g){let ax=g.ax,ay=g.ay;if(Math.hypot(ax,ay)<.25)ax=ay=0;if(g.b[14])ax=-1;if(g.b[15])ax=1;if(g.b[12])ay=-1;if(g.b[13])ay=1;o.mx+=ax;o.my+=ay;
+ if(g){let ax=g.ax,ay=g.ay;if(g.b[14])ax=-1;if(g.b[15])ax=1;if(g.b[12])ay=-1;if(g.b[13])ay=1;o.mx+=ax;o.my+=ay;
   o.atk=o.atk||g.b[0];o.act=o.act||g.pr[0];o.dash=o.dash||g.pr[1]||g.pr[10];o.run=o.run||g.b[1];o.skill=o.skill||g.pr[2];o.heal=o.heal||g.pr[3];
   o.fp=o.fp||g.pr[4];o.fn=o.fn||g.pr[6];o.sp=o.sp||g.pr[5];o.sn=o.sn||g.pr[7];o.tree=o.tree||g.pr[8];o.pause=o.pause||g.pr[9]}
  const l=Math.hypot(o.mx,o.my);if(l>1){o.mx/=l;o.my/=l}return o}
@@ -788,7 +796,8 @@ const totalPlayers=()=>PL.length+NET.remote.length;
 function freeCol(){const used=new Set([...PL.map(p=>p.col),...NET.remote.map(r=>r.c)]);for(let i=0;i<NCOL;i++)if(!used.has(i))return i;return 0}
 function joinLocal(pad){let slot=0;while(PL.some(p=>p.slot===slot))slot++;if(slot>3)return;const pr=SAVE&&SAVE.prof&&SAVE.prof[slot];const p=mkPlayer(slot,pr,{kb:false,pad});
  if(!pr||!pr.nm){p.col=freeCol();p.nm="Jogador "+(slot+1)}const a=PL[0];if(a){p.x=a.x;p.y=a.y}PL.push(p);say(p.nm+" entrou no jogo!");sfx("ok")}
-function handlePads(){for(let i=0;i<4;i++){const g=padNow[i];if(!g||!g.pr.some(Boolean))continue;if(PL.some(p=>p.src.pad===i)||p1pad===i)continue;
+const REAL_BTN=[0,1,2,3,8,9,12,13,14,15];
+function handlePads(){for(let i=0;i<4;i++){const g=padNow[i];if(!g||!REAL_BTN.some(j=>g.pr[j]))continue;if(PL.some(p=>p.src.pad===i)||p1pad===i)continue;
  if(g.pr[9]&&state==="play"&&PL.length&&totalPlayers()<4){joinLocal(i);continue}
  if(PL.length){if(PL[0].src.pad<0){PL[0].src.pad=i;p1pad=i}}else if(p1pad<0)p1pad=i}}
 /* ===== Multijogador online (PeerJS): quem entra primeiro vira o servidor ===== */
