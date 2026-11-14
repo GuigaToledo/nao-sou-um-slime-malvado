@@ -18,7 +18,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v1.4.1";
+const VERSION="v1.4.2";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VW=640,VH=480,FT="'VT323',ui-monospace,monospace";
@@ -419,7 +419,7 @@ function newProf(){const own=Array(NF).fill(0);own[0]=1;return{lv:1,xp:0,own,sp:
 function fixProf(o){const p=newProf();if(!o||typeof o!=="object")return p;p.lv=clamp(o.lv|0,1,99);p.xp=Math.max(0,+o.xp||0);
  if(Array.isArray(o.own))o.own.forEach((v,i)=>{if(i<NF&&v)p.own[i]=1});p.own[0]=1;p.sp=Math.max(0,o.sp|0);
  if(Array.isArray(o.sk)){if(o.sk.length===NSK)o.sk.forEach((v,i)=>{if(v)p.sk[i]=1});else p.sp+=o.sk.filter(Boolean).length}
- const f=o.form|0,s=o.sum|0;p.form=f>=0&&f<NF&&f!==DRG&&p.own[f]?f:0;p.sum=s>=1&&s<NF&&p.own[s]?s:-1;p.sec=o.sec|0;p.reg=o.reg?1:0;
+ const f=o.form|0,s=o.sum|0;p.form=f>=0&&f<NF&&p.own[f]?f:0;p.sum=s>=1&&s<NF&&p.own[s]?s:-1;p.sec=o.sec|0;p.reg=o.reg?1:0;
  p.res=(o.res|0)&127;if(o.imm)p.res|=1<<EV;for(let i=1;i<NF;i++)if(p.own[i]&&EL_OF[i]!==undefined)p.res|=1<<EL_OF[i];
  p.nm=cleanName(o.nm).trim();p.col=clamp(o.col|0,0,NCOL-1);
  if(Array.isArray(o.slv))o.slv.forEach((v,i)=>{if(i<NF)p.slv[i]=clamp(v|0,1,p.lv)});if(Array.isArray(o.sxp))o.sxp.forEach((v,i)=>{if(i<NF)p.sxp[i]=Math.max(0,+v||0)});
@@ -469,14 +469,14 @@ const needLv=l=>(l*30+l*l*3)*3,need=p=>needLv(p.lv);
 /* nome do botão conforme o aparelho: teclado, controle ou celular */
 const KN={act:["Espaço","A","AGIR"],dash:["Shift","B","DASH"],heal:["H","Y","CURA"],skill:["R","X","—"],tree:["K","Select","ÁRVORE"],form:["Q/E","LB/LT","as setas da roda"]};
 const kn=(p,a)=>KN[a][MODE==="cel"&&p.src.kb?2:p.src.pad>=0?1:0];
-const formBonus=p=>p.form&&S(p,"atk5")?1.2:1;
+const formBonus=p=>(p.form&&S(p,"atk5")?1.2:1)*(p.form===DRG?1.5:1);
 const dmg=p=>(8+p.lv*2.5)*(1+.15*S(p,"atk2")+.2*S(p,"atk7"))*formBonus(p);
 const mdmg=p=>(4+p.lv*1.6)*MT[p.form].fd*(1+.15*S(p,"atk1"))*formBonus(p);
 const critC=p=>.1*S(p,"atk3")+.1*S(p,"atk6");
 const sumHP=(p,t)=>Math.round((MT[t].hp*1.2+p.slv[t]*9)*(1+.4*S(p,"sum1")+.6*S(p,"sum5")));
 const sumDM=(p,t)=>(MT[t].dm*1.1+p.slv[t]*1.7)*(1+.3*S(p,"sum2")+.4*S(p,"sum6"))*(S(p,"sum8")?1.5:1);
 const healCD=p=>12*(S(p,"mag2")?.7:1);
-const formList=p=>{const a=[];for(let i=0;i<NF;i++)if(p.own[i]&&i!==DRG)a.push(i);return a};
+const formList=p=>{const a=[];for(let i=0;i<NF;i++)if(p.own[i])a.push(i);return a};
 const sumList=p=>{const a=[-1];for(let i=1;i<NF;i++)if(p.own[i])a.push(i);return a};
 const mElem=m=>EL_OF[m.t];
 function mkPlayer(slot,prof,src){const[x,y]=spawnPoint();const p=Object.assign({slot,src,x:x+slot*18,y,fx:1,fy:0,cd:0,af:0,scd:0,ki:0,dash:0,dsh:0,dcd:0,imT:0,hcd:0,bless:0,scT:0,inv:0,runT:0,run:0,hs:null,fl:0,mv:0,hit:0,eatT:0,pz:0,slow:0,dead:0,fly:0,sm:0,su:null,wf:0,ws:0,aseq:0,kseq:0,kk:0,ft:0,cast:0},fixProf(prof));p.hp=mhp(p);return p}
@@ -580,7 +580,7 @@ function interact(p){
   for(let i=0;i<70;i++)burst(vXp+(R()-.5)*120,vYp-20+(R()-.5)*90,pk(["#ffe14a","#bff4ff","#5ad8ff"]),5,1.6,(R()-.5)*200,(R()-.5)*200,p);
   rings.push({x:vXp,y:vYp,r0:150,r1:4,t:.7,m:.7,c:"#ffe14a"});
   if(G.phase<1){if(NET.mode==="client")netHit(-1,0,99);else setPhase(1)}
-  gain(p,900);grantSkin(p);say("O Dragão do Vendaval aceitou sua amizade e luta ao seu lado como invocação! A passagem para o mundo aberto se abriu.");saveDirty=1;return}
+  gain(p,900);grantSkin(p);say("O Dragão do Vendaval aceitou sua amizade! Ele luta ao seu lado como invocação e você também pode se transformar nele. A passagem para o mundo aberto se abriu.");saveDirty=1;return}
  if(G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80){if(NET.mode==="client"){say("Ancião: “Quem é o servidor cuida das melhorias da vila.”");return}state="upgrade";menuSel=0;sfx("ui");return}
  const v=villagers.find(q=>Math.hypot(q.x-p.x,q.y-p.y)<50);if(v&&G.ch>=2)say(pk(["Goblin: “Obrigado por proteger "+G.vname+"!”","Goblin: “Os orcs vêm do leste!”","Goblin: “Você não é um slime malvado, né?”"]))}
 /* ===== Jogador ===== */
@@ -946,11 +946,11 @@ function drawMon(m){const s=SPR[m.t],t=MT[m.t],fy=m.y+12,lift=t.fl?8+Math.sin(ti
  if(t.boss)return;const near=PL.some(p=>Math.abs(m.x-p.x)<170&&Math.hypot(m.x-p.x,m.y-p.y)<170),hov=Math.abs(MX+camx-m.x)<20&&Math.abs(MY+camy-m.y+10)<24;
  if(m.hp<m.mhp||near)hpBar(m.x,top-6,30,m.hp/m.mhp,m.elite?"#ffb02a":"#e83a3a");
  if(hov||(near&&m.elite))txt(t.n+(m.elite?" Elite":""),m.x+ox,fy+oy+16,m.elite?"#ffd84a":"#e8ecff",14,"center")}
-function drawHero(o){if(o.dead)return;const s=o.f===0?SLC[o.c]:SPR[o.f],fm=MT[o.f],fy=o.y+12,lift=fm.fl?8+Math.sin(time*6+o.c)*2:0;let sx=1,sy=1,bob=0;
+function drawHero(o){if(o.dead)return;const s=o.f===0?SLC[o.c]:SPR[o.f],fm=MT[o.f],fy=o.y+12,lift=fm.fl?8+Math.sin(time*6+o.c)*2:0,dk=o.f===DRG?.62:1;let sx=dk,sy=dk,bob=0;
  if(o.f===0){const ph=time*(o.mv?10:3.4)+o.c,h=Math.abs(Math.sin(ph));if(o.mv){bob=-h*6;const q=h<.3?(.3-h)*.55:-h*.07;sx=1+q;sy=1-q}else{const q=Math.sin(ph)*.05;sx=1+q;sy=1-q}if(o.eat>0){sx+=o.eat*.9;sy+=o.eat*.5}}
  else if(o.mv)bob=-Math.abs(Math.sin(time*10))*2;
  if(o.cast>0)magicCircle(o.x,fy,PCOL[o.c],o.cast/.35);
- shadow(o.x,fy,Math.max(11,sw(s)*.32)*(o.f===0?1-(-bob)/24:1));
+ shadow(o.x,fy,Math.max(11,sw(s)*.32)*(o.f===0?1-(-bob)/24:dk));
  const fw=o.hit>0?.7:o.inv>0&&Math.sin(time*20)>0?.5:0;
  if(o.f===0)slimeDraw(o.c,o.skin,o.x,fy-lift+bob,o.fl,sx,sy,fw,1);else spr(s,o.x,fy-lift+bob,o.fl,sx,sy,fw,1);
  txt(o.tag,o.x+ox,fy+oy+17,"#ffffff",15,"center");
@@ -1130,7 +1130,7 @@ function worldMap(){X.fillStyle="rgba(6,8,20,.85)";X.fillRect(0,0,VW,VH);win(14,
 function overlay(){if(state==="worldmap"){worldMap();return}X.fillStyle="rgba(6,8,20,.6)";X.fillRect(0,0,VW,VH);
  if(state==="pause"){win(170,96,300,300,"Menu");menuList(pauseItems(),VW/2,150,menuSel,240);
   const im=ELN.filter((_,e)=>immune(PL[0],e));txt("Imunidades: "+(im.length?im.join(", "):"nenhuma ainda"),VW/2,350,"#a8ffb8",15,"center");
-  let n=0;for(let k=0;k<secrets.length;k++)if(PL[0].sec&(1<<k))n++;txt("Segredos "+n+"/"+secrets.length+" · Formas "+formList(PL[0]).length+"/"+(NF-1),VW/2,372,"#9aaad8",15,"center")}
+  let n=0;for(let k=0;k<secrets.length;k++)if(PL[0].sec&(1<<k))n++;txt("Segredos "+n+"/"+secrets.length+" · Formas "+formList(PL[0]).length+"/"+NF,VW/2,372,"#9aaad8",15,"center")}
  if(state==="tree")treeScreen();
  if(state==="upgrade"){win(110,110,420,270,"Ancião Goblin");txt("“Use os cristais dos monstros para fortalecer "+G.vname+".” Cristais: "+G.cr,VW/2,156,"#c8d6ff",16,"center");
   menuList(upgItems(),VW/2,200,menuSel,380);const u=UPG[menuSel];if(u)txt(u.d,VW/2,350,"#e0e8ff",17,"center")}
@@ -1138,7 +1138,7 @@ function overlay(){if(state==="worldmap"){worldMap();return}X.fillStyle="rgba(6,
   rr(160,232,320,34,4);X.fillStyle="rgba(240,245,255,.95)";X.fill();X.font="24px "+FT;X.fillStyle="#1a2440";X.textAlign="center";X.fillText(nameBuf+(Math.sin(time*8)>0?"_":""),VW/2,256);X.textAlign="left";
   txt("Digite um nome ou use ◄ ► para sugestões",VW/2,292,"#c8d6ff",17,"center");txt("ENTER / A / clique aqui para confirmar",VW/2,320,"#ffe7a0",18,"center");HIT.push({x:160,y:300,w:320,h:30,fn:confirmVillage})}
  if(state==="chend"){win(70,120,500,250,"Capítulo 2 completo");txt("O Lorde Orc foi devorado e "+(G.vname||"a vila")+" está a salva!",VW/2,190,"#e0f0d8",20,"center");
-  txt("Os goblins agora chamam você de guardião.",VW/2,214,"#e0f0d8",20,"center");PL.forEach((p,i)=>txt((p.nm?p.nm+" · ":"")+"Nível "+p.lv+" · Formas "+formList(p).length+"/"+(NF-1),VW/2,250+i*20,PCOL[p.col],19,"center"));
+  txt("Os goblins agora chamam você de guardião.",VW/2,214,"#e0f0d8",20,"center");PL.forEach((p,i)=>txt((p.nm?p.nm+" · ":"")+"Nível "+p.lv+" · Formas "+formList(p).length+"/"+NF,VW/2,250+i*20,PCOL[p.col],19,"center"));
   txt("ENTER / A / clique para continuar explorando",VW/2,350,"#ffffff",19,"center");HIT.push({x:0,y:0,w:VW,h:VH,fn:()=>{state="play"}})}}
 /* aba Visual: os 24 visuais; os trancados aparecem como sombra */
 let treeTab=0,skinSel=0;

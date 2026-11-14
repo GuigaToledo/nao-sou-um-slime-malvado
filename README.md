@@ -37,7 +37,7 @@ O golpe de perto e a magia da forma são **automáticos**. Na forma de Slime, a 
 ## O mundo
 
 - **Cavernas dos insetos:** Gruta do Despertar (morcegos), Túneis Úmidos (lagartas), Ninho das Aranhas (com a Rainha Aranha) e Colmeia dos Ankhegs.
-- **Santuário do Vendaval:** com Nível 5, faça amizade com o dragão. Ele vira sua invocação e abre a passagem para o mundo aberto.
+- **Santuário do Vendaval:** com Nível 5, faça amizade com o dragão. Ele vira sua invocação e também uma forma (voa e lança raios, tornados e vendavais), e abre a passagem para o mundo aberto.
 - **Mundo aberto:** cada monstro vive no seu habitat, e há insetos espalhados por todo o mapa.
 
   | Região | Monstros |
