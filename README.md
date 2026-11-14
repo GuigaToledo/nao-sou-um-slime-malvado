@@ -1,6 +1,6 @@
 # Não sou um Slime Malvado
 
-Jogo no navegador: você renasce como um slime e cada monstro derrotado é devorado e vira uma forma nova e uma invocação. Atravesse as cavernas dos insetos, faça amizade com o Dragão do Vendaval e explore o mundo aberto até a Vila Goblin e a Fortaleza do Lorde Orc.
+Jogo no navegador: você renasce como um slime e cada monstro derrotado é devorado e vira uma forma nova e uma invocação. Atravesse as cavernas dos insetos, faça amizade com o Dragão do Vendaval e explore o mundo aberto, do nível 1 ao 100.
 
 **Jogar:** https://guigatoledo.github.io/nao-sou-um-slime-malvado/
 
@@ -72,6 +72,24 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 ## Salvamento
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
+
+## Novidades da v1.8.0
+
+- **Níveis até 100.** Cada nível dá mais vida e mais dano, e o mesmo vale para as invocações.
+- **XP linear:** cerca de 20 monstros do seu nível para subir cada nível.
+- **Os monstros têm nível.** Cada região tem uma faixa de níveis, que vai do 1 (morcegos) ao 100 (Dragão Ancião). O Elite tem 3 níveis a mais que o monstro comum.
+- **Cor do nome conforme a diferença de nível:**
+
+  | Cor | Nível do monstro | Dano que você toma | XP |
+  |---|---|---|---|
+  | Verde | até 4 acima do seu | normal | normal |
+  | Amarelo | 5 ou mais acima | +50% | +50% |
+  | Vermelho | 10 ou mais acima | dobro | dobro |
+
+- **Árvore de habilidades com pontos:** cada habilidade aceita vários pontos, por exemplo o Retorno Rápido, que começa em 10 segundos e perde 1 segundo por ponto até 5. Você ganha 1 ponto por nível, e a árvore inteira (99 pontos) fecha no nível 100.
+- **Resistência no lugar da imunidade:** devorar um monstro de um elemento dá 25% de resistência a ele. O Escudo Elemental, na árvore, leva até 75%.
+- **Invocação nova** começa no nível do monstro devorado (sem passar do seu).
+- **Saves antigos:** o nível é mantido e os pontos de habilidade são devolvidos para você distribuir na árvore nova.
 
 ## Novidades da v1.7.0
 
