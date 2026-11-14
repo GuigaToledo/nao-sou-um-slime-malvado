@@ -15,9 +15,53 @@ A tela inicial tem 3 vagas de personagem. Em cada uma você escolhe o nome e a c
 1. Todos abrem o link e escolhem **Jogar online**.
 2. Quem entrar primeiro vira o servidor: o mundo dele é o mundo de todos.
 3. Os outros entram no mundo do servidor e mantêm o próprio nível, as formas e as invocações.
-4. Se o servidor sair, os outros escolhem **Jogar online** de novo, e o primeiro a entrar vira o novo servidor.
+4. Se o servidor sair, os outros escolhem **Jogar online** de novo, e o primeiro a entrar vira o novo servidor. Com o servidor dedicado (abaixo), isso não é preciso.
 
 Para um grupo separado, coloque `#nomedasala` no fim do link. A conexão é direta entre os navegadores (WebRTC, via [PeerJS](https://peerjs.com/)) e pode falhar em redes muito fechadas.
+
+## Servidor dedicado na Oracle Cloud (até 8 por sala)
+
+Com o servidor dedicado, ninguém precisa "ser o servidor":
+- Todo mundo se conecta à mesma máquina, que fica ligada o tempo todo.
+- Se quem hospeda o mundo sair, o próximo da sala assume sozinho, sem derrubar ninguém.
+- Funciona melhor em redes fechadas do que a conexão direta.
+
+A pasta `server/` tem o programa (`server.js`) e um instalador (`setup.sh`).
+
+**1. Criar a máquina (grátis, plano Always Free)**
+1. Crie uma conta em https://www.oracle.com/cloud/free/ (ela pede cartão só para confirmar; o plano Always Free não cobra).
+2. No painel, vá em **Compute → Instances → Create instance**.
+3. Em **Image**, escolha **Ubuntu 22.04** (ou 24.04).
+4. Em **Shape**, escolha uma marcada como **Always Free** (VM.Standard.E2.1.Micro ou Ampere A1).
+5. Em **Add SSH keys**, clique em **Save private key** e guarde o arquivo.
+6. Clique em **Create** e anote o **Public IP address**.
+
+**2. Abrir as portas 80 e 443**
+1. Na página da instância, clique na **Subnet** e depois na **Security List** (a "Default Security List").
+2. Clique em **Add Ingress Rules** e crie duas regras, com Source CIDR `0.0.0.0/0`, IP Protocol TCP e Destination Port `80` e depois `443`.
+
+**3. Instalar o servidor**
+Entre na máquina pelo terminal (no Windows, o PowerShell já tem `ssh`):
+```
+ssh -i caminho/da/chave.key ubuntu@SEU_IP
+```
+Depois rode:
+```
+git clone https://github.com/GuigaToledo/nao-sou-um-slime-malvado
+sudo bash nao-sou-um-slime-malvado/server/setup.sh
+```
+- No fim, o script mostra o endereço, por exemplo `wss://123-45-67-89.sslip.io`.
+- O certificado https é automático, pelo Caddy com o sslip.io, então não precisa comprar domínio.
+- Abra `https://123-45-67-89.sslip.io/status` no navegador para conferir se o servidor está no ar.
+
+**4. Ligar o jogo ao servidor**
+- **Para testar antes:** abra o jogo com `?servidor=` no link, por exemplo `https://guigatoledo.github.io/nao-sou-um-slime-malvado/?servidor=wss://123-45-67-89.sslip.io`.
+- **Para valer para todos:** coloque o endereço em `SERVER_DEFAULT`, no `index.html`, e publique.
+
+**Comandos úteis na máquina**
+- Ver o que está acontecendo: `sudo journalctl -u slime-servidor -f`
+- Atualizar: `cd nao-sou-um-slime-malvado && git pull && sudo bash server/setup.sh`
+- Mudar o limite por sala: edite `MAX_PLAYERS` em `/etc/systemd/system/slime-servidor.service` e rode `sudo systemctl daemon-reload && sudo systemctl restart slime-servidor`.
 
 ## Controles
 
@@ -72,6 +116,14 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 ## Salvamento
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
+
+## Novidades da v2.0.0
+
+- **Quem sai do jogo some da tela.**
+  - Fechar a aba avisa a sala na hora.
+  - Se alguém cair sem avisar (internet caiu, jogo travou), o personagem e as invocações dele somem depois de 6 segundos sem sinal.
+  - Minimizar o jogo não derruba ninguém: o jogo continua mandando sinal em segundo plano.
+- **Servidor dedicado** para rodar na Oracle Cloud, com até 8 conexões por sala. Se quem hospeda o mundo sair, outro jogador assume sem derrubar ninguém. Sem servidor configurado, o jogo continua com a conexão direta entre navegadores.
 
 ## Novidades da v1.9.1
 

@@ -18,7 +18,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v1.9.1";
+const VERSION="v2.0.0";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VW=640,VH=480,FT="'VT323',ui-monospace,monospace";
@@ -1047,37 +1047,75 @@ function handlePads(){for(let i=0;i<4;i++){const g=padNow[i];if(!g||!REAL_BTN.so
 /* ===== Multijogador online (PeerJS): quem entra primeiro vira o servidor ===== */
 const ROOM=((location.hash||"").slice(1).toLowerCase().replace(/[^a-z0-9]/g,"")||"principal").slice(0,20);
 const HOST_ID="naosouumslimemalvado-q7k2-"+ROOM,PEER_OPTS={debug:0};
-const NET={mode:"off",room:null,peer:null,conn:null,code:ROOM,remote:[],hits:[],hseq:0,lastH:{},kseq:0,kills:[],lastK:-1,first:1,ss:0,lastSnap:-1,lastHost:0,joinT:0,wait:0,presT:0,used:new Set(),foreign:0,me:"",rs:{},tries:0,gen:0};
+/* servidor dedicado (ex.: Oracle Cloud). Vazio = sem servidor: usa a conexão direta entre navegadores (PeerJS).
+   Também dá para testar com ?servidor=wss://endereco na barra de endereço. */
+const SERVER_DEFAULT="";
+const SERVER_URL=(()=>{let u="";try{u=new URLSearchParams(location.search).get("servidor")||""}catch(e){}u=u||SERVER_DEFAULT;return/^wss?:\/\/[^\s]+$/i.test(u)?u.replace(/\/+$/,""):""})();
+const STALE_MS=6000; /* jogador sem mandar sinal por 6s sai da tela */
+const NET={max:4,ws:null,mode:"off",room:null,peer:null,conn:null,code:ROOM,remote:[],hits:[],hseq:0,lastH:{},kseq:0,kills:[],lastK:-1,first:1,ss:0,lastSnap:-1,lastHost:0,joinT:0,wait:0,presT:0,used:new Set(),foreign:0,me:"",rs:{},tries:0,gen:0};
 const netAvail=()=>typeof Peer!=="undefined";
 function netHit(id,d,e){NET.hits.push([++NET.hseq,id,Math.round(d),e|0]);if(NET.hits.length>20)NET.hits.shift()}
-function hostShim(){const s={pres:{},others:new Map(),conns:new Map(),
- presence(o){Object.assign(s.pres,o);const msg={t:"all",l:[[NET.me,s.pres],...[...s.others]]};for(const c of s.conns.values()){try{if(c.open)c.send(msg)}catch(e){}}return Promise.resolve()},
- peers(){return[{peer:NET.me,sameTab:true,presence:s.pres},...[...s.others].map(([peer,presence])=>({peer,sameTab:false,presence}))]},
- leave(){for(const c of s.conns.values()){try{c.close()}catch(e){}}}};return s}
-function clientShim(conn){const s={list:[],presence(o){try{if(conn.open)conn.send({t:"p",d:o})}catch(e){}return Promise.resolve()},peers(){return s.list},leave(){try{conn.close()}catch(e){}}};return s}
-function leaveNet(){NET.gen++;try{NET.room&&NET.room.leave()}catch(e){}try{NET.peer&&NET.peer.destroy()}catch(e){}NET.peer=null;NET.conn=null;NET.room=null;NET.mode="off";NET.remote=[];NET.wait=0;NET.rs={}}
+function hostShim(){const s={pres:{},others:new Map(),seen:new Map(),conns:new Map(),
+ presence(o){Object.assign(s.pres,o);const msg={t:"all",l:[[NET.me,s.pres],...fresh(s)]};for(const c of s.conns.values()){try{if(c.open)c.send(msg)}catch(e){}}return Promise.resolve()},
+ peers(){return[{peer:NET.me,sameTab:true,presence:s.pres},...fresh(s).map(([peer,presence])=>({peer,sameTab:false,presence}))]},
+ leave(){for(const c of s.conns.values()){try{c.send({t:"bye"})}catch(e){}try{c.close()}catch(e){}}}};return s}
+/* quem fechou o jogo sem avisar (a conexão direta nem sempre avisa) some da tela depois de STALE_MS sem sinal;
+   se o sinal voltar (ex.: só tinha minimizado), aparece de novo */
+function fresh(s){const now=performance.now();return[...s.others].filter(([peer])=>now-(s.seen.get(peer)||0)<STALE_MS)}
+function forgetPeer(peer){for(const k in NET.rs)if(NET.rs[k].peer===peer)delete NET.rs[k];NET.remote=NET.remote.filter(r=>r.peer!==peer)}
+/* sala no servidor dedicado: o servidor repassa a presença de cada um para todos */
+function serverShim(ws){const s={pres:{},others:new Map(),seen:new Map(),
+ presence(o){s.pres=o;try{if(ws.readyState===1)ws.send(JSON.stringify({t:"p",d:o}))}catch(e){}return Promise.resolve()},
+ peers(){return[{peer:NET.me,sameTab:true,presence:s.pres},...fresh(s).map(([peer,presence])=>({peer,sameTab:false,presence}))]},
+ leave(){try{if(ws.readyState===1)ws.send(JSON.stringify({t:"bye"}))}catch(e){}try{ws.close()}catch(e){}}};return s}
+function clientShim(conn){const s={list:[],presence(o){try{if(conn.open)conn.send({t:"p",d:o})}catch(e){}return Promise.resolve()},peers(){return s.list},leave(){try{if(conn.open)conn.send({t:"bye"})}catch(e){}try{conn.close()}catch(e){}}};return s}
+function leaveNet(){NET.gen++;try{NET.room&&NET.room.leave()}catch(e){}try{NET.peer&&NET.peer.destroy()}catch(e){}try{NET.ws&&NET.ws.close()}catch(e){}NET.peer=null;NET.conn=null;NET.ws=null;NET.room=null;NET.mode="off";NET.remote=[];NET.wait=0;NET.rs={}}
+/* fechar a aba avisa a sala na hora, para o seu slime sumir da tela dos outros */
+addEventListener("pagehide",()=>{if(NET.mode!=="off")leaveNet()});
+/* com a aba em segundo plano o jogo pausa; um sinal por segundo mantém você na sala */
+setInterval(()=>{if(document.hidden&&NET.mode!=="off"&&NET.room){try{netTick(1)}catch(e){}}},1000);
 function netFail(t){leaveNet();NET.foreign=0;PL=[];netMsg=t;state="online";menuSel=0}
 function netLost(t){leaveNet();say(t);if(state==="connecting")state="online"}
-function goOnline(){leaveNet();if(!netAvail()){netMsg="Não deu para carregar a conexão online. Verifique a internet e recarregue a página.";state="online";menuSel=0;return}
+function goOnline(){leaveNet();if(SERVER_URL){goServer();return}if(!netAvail()){netMsg="Não deu para carregar a conexão online. Verifique a internet e recarregue a página.";state="online";menuSel=0;return}
  const g=NET.gen;state="connecting";netMsg="Procurando o servidor da sala “"+ROOM+"”…";NET.joinT=time;
  let p;try{p=new Peer(HOST_ID,PEER_OPTS)}catch(e){netFail("Falha ao iniciar a conexão.");return}NET.peer=p;
  p.on("open",()=>{if(g===NET.gen)becomeHost()});
  p.on("connection",c=>{if(g===NET.gen)hostConn(c)});
  p.on("disconnected",()=>{if(g===NET.gen&&NET.mode==="host"){try{p.reconnect()}catch(e){}}});
  p.on("error",e=>{if(g!==NET.gen)return;if(e&&e.type==="unavailable-id"){try{p.destroy()}catch(x){}NET.peer=null;joinAsClient(g)}else if(NET.mode!=="host")netFail("Erro de conexão ("+((e&&e.type)||"desconhecido")+"). Tente de novo.")})}
-function becomeHost(){NET.tries=0;startGame(SAVE&&SAVE.world,SAVE&&SAVE.prof,true);NET.mode="host";NET.me=HOST_ID;NET.room=hostShim();NET.kills=[];NET.kseq=0;NET.lastH={};
- say("Você chegou primeiro: agora é o servidor da sala “"+ROOM+"”. Quem escolher Jogar online entra no seu mundo.")}
+function becomeHost(room,me){NET.tries=0;startGame(SAVE&&SAVE.world,SAVE&&SAVE.prof,true);NET.mode="host";NET.me=me||HOST_ID;NET.room=room||hostShim();NET.kills=[];NET.kseq=0;NET.lastH={};
+ say("Você chegou primeiro: agora o seu jogo hospeda o mundo da sala “"+ROOM+"”. Quem escolher Jogar online entra nele.")}
+/* ===== servidor dedicado (WebSocket) ===== */
+function goServer(){const g=NET.gen;state="connecting";netMsg="Conectando ao servidor online…";NET.joinT=time;let ws;
+ try{ws=new WebSocket(SERVER_URL+"/?sala="+encodeURIComponent(ROOM))}catch(e){netFail("Endereço do servidor inválido.");return}NET.ws=ws;
+ ws.onmessage=ev=>{if(g!==NET.gen)return;let m;try{m=JSON.parse(ev.data)}catch(e){return}if(!m||typeof m!=="object")return;
+  if(m.t==="role"){NET.me=String(m.id);NET.max=m.max?clamp(m.max|0,1,16):8;
+   if(m.role==="host"){if(NET.mode==="client")promoteHost();else if(NET.mode==="off")becomeHost(serverShim(ws),NET.me)}
+   else if(NET.mode==="off"){prepClient();NET.room=serverShim(ws);NET.mode="client";NET.wait=1;NET.joinT=time;NET.lastHost=time;netMsg="Entrando no mundo da sala…"}}
+  else if(m.t==="u"&&NET.room&&NET.room.others&&m.d&&typeof m.d==="object"){const peer=String(m.peer);if(!NET.room.others.has(peer)&&NET.mode==="host"){say("Um amigo entrou na sala!");sfx("ok")}NET.room.others.set(peer,m.d);NET.room.seen.set(peer,performance.now())}
+  else if(m.t==="bye"&&NET.room&&NET.room.others){const peer=String(m.peer);if(NET.room.others.delete(peer)){NET.room.seen.delete(peer);forgetPeer(peer);say("Um jogador saiu da sala.")}}
+  else if(m.t==="full")netFail(m.why==="servidor"?"O servidor está cheio. Tente mais tarde.":"A sala está cheia ("+(m.max||8)+" conexões).")};
+ ws.onclose=()=>{if(g!==NET.gen)return;if(NET.mode==="off")netFail("Não consegui conectar ao servidor online. Ele pode estar desligado.");else netLost("Conexão com o servidor perdida. O jogo continua só com você.")}}
+/* quem hospedava saiu: este jogo assume o mundo, com os monstros que já conhecia */
+function promoteHost(){NET.mode="host";NET.kills=[];NET.kseq=0;NET.lastH={};
+ if(NET.wait){NET.wait=0;startGame(SAVE&&SAVE.world,SAVE&&SAVE.prof,true);NET.mode="host"}
+ else{let mx=MID;for(const m of mons)mx=Math.max(mx,m.id+1);MID=mx;
+  /* monstros que estavam mortos voltam a renascer daqui a 1 minuto */
+  const live=new Set();for(const m of mons){if(m.sp>=0&&m.sp!==undefined){live.add(m.sp);continue}let b=-1,bd=12*T;spawns.forEach((s,i)=>{if(s.t!==m.t||live.has(i))return;const d=Math.hypot(s.x*T+16-m.x,s.y*T+16-m.y);if(d<bd){bd=d;b=i}});if(b>=0){m.sp=b;live.add(b)}}
+  G.rq=[];spawns.forEach((s,i)=>{if(!live.has(i))G.rq.push({si:i,at:time+RESPAWN_S})})}
+ say("Quem hospedava saiu: agora o seu jogo hospeda o mundo. Ninguém precisa sair.");sfx("ok")}
 function hostConn(c){c.on("open",()=>{if(!NET.room||NET.mode!=="host"){try{c.close()}catch(e){}return}
   if(totalPlayers()>=4){try{c.send({t:"full"})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},400);return}
   NET.room.conns.set(c.peer,c);say("Um amigo entrou na sala!");sfx("ok")});
- c.on("data",d=>{if(NET.mode==="host"&&NET.room&&NET.room.conns.has(c.peer)&&d&&d.t==="p"&&d.d&&typeof d.d==="object")NET.room.others.set(c.peer,d.d)});
- const bye=()=>{if(NET.room&&NET.room.conns&&NET.room.conns.has(c.peer)){NET.room.conns.delete(c.peer);NET.room.others.delete(c.peer);say("Um jogador saiu da sala.")}};c.on("close",bye);c.on("error",bye)}
+ c.on("data",d=>{if(NET.mode!=="host"||!NET.room||!NET.room.conns.has(c.peer)||!d)return;if(d.t==="bye"){c.close();return}if(d.t==="p"&&d.d&&typeof d.d==="object"){NET.room.others.set(c.peer,d.d);NET.room.seen.set(c.peer,performance.now())}});
+ const bye=()=>{if(NET.room&&NET.room.conns&&NET.room.conns.has(c.peer)){NET.room.conns.delete(c.peer);NET.room.others.delete(c.peer);NET.room.seen.delete(c.peer);forgetPeer(c.peer);say("Um jogador saiu da sala.")}};c.on("close",bye);c.on("error",bye)}
 function prepClient(){resetWorld(null);clearFx();hints={};PL=[];const p=mkPlayer(0,SAVE&&SAVE.prof&&SAVE.prof[0],{kb:true,pad:p1pad});PL.push(p);applySecrets(p.sec);chShown=1;
  NET.foreign=1;NET.first=1;NET.lastK=-1;NET.lastSnap=-1;NET.hits=[];NET.hseq=0}
 function joinAsClient(g){let p;try{p=new Peer(PEER_OPTS)}catch(e){netFail("Falha ao iniciar a conexão.");return}NET.peer=p;netMsg="Servidor encontrado. Entrando no mundo dele…";
  p.on("open",id=>{if(g!==NET.gen)return;NET.me=id;const c=p.connect(HOST_ID,{serialization:"json"});NET.conn=c;
   c.on("open",()=>{if(g!==NET.gen)return;prepClient();NET.room=clientShim(c);NET.mode="client";NET.wait=1;NET.joinT=time;NET.lastHost=time});
-  c.on("data",d=>{if(g!==NET.gen||!d)return;if(d.t==="all"&&Array.isArray(d.l)&&NET.room&&NET.room.list)NET.room.list=d.l.slice(0,8).filter(Array.isArray).map(([peer,pr])=>({peer:String(peer),sameTab:String(peer)===NET.me,presence:pr&&typeof pr==="object"?pr:{}}));
+  c.on("data",d=>{if(g!==NET.gen||!d)return;if(d.t==="all"&&Array.isArray(d.l)&&NET.room&&NET.room.list){NET.room.list=d.l.slice(0,8).filter(Array.isArray).map(([peer,pr])=>({peer:String(peer),sameTab:String(peer)===NET.me,presence:pr&&typeof pr==="object"?pr:{}}));
+    const ids=new Set(NET.room.list.map(e=>e.peer));for(const k in NET.rs)if(!ids.has(NET.rs[k].peer))delete NET.rs[k]}
    else if(d.t==="full")netFail("A sala está cheia (4 jogadores).")});
   c.on("close",()=>{if(g===NET.gen&&NET.mode==="client")netLost("O servidor saiu. Escolha Jogar online de novo: quem entrar primeiro vira o novo servidor.")})});
  p.on("error",e=>{if(g!==NET.gen)return;if(e&&e.type==="peer-unavailable"&&NET.tries<3){NET.tries++;setTimeout(()=>{if(g===NET.gen)goOnline()},800)}else if(NET.mode!=="client")netFail("Não foi possível entrar na sala ("+((e&&e.type)||"erro")+").")})}
@@ -1092,7 +1130,7 @@ function readRemote(dt){const out=[];let host=null,ps=[];try{ps=NET.room.peers()
    const kq=Array.isArray(q.k)?q.k:[0,0];if((kq[1]|0)!==o.k){if(o.k>=0){remoteFx(r,KL[kq[0]|0]);if(KL[kq[0]|0]==="holy"&&!r.dead)holyHeal(r.x,r.y)}o.k=kq[1]|0}
    out.push(r)});
   if(NET.mode==="host"&&Array.isArray(pr.h))hostHits(pe.peer,pr.h)}
- NET.remote=out.slice(0,8);return host}
+ NET.remote=out.slice(0,16);return host}
 function remoteFx(r,k){const c=k==="fire"||k==="fireball"?"#ff8a1f":k==="frost"?"#bff0ff":k==="bolt"?"#ffe14a":k==="cloud"?"#8bd06a":k==="blink"?"#b48aff":"#e0e6ee";
  rings.push({x:r.x,y:r.y,r0:6,r1:50,t:.3,m:.3,c});for(let i=0;i<10;i++)burst(r.x,r.y-8,c,4,.35,(R()-.5)*200,(R()-.5)*200)}
 function hostHits(peer,h){let last=NET.lastH[peer]??-1,mx=last;for(const e of h){if(!Array.isArray(e))continue;const seq=e[0]|0;if(seq<=last)continue;mx=Math.max(mx,seq);
@@ -1329,7 +1367,7 @@ function hud(){const multi=PL.length>1,gl=goal();
  else{PL.forEach(p=>{const right=p.slot%2===1,bottom=p.slot>=2,x=right?VW-220:8;if(!bottom){panel(p,x,8);wheels(p,x+106,8+60+30,.5)}else{panel(p,x,VH-68);wheels(p,x+106,VH-68-34,.5)}});
   if(showMM)minimap(VW/2-85,ty+(zoneT>0?28:0),camx+VW/2,camy+VH/2);msgBox(64,Math.max(ty+(showMM?100:8),170),VW-128)}
  if(savedT>0){X.globalAlpha=clamp(savedT,0,1);txt("Jogo salvo",VW-8,VH-8,"#a8ffb8",16,"right");X.globalAlpha=1}
- if(online())txt("Online · sala “"+ROOM+"” · "+totalPlayers()+"/4"+(NET.mode==="host"?" · você é o servidor":""),multi?VW/2:8,VH-8,"#d8c8a0",15,multi?"center":"left");
+ if(online())txt("Online · sala “"+ROOM+"” · "+totalPlayers()+"/"+NET.max+(NET.mode==="host"?" · você hospeda o mundo":""),multi?VW/2:8,VH-8,"#d8c8a0",15,multi?"center":"left");
  if(bt>0){X.globalAlpha=clamp(bt,0,1);txt(bannerT,VW/2,VH/2-40,"#ffe14a",44,"center");X.globalAlpha=1}}
 function nameAt(){for(const p of PL){if(p.dead>0)continue;const k=kn(p,"act");
  if(Math.hypot(p.x-vXp,p.y-vYp)<120&&!p.own[DRG]){txt(p.lv>=5?"["+k+"] Fazer amizade com o dragão":"Precisa do Nível 5",vXp+ox,vYp+oy-110,"#ffe14a",19,"center");break}
@@ -1389,7 +1427,7 @@ function titleMenu(mi){const items=titleItems(),n=items.length+3;
  if(tSel===1&&(mi.l||mi.r)&&padNow.some(Boolean)){const i=NAMES.indexOf(crName);crName=NAMES[((i<0?0:i+(mi.r?1:-1))+NAMES.length)%NAMES.length]}
  if(tSel===2&&(mi.l||mi.r))crCol=(crCol+(mi.r?1:-1)+NCOL)%NCOL;
  if(mi.ok){sfx("ok");if(tSel<3)tSel++;else items[tSel-3].act()}}
-function onlineScreen(){win(80,200,480,250,"Jogar online · até 4 jogadores");closeBtn(534,203,()=>{state="title";netMsg=""});txt("Sala: “"+ROOM+"” · quem entra primeiro vira o servidor",VW/2,256,"#d8c8a0",17,"center");
+function onlineScreen(){win(80,200,480,250,"Jogar online · até "+(SERVER_URL?NET.max>4?NET.max:8:4)+" jogadores");closeBtn(534,203,()=>{state="title";netMsg=""});txt("Sala: “"+ROOM+"” · "+(SERVER_URL?"servidor dedicado":"quem entra primeiro vira o servidor"),VW/2,256,"#d8c8a0",17,"center");
  txt("Para uma sala separada, abra o link com #nomedasala no final.",VW/2,278,"#a89878",16,"center");menuList(onlineItems(),VW/2,330,menuSel,300);if(netMsg)txt(netMsg,VW/2,420,"#ff9ab8",16,"center")}
 function controlsScreen(){win(30,124,580,350,"Controles");const CB=()=>closeBtn(584,127,()=>{state="title"});
  const L=[["Mover","WASD / setas","Analógico / direcional"],["Golpe e magia","automáticos","automáticos"],["Agir: interagir, quebrar parede","Espaço ou F","A"],["Dash · segure para correr","Shift","B"],["Magia de cura","H","Y"],["Trocar visual (e poder)","Q / E","LB / LT"],["Invocação 1 · Invocação 2","C · Z","RT · RB"],["Habilidades e visuais","K ou Tab","Select"],["Menu e salvar","Esc ou P","Start"],["Entrar como jogador 2 a 4","—","Start no controle novo"]];
