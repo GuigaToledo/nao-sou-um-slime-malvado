@@ -18,7 +18,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v1.6.0";
+const VERSION="v1.6.1";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VW=640,VH=480,FT="'VT323',ui-monospace,monospace";
@@ -379,7 +379,7 @@ const ZONES=[
  {n:"Tundra Gelada",t:8,bio:11,g:[2,3]},{n:"Geleira do Dragão Glacial",t:21,bio:11,g:[1,3]},{n:"Covil do Dragão Ancião",t:0,bio:3,boss:ANCIENT,g:[0,3]}];
 ZONES.forEach(z=>{z.out=!!BIO[z.bio].out});
 const INSECTS=[3,4,5],CAVE_CHAIN=5;
-const GATES={2:2,3:6,4:3};
+const GATES={2:2,3:6};
 const zOrigin=i=>[ZONES[i].g[0]*ZW,ZONES[i].g[1]*ZH];
 const ZGRID=new Int8Array(ZCOLS*ZROWS);ZONES.forEach((z,i)=>{const[x,y]=zOrigin(i);ZGRID[(y/ZH)*ZCOLS+x/ZW]=i});
 const zoneAt=(tx,ty)=>ZGRID[clamp(Math.floor(ty/ZH),0,ZROWS-1)*ZCOLS+clamp(Math.floor(tx/ZW),0,ZCOLS-1)];
@@ -631,7 +631,7 @@ function interact(p){
   for(let i=0;i<70;i++)burst(vXp+(R()-.5)*120,vYp-20+(R()-.5)*90,pk(["#ffe14a","#bff4ff","#5ad8ff"]),5,1.6,(R()-.5)*200,(R()-.5)*200,p);
   rings.push({x:vXp,y:vYp,r0:150,r1:4,t:.7,m:.7,c:"#ffe14a"});
   if(G.phase<1){if(NET.mode==="client")netHit(-1,0,99);else setPhase(1)}
-  gain(p,900);grantSkin(p);say("O Dragão do Vendaval aceitou sua amizade! Ele luta ao seu lado como invocação e você também pode se transformar nele. A passagem para o mundo aberto se abriu.");saveDirty=1;return}
+  gain(p,900);grantSkin(p);say("O Dragão do Vendaval aceitou sua amizade! Ele luta ao seu lado como invocação e você também pode se transformar nele.");saveDirty=1;return}
  if(G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80){if(NET.mode==="client"){say("Ancião: “Quem é o servidor cuida das melhorias da vila.”");return}state="upgrade";menuSel=0;sfx("ui");return}
  const v=villagers.find(q=>Math.hypot(q.x-p.x,q.y-p.y)<50);if(v&&G.ch>=2)say(pk(["Goblin: “Obrigado por proteger "+G.vname+"!”","Goblin: “Os orcs vêm do sul!”","Goblin: “Você não é um slime malvado, né?”"]))}
 /* ===== Jogador ===== */
@@ -1099,7 +1099,7 @@ function panel(p,x,y){curSkin=p.skin;frame(x,y,212,60);rr(x+6,y+6,48,48,5);X.fil
  let ix=x+60;const st=[];if(p.sp>0)st.push([p.sp+" pt ["+(p.src.pad>=0?"Select":"K")+"]","#ffe14a"]);if(p.run)st.push(["CORRENDO","#bff0ff"]);if(pz)st.push(["VENENO","#9aff5a"]);
  for(const[s,c]of st){txt(s,ix,y+56,c,14);ix+=s.length*6.5+7}
  for(let e=0;e<ELN.length;e++)if(immune(p,e)&&ix<x+200){X.fillStyle="#07050d";X.fillRect(ix,y+48,9,9);X.fillStyle=ELC[e];X.fillRect(ix+1,y+49,7,7);ix+=11}}
-function goal(){if(G.phase<1)return{x:vXp,y:vYp,t:"Santuário do Vendaval"+(PL.some(p=>p.lv>=5)?"":" · Nível 5")};
+function goal(){if(G.ch===1&&PL.length&&zoneOfPx(PL[0].x,PL[0].y)<4)return{x:vXp,y:vYp,t:"Santuário do Vendaval"};
  if(G.ch===1)return{x:cpX,y:cpY,t:"Vila Goblin"};
  if(G.ch===2){if(G.wave>=5)return{x:FTX*T,y:FTY*T,t:"Derrote o Lorde Orc"};if(G.wact){let b=null,bd=1e9;for(const m of mons)if(m.inv){const d=Math.hypot(m.x-cpX,m.y-cpY);if(d<bd){bd=d;b=m}}return{x:b?b.x:cpX,y:b?b.y:cpY,t:"Onda "+G.wave+"/4 · proteja a vila"}}return{x:cpX,y:cpY,t:"Próxima onda em "+Math.ceil(G.wt)+"s"}}
  return{x:cpX,y:cpY,t:"Explore e fique mais forte"}}
@@ -1253,7 +1253,7 @@ function play(dt){shake=Math.max(0,shake-dt*22);const ctl=state==="play";
  for(const p of PL){const inp=inputFor(p),c=state==="play";if(c&&inp.pause){state="pause";menuSel=0;sfx("ui")}else if(c&&inp.tree){state="tree";treeOwner=p;treeSel=0;sfx("ui")}updPlayer(p,dt,inp,c&&state==="play")}
  if(NET.mode!=="client"){monsterAI(dt);updVillage(dt);respawnTick()}else lerpMons(dt);
  contact(dt);updShots(dt);updEshots(dt);updFx(dt);updVillagers(dt);
- if(G.phase>=1&&G.ch===1&&PL.some(p=>p.dead<=0&&ZONES[zoneOfPx(p.x,p.y)].village&&Math.hypot(p.x-cpX,p.y-cpY)<16*T)){if(NET.mode!=="client"){if(state==="play"){state="naming";nameBuf=VNAMES[0];nameSel=0;sfx("ok")}}else if(!hints.w){hints.w=1;say("O servidor está dando nome à vila…")}}
+ if(G.ch===1&&PL.some(p=>p.dead<=0&&ZONES[zoneOfPx(p.x,p.y)].village&&Math.hypot(p.x-cpX,p.y-cpY)<16*T)){if(NET.mode!=="client"){if(state==="play"){state="naming";nameBuf=VNAMES[0];nameSel=0;sfx("ok")}}else if(!hints.w){hints.w=1;say("O servidor está dando nome à vila…")}}
  if(G.ch===3&&!chShown){chShown=1;state="chend";sfx("lvl")}
  const z=zoneOfPx(PL[0].x,PL[0].y);if(z!==lastZone){lastZone=z;zoneName=ZONES[z].n;zoneT=3.5}
  updCam();saveT+=dt;if(saveT>=SAVE_EVERY)writeSave()}
