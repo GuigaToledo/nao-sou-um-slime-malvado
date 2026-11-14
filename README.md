@@ -73,6 +73,19 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v1.9.0
+
+- **Música que muda a cada 4 minutos** enquanto você explora. Os estilos são Minimal Techno, Dub Techno, House, Tech House, Acid House e Techno, sem repetir o anterior, e a troca acontece no fim do compasso. O nome da música aparece embaixo do minimapa.
+- **Cada chefe tem a sua música:**
+
+  | Chefe | Música |
+  |---|---|
+  | Rainha Aranha | Jungle |
+  | Lorde Orc | Breakbeat |
+  | Dragão Ancião | Drum and Bass |
+
+- As ondas de orcs na vila e a festa do DJ continuam com as músicas próprias.
+
 ## Novidades da v1.8.0
 
 - **Níveis até 100.** Cada nível dá mais vida e mais dano, e o mesmo vale para as invocações.
