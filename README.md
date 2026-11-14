@@ -73,6 +73,11 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v1.9.1
+
+- **Botão de cura** (Y no controle, H no teclado): cura você e as suas duas invocações, mesmo se elas estiverem longe.
+- **Visuais de cura** (Asas de Anjo, Auréola, Asas de Fada e Tiara de Flores): lançam a cura sozinhos assim que a recarga termina, mesmo sem inimigos. A cura vale para todos os jogadores e invocações na tela, inclusive os amigos online. Inimigos nunca são curados; os que estiverem perto levam dano da luz.
+
 ## Novidades da v1.9.0
 
 - **Música que muda a cada 4 minutos** enquanto você explora. Os estilos são Minimal Techno, Dub Techno, House, Tech House, Acid House e Techno, sem repetir o anterior, e a troca acontece no fim do compasso. O nome da música aparece embaixo do minimapa.

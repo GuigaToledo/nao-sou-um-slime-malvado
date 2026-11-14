@@ -18,7 +18,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v1.9.0";
+const VERSION="v1.9.1";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VW=640,VH=480,FT="'VT323',ui-monospace,monospace";
@@ -74,7 +74,7 @@ const SK=[
 ["def5","Defesa","Esquiva","+4% de chance de evitar um golpe",3],["def6","Defesa","Escudo Elemental","+10% de resistência aos elementos devorados (25% até 75%)",5],["def7","Defesa","Dash Fantasma","Dash mais longo e -20% de recarga",2],["def8","Defesa","Segunda Chance","Uma vez por minuto, sobrevive com 1 de vida",1],
 ["sum1","Invocação","Laço","+15% de vida das invocações",3],["sum2","Invocação","Fúria do Bando","+10% de dano das invocações",3],["sum3","Invocação","Retorno Rápido","Invocação volta 1s mais rápido (10s até 5s)",5],["sum4","Invocação","Instinto","Invocações +10% mais rápidas e com mais alcance",3],
 ["sum5","Invocação","Laço Profundo","+20% de vida das invocações",3],["sum6","Invocação","Matilha","+14% de dano das invocações",3],["sum7","Invocação","Vínculo Vital","Você cura 4% do dano das invocações",3],["sum8","Invocação","Alfa","Invocações +25% de dano e maiores",2],
-["mag1","Magia","Cura Maior","+17% de cura",3],["mag2","Magia","Cura Rápida","-10% de recarga da cura",3],["mag3","Magia","Cura em Área","A cura alcança aliados e invocações (+alcance por ponto)",2],["mag4","Magia","Estômago Voraz","+8% de XP",3],
+["mag1","Magia","Cura Maior","+17% de cura (botão de cura)",3],["mag2","Magia","Cura Rápida","-10% de recarga da cura",3],["mag3","Magia","Cura em Área","A cura também alcança outros jogadores e as invocações deles (+alcance por ponto)",2],["mag4","Magia","Estômago Voraz","+8% de XP",3],
 ["mag5","Magia","Absorção","Devorar cura 3% da vida máxima",3],["mag6","Magia","Regeneração Plus","+0,4% da vida máxima por segundo",3],["mag7","Magia","Bênção","Após curar: -10% de dano por 4s",3],["mag8","Magia","Renascer","Volta mais rápido e fica invencível 1s por ponto",3]];
 const SKI={};SK.forEach((s,i)=>SKI[s[0]]=i);const NSK=SK.length,SKMAX=SK.map(s=>s[4]),SKTOT=SKMAX.reduce((a,b)=>a+b,0);
 /* níveis: máximo 100; cada tipo de monstro tem um nível natural (o da sua casa) */
@@ -390,13 +390,13 @@ const COS=[
  {n:"Asas do Dragão Glacial",t:21,a:"Asas D3",k:["frost","tornado"],fl:1},{n:"Asas do Dragão Negro",t:22,a:"Asas D4",k:["blink","gaze"],fl:1},
  {n:"Chifres do Dragão de Pedra",t:23,a:"Chifres do Dragão de Pedra",k:["stomp","arc"],kd:12,sm:1},{n:"Coroa Dracônica",t:24,a:"Coroa Dracônica",k:["fire","storm","tornado"],fl:1,sm:1},
  {n:"Chapéu de Festa",chest:1,a:"Chapéu de Festa",k:"spin",sk:"Confete giratório"},{n:"Fones de DJ",chest:1,a:"Fones de DJ",k:"beat",dance:1,sk:"Batida (na vila, todo mundo dança!)"},
- {n:"Asas de Anjo",chest:1,a:"Asas de Anjo",k:"holy",fl:1,sk:"Luz sagrada que cura"},{n:"Auréola",chest:1,a:"Auréola",k:"holy",regen:2,sk:"Luz sagrada que cura"},
+ {n:"Asas de Anjo",chest:1,a:"Asas de Anjo",k:"holy",fl:1,sk:"Luz que cura os aliados na tela"},{n:"Auréola",chest:1,a:"Auréola",k:"holy",regen:2,sk:"Luz que cura os aliados na tela"},
  {n:"Laço Rosa",chest:1,a:"Laço Rosa",k:"web",sk:"Charme que prende"},{n:"Cartola",chest:1,a:"Cartola",k:"blink",sk:"Truque de sumir"},
  {n:"Orelhas de Gato",chest:1,a:"Orelhas de Gato",k:"spin",spd:1.35,sk:"Arranhão giratório"},{n:"Brotinho",chest:1,a:"Brotinho",k:"cloud",regen:3,sk:"Pólen venenoso"},
  {n:"Óculos de Nerd",chest:1,a:"Óculos de Nerd",k:"bolt",xp:1.3,sk:"Raio da ciência"},{n:"Bigode",chest:1,a:"Bigode",k:"stomp",fd:2.4,sk:"Pisão do bigodudo"},
- {n:"Pirata",chest:1,a:"Pirata",k:"fireball",sk:"Bala de canhão"},{n:"Asas de Fada",chest:1,a:"Asas de Fada",k:"holy",fl:1,spd:1.15,sk:"Pó de fada que cura"},
+ {n:"Pirata",chest:1,a:"Pirata",k:"fireball",sk:"Bala de canhão"},{n:"Asas de Fada",chest:1,a:"Asas de Fada",k:"holy",fl:1,spd:1.15,sk:"Pó de fada que cura os aliados na tela"},
  {n:"Antenas de Abelha",chest:1,a:"Antenas de Abelha",k:"arc",kd:5,sk:"Ferroada ácida"},{n:"Cachecol",chest:1,a:"Cachecol",k:"frost",sk:"Brisa gelada"},
- {n:"Tiara de Flores",chest:1,a:"Tiara de Flores",k:"holy",regen:2,sk:"Perfume que cura"},{n:"Boné",chest:1,a:"Boné",k:"arc",sk:"Bolada"},
+ {n:"Tiara de Flores",chest:1,a:"Tiara de Flores",k:"holy",regen:2,sk:"Perfume que cura os aliados na tela"},{n:"Boné",chest:1,a:"Boné",k:"arc",sk:"Bolada"},
  {n:"Máscara de Herói",chest:1,a:"Máscara de Herói",k:"charge",sk:"Investida heroica"},{n:"Gorro de Natal",chest:1,a:"Gorro de Natal",k:"frost",regen:1,sk:"Nevasca natalina"}];
 COS.forEach(c=>{if(c.t){const m=MT[c.t];c.fd=c.fd||m.fd;c.sk=c.sk||m.sk}c.fd=c.fd||1.8;c.fs=c.spd||1;
  const ps=[];if(c.fl)ps.push("voa");if(c.sm)ps.push("quebra pedras");if(c.spd>1)ps.push("+"+Math.round((c.spd-1)*100)+"% velocidade");if(c.regen)ps.push("+"+c.regen+" vida/s");if(c.xp)ps.push("+"+Math.round((c.xp-1)*100)+"% XP");c.pas=ps.join(" · ")});
@@ -760,7 +760,7 @@ function cast(s,k,d,tg,src,cr){const E=CAST_EL[k],H=(m,dd,eff)=>hurt(m,dd,eff,E,
   else{s.dash=.22;s.hs=new Set();shake=Math.max(shake,3)}}
  else if(k==="beat"){const cs=["#ff4aff","#5fcde4","#fbf236"];rings.push({x:s.x,y:s.y,r0:8,r1:95,t:.35,m:.35,c:pk(cs)});rings.push({x:s.x,y:s.y,r0:4,r1:70,t:.45,m:.45,c:"#ffffff"});tone(110,.12,"square",.05,55);
   for(let i=0;i<12;i++)burst(s.x,s.y-10,pk(cs),3,.5,(R()-.5)*200,(R()-.5)*200);for(const m of monsIn(s.x,s.y,95))H(m,d*.9,2)}
- else if(k==="holy"){const own=s.ow||s,hh=Math.round(mhp(own)*.07);own.hp=Math.min(mhp(own),own.hp+hh);num(own.x,own.y-36,"+"+hh,"#7aff7a");rings.push({x:s.x,y:s.y,r0:6,r1:85,t:.4,m:.4,c:"#fff4b0"});
+ else if(k==="holy"){holyHeal(camx+VW/2,camy+VH/2);rings.push({x:s.x,y:s.y,r0:6,r1:85,t:.4,m:.4,c:"#fff4b0"});
   flashes.push({x:s.x,y:s.y,r:140,c:"255,245,200",t:.3,m:.3});sfx("heal");for(const m of monsIn(s.x,s.y,85))H(m,d*.8,0)}
  else if(k==="gaze"){spray(s,["#ffe14a","#ffffff"],260,16);flashes.push({x:s.x+s.fx*60,y:s.y+s.fy*60,r:160,c:"255,230,100",t:.3,m:.3});for(const m of monsIn(s.x,s.y,130))if(inCone(s,m,130))H(m,d*.5,1)}
  else if(k==="tornado"){torn.push({x:s.x,y:s.y,dx:s.fx,dy:s.fy,t:2.2,h:0,d,src});sfx("frost")}
@@ -779,10 +779,17 @@ function cycleCos(p,d){const l=cosList(p);if(l.length<2){if(!hints.f){hints.f=1;
 /* duas invocações ao mesmo tempo: RT troca a 1ª, RB troca a 2ª; a mesma criatura não ocupa as duas */
 function cycleSum(p,slot){const K=slot===2?"sum2":"sum",E=slot===2?"su2":"su",other=slot===2?p.sum:p.sum2,l=sumList(p).filter(t=>t<0||t!==other);
  if(l.length<2){if(!hints.s){hints.s=1;say("Derrote monstros para poder invocá-los como aliados.")}return}let i=l.indexOf(p[K]);if(i<0)i=0;p[K]=l[(i+1)%l.length];if(slot===2)p.ws2=1;else p.ws=1;p[E]=null;sfx(p[K]>0?"summon":"ui");saveDirty=1}
+/* luz que cura dos visuais: cura todos os jogadores e invocações daqui que estão na tela (centro cx,cy); inimigos não */
+const HOLY_F=.08;
+function holyHeal(cx,cy){const on=e=>Math.abs(e.x-cx)<VW/2+40&&Math.abs(e.y-cy)<VH/2+40;
+ const hl=(e,mx)=>{if(e.hp>=mx)return;const hh=Math.max(1,Math.round(mx*HOLY_F));e.hp=Math.min(mx,e.hp+hh);num(e.x,e.y-36,"+"+hh,"#7aff7a");rings.push({x:e.x,y:e.y+8,r0:4,r1:30,t:.4,m:.4,c:"#fff4b0"});
+  for(let i=0;i<6;i++)burst(e.x+(R()-.5)*24,e.y+4,pk(["#fff4b0","#7aff7a"]),3,.7,(R()-.5)*20,-50-R()*50)};
+ for(const q of PL){if(q.dead<=0&&on(q))hl(q,mhp(q));for(const u of[q.su,q.su2])if(u&&u.dead<=0&&on(u))hl(u,u.mhp)}}
 function healSpell(p){if(p.hcd>0){num(p.x,p.y-40,"Cura em "+Math.ceil(p.hcd)+"s","#a8ffb8");return}p.hcd=healCD(p);const a=Math.round(mhp(p)*.25*(1+.17*S(p,"mag1")));sfx("heal");
  const doHeal=(e,mx)=>{e.hp=Math.min(mx,e.hp+a);num(e.x,e.y-36,"+"+a,"#7aff7a",1);for(let i=0;i<16;i++)burst(e.x+(R()-.5)*30,e.y+6,pk(["#7aff7a","#d8ffd8","#ffffff"]),3,.9,(R()-.5)*20,-60-R()*80);rings.push({x:e.x,y:e.y+8,r0:4,r1:40,t:.5,m:.5,c:"#7aff7a"})};
- doHeal(p,mhp(p));if(S(p,"mag7"))p.bless=4;
- if(S(p,"mag3")){const ar=60+60*S(p,"mag3");for(const q of PL)if(q!==p&&q.dead<=0&&Math.hypot(q.x-p.x,q.y-p.y)<ar)doHeal(q,mhp(q));for(const q of PL)for(const s of[q.su,q.su2])if(s&&s.dead<=0&&Math.hypot(s.x-p.x,s.y-p.y)<ar)doHeal(s,s.mhp)}}
+ /* sempre cura você e as suas invocações */
+ doHeal(p,mhp(p));for(const s of[p.su,p.su2])if(s&&s.dead<=0)doHeal(s,s.mhp);if(S(p,"mag7"))p.bless=4;
+ if(S(p,"mag3")){const ar=60+60*S(p,"mag3");for(const q of PL)if(q!==p&&q.dead<=0&&Math.hypot(q.x-p.x,q.y-p.y)<ar){doHeal(q,mhp(q));for(const s of[q.su,q.su2])if(s&&s.dead<=0&&Math.hypot(s.x-p.x,s.y-p.y)<ar)doHeal(s,s.mhp)}}}
 function die(p){p.dead=Math.round((4-.67*S(p,"mag8"))*10)/10;p.hp=0;p.pz=0;p.dash=0;p.dsh=0;for(let i=0;i<20;i++)burst(p.x,p.y-8,PCOL[p.col],4,.8,(R()-.5)*160,(R()-.5)*160,null,200);say(pn(p)+" foi derrotado… a gosma se junta de novo em "+p.dead+"s.");sfx("hurt")}
 function respawn(p){const al=PL.find(q=>q!==p&&q.dead<=0);if(al){p.x=al.x;p.y=al.y}else{[p.x,p.y]=spawnPoint()}p.hp=mhp(p);p.su=null;p.su2=null;if(S(p,"mag8"))p.inv=S(p,"mag8")}
 function canInteract(p){return(Math.hypot(p.x-vXp,p.y-vYp)<120&&!p.own[DRG])||(G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80)}
@@ -818,7 +825,8 @@ function updPlayer(p,dt,inp,ctl){p.hit-=dt;p.eatT-=dt;p.cast-=dt;
  /* magia automática: a da forma atual; como slime, uma sorteada entre todas as aprendidas */
  if(p.scd<=0){let k=null,ft=p.ft;if(fm.k)k=Array.isArray(fm.k)?fm.k[p.ki%fm.k.length]:fm.k;
   else{if(!p.rk){const pool=[];for(let i=1;i<NF;i++)if(p.own[i]&&MT[i].k)for(const q of(Array.isArray(MT[i].k)?MT[i].k:[MT[i].k]))pool.push([q,i]);if(pool.length)p.rk=pk(pool)}if(p.rk){k=p.rk[0];ft=p.rk[1]}}
-  if(k){const tg=nearMon(p,KD[k][0]*(k==="charge"||k==="stomp"||k==="spin"||k==="web"||k==="cloud"?.8:1));if(tg||(ctl&&inp.skill&&fm.k)){if(tg)face(p,tg);const cr=R()<critC(p);p.ft=ft;
+  /* a luz que cura sai sozinha assim que a recarga termina, com ou sem inimigos */
+  if(k){const tg=nearMon(p,KD[k][0]*(k==="charge"||k==="stomp"||k==="spin"||k==="web"||k==="cloud"?.8:1));if(tg||k==="holy"||(ctl&&inp.skill&&fm.k)){if(tg)face(p,tg);const cr=R()<critC(p);p.ft=ft;
     cast(p,k,dmg(p)*(cr?2:1)*(fm.k?1:.8),tg,p,cr);p.ft=fm.kd||fm.t||0;p.scd=KD[k][1]*(1-.06*S(p,"atk4"))*(fm.k?1:1.25);p.ki++;p.kk=KL.indexOf(k);p.kseq++;p.rk=null}}}
  doDash(p,dt,dmg(p)*2,p);
  const hi=plants.findIndex(q=>Math.abs(q.x-p.x)<26&&Math.hypot(q.x-p.x,q.y-p.y)<26);if(hi>=0)herb(p,hi);
@@ -1081,7 +1089,7 @@ function readRemote(dt){const out=[];let host=null,ps=[];try{ps=NET.room.peers()
    const r={x:o.rx,y:o.ry,f:clamp(q.f|0,0,NF-1),fl:!!q.fl,h:Math.max(0,+q.h||0),mh:Math.max(1,+q.mh||1),l:clamp(q.l|0,1,MAXLV),c:clamp(q.c|0,0,NCOL-1),n:cleanName(q.n),w:Number.isInteger(q.w)?clamp(q.w,-1,NSKIN-1):-1,dead:!!q.d,peer:pe.peer,s:null};
    for(const[key,src]of[["s",q.s],["s2",q.s2]])if(Array.isArray(src)){const t=clamp(src[0]|0,1,NF-1);r[key]={t,x:clamp(+src[1]||0,0,MW*T),y:clamp(+src[2]||0,0,MH*T),fl:!!src[3],rem:1}}
    if((q.a|0)!==o.a){if(o.a>=0)for(let k=-2;k<=2;k++)burst(r.x+(r.fl?-20:20),r.y-6+k*6,"#ffffff",3,.14);o.a=q.a|0}
-   const kq=Array.isArray(q.k)?q.k:[0,0];if((kq[1]|0)!==o.k){if(o.k>=0)remoteFx(r,KL[kq[0]|0]);o.k=kq[1]|0}
+   const kq=Array.isArray(q.k)?q.k:[0,0];if((kq[1]|0)!==o.k){if(o.k>=0){remoteFx(r,KL[kq[0]|0]);if(KL[kq[0]|0]==="holy"&&!r.dead)holyHeal(r.x,r.y)}o.k=kq[1]|0}
    out.push(r)});
   if(NET.mode==="host"&&Array.isArray(pr.h))hostHits(pe.peer,pr.h)}
  NET.remote=out.slice(0,8);return host}
