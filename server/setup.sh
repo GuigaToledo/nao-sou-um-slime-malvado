@@ -8,6 +8,8 @@ if [ "$(id -u)" -ne 0 ]; then echo "Rode com sudo:  sudo bash setup.sh"; exit 1;
 DIR="$(cd "$(dirname "$0")" && pwd)"
 APP=/opt/slime-servidor
 export DEBIAN_FRONTEND=noninteractive
+# no primeiro boot o Ubuntu ainda pode estar atualizando sozinho: espera em vez de falhar
+echo 'DPkg::Lock::Timeout "900";' > /etc/apt/apt.conf.d/99slime-lock
 
 echo "==> Atualizando pacotes"
 apt-get update -y
