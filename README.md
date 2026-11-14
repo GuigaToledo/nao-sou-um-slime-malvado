@@ -29,9 +29,9 @@ O golpe de perto e a magia da forma são **automáticos**. Na forma de Slime, a 
 | Agir: interagir, quebrar paredes rachadas | Espaço ou F | A | AGIR |
 | Dash (segure para correr) | Shift | B | DASH |
 | Magia de cura | H | Y | CURA |
-| Trocar forma | Q / E | LB / RB | setas da roda |
-| Trocar invocação | Z / C | LT / RT | setas da roda |
-| Árvore de habilidades | K ou Tab | Select | ÁRVORE |
+| Trocar forma | Q / E | LB / LT | setas da roda |
+| Trocar invocação | Z / C | RB / RT | setas da roda |
+| Habilidades e visuais | K ou Tab | Select | ÁRVORE |
 | Menu, mapa do mundo e salvar | Esc ou P | Start | MENU |
 
 ## O mundo
@@ -61,13 +61,25 @@ O golpe de perto e a magia da forma são **automáticos**. Na forma de Slime, a 
 - O XP é dividido entre você e a invocação ativa, mesmo se ela estiver caída. A invocação nunca passa do seu nível.
 - Ela desvia de obstáculos para voltar até você. Se ficar travada por mais de 5 segundos, se teletransporta.
 
+## Visuais do slime
+
+Os baús espalhados pelo mapa (nas cavernas e no mundo aberto) e os chefes dão visuais para o slime: chapéu de festa, asas de anjo, óculos escuros, coroa de rei e mais, 24 no total. Para vestir, abra Select (ou K) e vá na aba **Visual**. No controle, troque de aba com LB/RB.
+
 ## Gráficos
 
-Em **Gráficos: Automático**, o jogo baixa a qualidade sozinho se o computador não aguentar. Também dá para escolher **Alto** ou **Baixo (PC fraco)**.
+Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 vezes mais pixels) e baixa a qualidade sozinho se o computador não aguentar. Também dá para escolher **Ultra**, **Alto** ou **Baixo (PC fraco)**.
 
 ## Salvamento
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
+
+## Novidades da v1.4.0
+
+- Slime redesenhado: mais redondo e fofo, com olhos brilhantes e bochechas coradas, e pula ao andar.
+- 24 visuais para o slime, ganhos em baús e chefes, com a nova aba Visual.
+- Baús agora também no mundo aberto. Eles dão visuais em vez de pontos de habilidade.
+- Controle: LB/LT trocam a forma, RB/RT trocam a invocação.
+- Gráficos com até 3 vezes mais pixels (opção Ultra) e texturas mais detalhadas.
 
 ## Novidades da v1.3.0
 
