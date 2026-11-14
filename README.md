@@ -1,72 +1,79 @@
 # Não sou um Slime Malvado
 
-Jogo de pixel art que roda no navegador. Você renasce como um slime: cada monstro derrotado é devorado e vira uma forma nova e uma invocação. Explore 18 regiões, faça amizade com o Dragão Tempestade e defenda a Vila Goblin dos orcs.
+Jogo no navegador: você renasce como um slime e cada monstro derrotado é devorado e vira uma forma nova e uma invocação. Atravesse as cavernas dos insetos, faça amizade com o Dragão do Vendaval e explore o mundo aberto até a Vila Goblin e a Fortaleza do Lorde Orc.
 
 **Jogar:** https://guigatoledo.github.io/nao-sou-um-slime-malvado/
 
+Funciona no computador e no celular. Na tela inicial, escolha **Jogar no: Computador** ou **Jogar no: Celular**. No celular aparecem um joystick e botões na tela.
+
 ## Personagens
 
-A tela inicial tem 3 vagas de personagem. Em cada uma você escolhe o nome e a cor do slime ali mesmo. Cada personagem tem o próprio progresso, e o botão **Excluir** apaga um personagem quando você quiser.
+A tela inicial tem 3 vagas de personagem. Em cada uma você escolhe o nome e a cor do slime. Cada personagem tem o próprio progresso, e o botão **Excluir** apaga um personagem quando você quiser.
 
 ## Jogar online com amigos (até 4)
 
-1. Todos abrem o link acima e escolhem **Jogar online**.
-2. Quem entrar primeiro vira o servidor: o mundo dele (capítulo, vila, cristais) é o mundo de todos.
-3. Os outros entram no mundo do servidor. Cada um mantém o próprio nível, as formas e as habilidades.
+1. Todos abrem o link e escolhem **Jogar online**.
+2. Quem entrar primeiro vira o servidor: o mundo dele é o mundo de todos.
+3. Os outros entram no mundo do servidor e mantêm o próprio nível, as formas e as invocações.
 4. Se o servidor sair, os outros escolhem **Jogar online** de novo, e o primeiro a entrar vira o novo servidor.
 
-Para um grupo separado, use uma sala com outro nome colocando `#nomedasala` no fim do link, por exemplo `.../nao-sou-um-slime-malvado/#turma2`.
-
-A conexão é direta entre os navegadores (WebRTC, via [PeerJS](https://peerjs.com/)). Em algumas redes muito fechadas (redes de empresa ou alguns roteadores 4G) ela pode não funcionar.
+Para um grupo separado, coloque `#nomedasala` no fim do link. A conexão é direta entre os navegadores (WebRTC, via [PeerJS](https://peerjs.com/)) e pode falhar em redes muito fechadas.
 
 ## Controles
 
-| Ação | Teclado | Controle Xbox |
-|---|---|---|
-| Mover | WASD / setas | Analógico / direcional |
-| Atacar (o Sábio também ataca sozinho) | Espaço | A |
-| Habilidade da forma atual | R | X |
-| Interagir (dragão, Ancião) | F | B |
-| Magia de cura | H | Y |
-| Dash · correr | Shift (segure para correr) | L3 (clique no analógico) |
-| Trocar forma | Q / E | LB / RB |
-| Trocar invocação | Z / C | LT / RT |
-| Árvore de habilidades | K ou Tab | Select |
-| Menu, mapa do mundo e salvar | Esc ou P | Start |
-| Entrar como jogador 2 a 4 no mesmo PC | — | Start no controle novo |
+O golpe de perto e a magia da forma são **automáticos**. Na forma de Slime, a magia é sorteada entre todas as que você já aprendeu.
+
+| Ação | Teclado | Controle Xbox | Celular |
+|---|---|---|---|
+| Mover | WASD / setas | Analógico / direcional | Joystick |
+| Agir: interagir, quebrar paredes rachadas | Espaço ou F | A | AGIR |
+| Dash (segure para correr) | Shift | B | DASH |
+| Magia de cura | H | Y | CURA |
+| Trocar forma | Q / E | LB / RB | setas da roda |
+| Trocar invocação | Z / C | LT / RT | setas da roda |
+| Árvore de habilidades | K ou Tab | Select | ÁRVORE |
+| Menu, mapa do mundo e salvar | Esc ou P | Start | MENU |
 
 ## O mundo
 
-São 18 regiões, cada uma com um único tipo de monstro: Gruta do Despertar (morcegos), Túneis Goblin, Ninho das Aranhas (com a Rainha Aranha), Pântano Fétido, Dunas Subterrâneas, Penhascos do Trovão, Fornalha, Gruta Gelada, Covil dos Ogros, Labirinto do Minotauro, Ruínas de Pedra, Santuário da Tempestade, Colinas dos Gigantes, Bosque Sombrio, Vila Goblin, Planícies Orc, Acampamento Xamã e Fortaleza do Lorde.
+- **Cavernas dos insetos:** Gruta do Despertar (morcegos), Túneis Úmidos (lagartas), Ninho das Aranhas (com a Rainha Aranha) e Colmeia dos Ankhegs.
+- **Santuário do Vendaval:** com Nível 5, faça amizade com o dragão. Ele vira sua invocação e abre a passagem para o mundo aberto.
+- **Mundo aberto:** cada monstro vive no seu habitat, e há insetos espalhados por todo o mapa.
 
-- Os monstros renascem 1 minuto depois de derrotados, no mesmo lugar.
-- Cerca de 1 em cada 10 monstros é Elite: brilha em dourado, é bem mais forte e dá o triplo de XP.
-- Os monstros usam ataques especiais com aviso no chão (área vermelha): fuja da área antes do golpe.
-- O Dragão Tempestade não vira forma. Ao fazer amizade com ele (Nível 5), ele passa a lutar ao seu lado como invocação.
+  | Região | Monstros |
+  |---|---|
+  | Floresta | goblins |
+  | Penhascos do Trovão | lobos-chifre |
+  | Campos Vulcânicos | cães infernais |
+  | Tundra Gelada | lobos invernais |
+  | Brejo | basiliscos |
+  | Colinas | ogros e gigantes |
+  | Labirinto | minotauro |
+  | Bosque Sombrio | lobos sombrios |
+  | Terras dos orcs | orcs |
 
-## Elementos
+- **Renascimento:** os monstros renascem 1 minuto depois de derrotados.
+- **Elite:** cerca de 1 em cada 10 monstros é Elite. Fique fora da área vermelha no chão quando eles atacam.
 
-Devorar um monstro de um elemento deixa você imune a ele: Cão Infernal e Orc Xamã (fogo), Lobo Invernal (gelo), Lobo-Chifre e Dragão (raio), aranhas e Lagarta (veneno), Ankheg (ácido), Ogro e Gigante (terra), Lobo Sombrio (trevas).
+## Invocações
 
-Os monstros também não sofrem dano do próprio elemento. Por exemplo, o fogo não fere o Cão Infernal: troque de forma para atacá-lo com outro elemento.
+- Cada invocação tem o próprio nível, mostrado na roda de invocação, e fica mais forte ao subir.
+- O XP é dividido entre você e a invocação ativa, mesmo se ela estiver caída. A invocação nunca passa do seu nível.
+- Ela desvia de obstáculos para voltar até você. Se ficar travada por mais de 5 segundos, se teletransporta.
 
-## Árvore de habilidades
+## Gráficos
 
-São 32 melhorias em 4 ramos: Ataque, Defesa, Invocação e Magia. Ganhe pontos subindo de nível, abrindo baús secretos e devorando chefes.
+Em **Gráficos: Automático**, o jogo baixa a qualidade sozinho se o computador não aguentar. Também dá para escolher **Alto** ou **Baixo (PC fraco)**.
 
 ## Salvamento
 
-O jogo salva sozinho a cada 5 minutos, quando você fecha ou troca de aba, e quando você escolhe **Salvar agora** no menu. O progresso de cada personagem fica no navegador de cada jogador.
+O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
-## Novidades da v1.2.0
+## Novidades da v1.3.0
 
-- 3 vagas de personagem na tela inicial, com nome, cor e opção de excluir.
-- Mapa 10 vezes maior, com 18 regiões e um tipo de monstro por região.
-- Monstros mais fortes, com ataques especiais avisados e monstros Elite.
-- Monstros renascem 1 minuto depois de derrotados.
-- Monstros não sofrem dano do próprio elemento.
-- Dragão Tempestade redesenhado, agora só como invocação amiga.
-- Árvore com 32 habilidades e magia de cura.
-- Música: minimal techno nas cavernas e drum and bass nas lutas contra chefes.
-- Visual novo: janelas azuladas, números de dano que pulam, nomes e vida embaixo dos personagens e círculos de magia.
-- Novos botões no controle Xbox (veja a tabela acima).
+- Gráficos refeitos em resolução dobrada: personagens com sombreamento, texturas detalhadas por região e luzes mais leves.
+- Modo celular com joystick e botões na tela, além de modo de gráficos para PC fraco.
+- Golpe e magia automáticos. Na forma de Slime, a magia é aleatória entre as aprendidas.
+- Novo mapa: cavernas de insetos, depois o Dragão do Vendaval, depois o mundo aberto com habitats.
+- Invocações com nível próprio, que desviam de obstáculos e se teletransportam se travarem.
+- Subir de nível agora leva 3 vezes mais tempo.
