@@ -117,6 +117,16 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.7.0
+
+- **Invasões a cada 10 minutos**, com aviso e contagem regressiva de 1 minuto.
+- **Minimapa redondo** com o norte marcado ("N" com seta vermelha).
+  - Objetivos fora do círculo aparecem como seta na borda.
+  - Durante a invasão e no aviso de 1 minuto, uma seta vermelha piscando aponta para a cidade.
+- **Recarga da magia:** barra logo abaixo do quadro do visual, com o tempo escrito embaixo do nome.
+- **Salas automáticas:** se a sala tiver 10 jogadores, o 11º abre sozinho a sala seguinte ("principal2", "principal3"...) e vira o anfitrião dela, para os próximos 10.
+- Saiu o texto "Online · sala · você hospeda o mundo" do canto da tela.
+
 ## Novidades da v2.6.0
 
 - **Todos os jogadores podem construir na cidade:** fale com o Ancião. O ouro sai do tesouro da cidade, que é o mesmo para todos, e todos veem a construção nova na hora.
@@ -138,8 +148,8 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
   | Ferreiro | forja (+25% de dano dos defensores) | armas de aço (+50%) | armas encantadas (+100%) |
 
 - **Todos defendem:** na invasão, os moradores (um de cada monstro devorado), os slimes da vila e os guardas atacam os invasores, e as torres atiram.
-- **Invasões a cada 30 minutos depois da missão das 4 ondas**, com 7 tipos de exército vindo de lados diferentes: Horda Orc, Matilha Sombria, Tribo Goblin, Gigantes das Colinas, Enxame do Ninho, Feras de Fogo e Gelo, e Revoada de Dragões.
-  - Aviso 5 minutos antes, com contagem regressiva na tela em qualquer lugar do mapa.
+- **Invasões depois da missão das 4 ondas** (a cada 10 minutos desde a v2.7.0), com 7 tipos de exército vindo de lados diferentes: Horda Orc, Matilha Sombria, Tribo Goblin, Gigantes das Colinas, Enxame do Ninho, Feras de Fogo e Gelo, e Revoada de Dragões.
+  - Aviso antes da invasão, com contagem regressiva na tela em qualquer lugar do mapa.
   - Vencer dá ouro extra. Se a cidade cair, perde 25% do ouro.
 
 ## Novidades da v2.4.0
