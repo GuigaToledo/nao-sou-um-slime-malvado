@@ -571,3 +571,7 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 
 ## v3.11.1
 - Cada música toca no seu próprio canal de áudio: ao trocar (por exemplo, quando aparece um chefe), a música anterior é cortada em 0,15 s, incluindo pads, eco e reverberação. Nada fica tocando junto por trás.
+
+## v3.11.2
+- Morcego (**Asas de Morcego**) e a skin **Capa do Vampiro**: o golpe básico agora rouba vida — você cura exatamente o dano que causou (número rosa "+X" em cima do slime).
+- A Mordida Vampírica automática das Asas de Morcego também passou a curar 100% do dano que causa (antes curava só 15% no começo, quase nada).

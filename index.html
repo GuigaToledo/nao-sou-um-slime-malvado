@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.11.1";
+const VERSION="v3.11.2";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -1318,8 +1318,12 @@ function grantSkin(p){const free=CHEST_COS.filter(i=>!p.cos[i]);
  say(pn(p)+" ganhou o visual especial “"+COS[i].n+"”: "+COS[i].sk+"! Troque de visual com ["+kn(p,"form")+"].");saveDirty=1}
 function attack(p){p.cd=.4;p.af=.15;p.aseq++;sfx("swing");const cr=R()<critC(p),d=mdmg(p)*(cr?2:1),a0=Math.atan2(p.fy,p.fx);
  for(let k=-3;k<=3;k++)burst(p.x+Math.cos(a0+k*.28)*24,p.y-6+Math.sin(a0+k*.28)*24,PCOL[p.col],4,.14);
- for(const m of monsIn(p.x,p.y,64)){const ex=m.x-p.x,ey=m.y-p.y,r=Math.hypot(ex,ey)||1;if(r<(MT[m.t].boss?62:MT[m.t].drg?58:46)&&(ex*p.fx+ey*p.fy)>-8){knock(m,ex/r*12,ey/r*12);hurt(m,d*(.85+R()*.3),0,null,p,cr)}}
+ let dl=0;for(const m of monsIn(p.x,p.y,64)){const ex=m.x-p.x,ey=m.y-p.y,r=Math.hypot(ex,ey)||1;if(r<(MT[m.t].boss?62:MT[m.t].drg?58:46)&&(ex*p.fx+ey*p.fy)>-8){knock(m,ex/r*12,ey/r*12);const h0=m.hp;hurt(m,d*(.85+R()*.3),0,null,p,cr);dl+=Math.max(0,h0-m.hp)}}
+ /* morcego (Asas de Morcego e Capa do Vampiro): o golpe básico cura exatamente o dano causado */
+ if(dl>0&&isBat(p))steal(p,dl);
  hitCrack(p.x+p.fx*30,p.y+p.fy*30,1)}
+const isBat=p=>{const c=cosOf(p);return c.t===1||c.mt===1};
+function steal(p,v){if(!(p.hp>0))return;const hl=Math.round(v),mx=mhp(p);if(hl<1||p.hp>=mx)return;p.hp=Math.min(mx,p.hp+hl);num(p.x,p.y-44,"+"+hl,"#ff6a8a");for(let i=0;i<4;i++)burst(p.x,p.y-10,"#ff3a5a",3,.4,(R()-.5)*40,-30)}
 const inCone=(s,m,r)=>{const ex=m.x-s.x,ey=m.y-s.y,d=Math.hypot(ex,ey)||1;return d<r&&(ex*s.fx+ey*s.fy)/d>.6};
 function spray(s,cols,spd,n){const a=Math.atan2(s.fy,s.fx);for(let i=0;i<n;i++){const b=a+(R()-.5)*.8,v=spd*(.5+R()*.6);burst(s.x+s.fx*14,s.y-6+s.fy*14,pk(cols),6,.35,Math.cos(b)*v,Math.sin(b)*v)}}
 function cast(s,k,d,tg,src,cr){castSnd(SPELL[k]?SPELL[k].snd:k,s.x,s.y);QS++;try{return cast0(s,k,d,tg,src,cr)}finally{QS--}}
@@ -1364,9 +1368,9 @@ function cast0(s,k,d,tg,src,cr){if(SPELL[k])return spellCast(s,SPELL[k],d,tg,src
  else if(k==="rally"){s.rally=5;for(const u of[s.su,s.su2])if(u)u.rally=5;rings.push({x:s.x,y:s.y,r0:6,r1:90,t:.4,m:.4,c:"#ff5a3a"});num(s.x,s.y-44,"+40% dano!","#ffb08a");sfx("roar")}
  else if(k==="gift"){allyZ.push({x:s.x+s.fx*30,y:s.y+s.fy*30,R:85,warn:1,age:0,t:1.4,d:d*1.6,el:-1,gift:1,src:s,fired:0,tick:0});sfx("chest")}
  else if(k==="confetti"){const cs=["#ff4aff","#5fcde4","#fbf236","#99e550","#ff6a3a"];rings.push({x:s.x,y:s.y,r0:8,r1:95,t:.35,m:.35,c:pk(cs)});for(let i=0;i<26;i++)burst(s.x,s.y-10,pk(cs),3,.7,(R()-.5)*260,(R()-.5)*220,null,180);sfx("beat");for(const m of monsIn(s.x,s.y,95))H(m,d*.9,0)}
- /* mordida vampírica do morcego: fraca no começo, mas o dano e a parte que vira cura crescem com o nível (15% no nível 1, até 70% no 100) */
- else if(k==="vbite"&&tg){const lv=s.lv||1,dd=d*(.55+lv*.011);H(tg,dd,0);burst(tg.x,tg.y-10,"#c8203a",8,.5,0,-20);sfx("swing");
-  if(PL.includes(s)&&s.hp>0){const hl=Math.max(1,Math.round(dd*clamp(.15+lv*.0055,.15,.7)));s.hp=Math.min(mhp(s),s.hp+hl);num(s.x,s.y-44,"+"+hl,"#ff6a8a");for(let i=0;i<5;i++)burst(tg.x,tg.y-10,"#ff3a5a",3,.5,(s.x-tg.x)*2+(R()-.5)*40,(s.y-tg.y)*2-20)}}
+ /* mordida vampírica do morcego: o dano cresce com o nível e cura exatamente o dano causado */
+ else if(k==="vbite"&&tg){const lv=s.lv||1,dd=d*(.55+lv*.011),h0=tg.hp;H(tg,dd,0);const got=Math.max(0,h0-tg.hp);burst(tg.x,tg.y-10,"#c8203a",8,.5,0,-20);sfx("swing");
+  if(s.slot!==undefined&&got>0){steal(s,got);for(let i=0;i<5;i++)burst(tg.x,tg.y-10,"#ff3a5a",3,.5,(s.x-tg.x)*2+(R()-.5)*40,(s.y-tg.y)*2-20)}}
  else if(k==="chain5"&&tg){let from={x:s.x,y:s.y-8};const hit=new Set();let cur=tg;for(let j=0;j<5&&cur;j++){hit.add(cur);bolts.push({pts:zig(from,cur),t:.25,m:.25});H(cur,d*(j?.8:1.1),0);from=cur;let nb=null,nd=150;for(const m of monsIn(cur.x,cur.y,150)){if(hit.has(m))continue;const dd=Math.hypot(m.x-cur.x,m.y-cur.y);if(dd<nd){nd=dd;nb=m}}cur=nb}sfx("bolt");shake=Math.max(shake,3)}
  else if(k==="blink"&&s.slot!==undefined){const g=tg||{x:s.x+s.fx*90,y:s.y+s.fy*90};for(let i=0;i<18;i++)burst(g.x+(R()-.5)*30,g.y-8+(R()-.5)*30,pk(["#b48aff","#ff4aff","#3a2a4a"]),4,.45,(R()-.5)*100,(R()-.5)*100);sfx("web");
   rings.push({x:g.x,y:g.y,r0:6,r1:46,t:.3,m:.3,c:"#b48aff"});for(const m of monsIn(g.x,g.y,46))H(m,d*1.6,0)}
