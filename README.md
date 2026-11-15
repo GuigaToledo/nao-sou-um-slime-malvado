@@ -117,6 +117,19 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.2.0
+
+- **Gráficos em alta resolução:**
+  - Personagens, monstros, invocações e visuais são gerados com 3 vezes mais detalhe, com sombreado suave e contorno fino. No modo "PC fraco", são 2 vezes.
+  - O chão foi refeito com tufos de grama, flores, pedras, poças, brasas e neve desenhados.
+  - As árvores ganharam copa com mais folhas, luz do sol, frutinhas e tronco com casca e raízes.
+- **Seu slime vira para todos os lados:** de frente quando desce, de costas quando sobe e de perfil para a esquerda ou a direita. Os slimes da vila e os amigos online também.
+- **Monstros, invocações e moradores** giram ao trocar de lado e inclinam o corpo quando sobem ou descem.
+- **Dragão do Vendaval com 10 habilidades:** Raio, Corrente de Relâmpagos, Tempestade, Vendaval, Vento a Favor, Sopro do Trovão, Tornado, Escudo de Vento, Fúria da Tempestade e Julgamento Celestial.
+  - Ele libera 2 a cada 10 níveis, nunca tendo menos de 4.
+  - Ele se cura sozinho: regenera o tempo todo e, com pouca vida, solta uma cura forte (a cada 20 s).
+- **Volume no menu (Start ou Esc):** música e efeitos separados, de 0% (mudo) a 100%. Use as setas para ajustar ou aperte o item para ir descendo.
+
 ## Novidades da v2.1.0
 
 - **Animações para todas as criaturas:**
