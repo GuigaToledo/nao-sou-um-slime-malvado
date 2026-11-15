@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.17.0";
+const VERSION="v3.18.0";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -1618,10 +1618,11 @@ function updPlayer(p,dt,inp,ctl){healHook(p);p.hit-=dt;p.eatT-=dt;p.cast-=dt;
  const n1=nearMon(p,44),man=ctl&&inp.atk;if(p.cd<=0&&(man||n1)){if(n1&&!man)face(p,n1);attack(p)}
  /* magia automática: a da forma atual; como slime, uma sorteada entre todas as aprendidas */
  if(p.scd<=0){let k=null,ft=p.ft;if(fm.k)k=Array.isArray(fm.k)?fm.k[p.ki%fm.k.length]:fm.k;
-  else{if(!p.rk){const pool=[];for(let i=1;i<NF;i++)if(p.own[i]&&MT[i].k)for(const q of(Array.isArray(MT[i].k)?MT[i].k:[MT[i].k]))pool.push([q,i]);if(pool.length)p.rk=pk(pool)}if(p.rk){k=p.rk[0];ft=p.rk[1]}}
+  /* v3.18: slime sem skin solta uma magia diferente a cada segundo (sem repetir a anterior) */
+  else{if(!p.rk){const pool=[];for(let i=1;i<NF;i++)if(p.own[i]&&MT[i].k)for(const q of(Array.isArray(MT[i].k)?MT[i].k:[MT[i].k]))pool.push([q,i]);const pl=pool.filter(q=>q[0]!==p.lastRK);if(pool.length)p.rk=pk(pl.length?pl:pool)}if(p.rk){k=p.rk[0];ft=p.rk[1]}}
   /* a luz que cura sai sozinha assim que a recarga termina, com ou sem inimigos */
-  if(k){const tg=nearMon(p,KD[k][0]*(k==="charge"||k==="stomp"||k==="spin"||k==="web"||k==="cloud"?.8:1));if(tg||k==="holy"||(ctl&&inp.skill&&fm.k)){if(tg)face(p,tg);const cr=R()<critC(p);p.ft=ft;
-    cast(p,k,dmg(p)*(cr?2:1)*(fm.k?1:.8)*(SKPW[p.skin]||1),tg,p,cr);p.ft=fm.kd||fm.t||0;p.scd=KD[k][1]*(1-.06*S(p,"atk4"))*(fm.k?1:1.25);p.scdM=p.scd;p.ki++;p.kk=KL.indexOf(k);p.kseq++;p.rk=null}}}
+  if(k){const tg=nearMon(p,KD[k][0]*(k==="charge"||k==="stomp"||k==="spin"||k==="web"||k==="cloud"?.8:1));if(!tg&&!fm.k)p.rk=null;if(tg||k==="holy"||(ctl&&inp.skill&&fm.k)){if(tg)face(p,tg);const cr=R()<critC(p);p.ft=ft;
+    cast(p,k,dmg(p)*(cr?2:1)*(fm.k?1:.6)*(SKPW[p.skin]||1),tg,p,cr);p.ft=fm.kd||fm.t||0;p.scd=fm.k?KD[k][1]*(1-.06*S(p,"atk4")):1;p.scdM=p.scd;p.ki++;p.kk=KL.indexOf(k);p.kseq++;p.lastRK=k;p.rk=null}}}
  doDash(p,dt,dmg(p)*2,p);
  const hi=plants.findIndex(q=>Math.abs(q.x-p.x)<26&&Math.hypot(q.x-p.x,q.y-p.y)<26);if(hi>=0)herb(p,hi);cryTouch(p);rockPush(p,dt);
  const tx=Math.floor(p.x/T),ty=Math.floor(p.y/T),tt=map[ty]?.[tx];
@@ -2401,7 +2402,9 @@ function netTick(dt){if(state==="connecting"&&NET.mode!=="client"&&time-NET.join
 /* ===== Desenho do mundo ===== */
 let ox=0,oy=0,LT=[],GL=[],ambCur=.6;
 const sw=s=>s.lw||s.c.width,sh=s=>s.lh||s.c.height;
-const tile=(c,x,y)=>X.drawImage(c,Math.round(x+ox),Math.round(y+oy),T,T);
+/* cada bloco do chão sai 1px maior (sem frestas quando a tela é reduzida); com gráficos baixos, uma variante só por bioma, que encaixa sem marcar os quadrados */
+const tile=(c,x,y)=>X.drawImage(c,Math.round(x+ox),Math.round(y+oy),T+1,T+1);
+const FV=h=>LOWFX||GQ==="baixo"?0:h%3;
 const imgS=(s,x,y)=>X.drawImage(s.c,Math.round(x+ox),Math.round(y+oy),sw(s),sh(s));
 const blk=(x,y,w,h,c)=>{X.fillStyle=c;X.fillRect(Math.round(x+ox),Math.round(y+oy),w,h)};
 const img=(c,x,y)=>X.drawImage(c,Math.round(x+ox),Math.round(y+oy));
@@ -2442,9 +2445,9 @@ const hs=(x,y)=>((x*73856093)^(y*19349663))>>>0;
 const isWall=t=>t===1||t===10;
 function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floor((camx+VW)/T),y1=Math.floor((camy+VH)/T),an=Math.floor(time*4)%3;
  for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=map[ty]?.[tx];if(t===undefined)continue;const px=tx*T,py=ty*T,h=hs(tx,ty),z=ZONES[BZ[ty*MW+tx]],bt=BT[z.bio];
-  if(isWall(t)||t===14){if(z.out&&t!==14){tile(bt.fl[h%3],px,py);paint(tx,ty,px,py);trunkDraw(tx,ty,z,px,py);continue}const W2=t===14?BT[5]:bt.wf?bt:BT[0],b=map[ty+1]?.[tx],face=b!==undefined&&!isWall(b)&&b!==14;
+  if(isWall(t)||t===14){if(z.out&&t!==14){tile(bt.fl[FV(h)],px,py);paint(tx,ty,px,py);trunkDraw(tx,ty,z,px,py);continue}const W2=t===14?BT[5]:bt.wf?bt:BT[0],b=map[ty+1]?.[tx],face=b!==undefined&&!isWall(b)&&b!==14;
    tile(face?W2.wf[h%2]:W2.wt[h%2],px,py);if(t===10)imgS(CRKS,px,py);if(!face){if(!isWall(map[ty][tx-1])&&map[ty][tx-1]!==14)blk(px,py,2,T,"#05060a");if(!isWall(map[ty][tx+1])&&map[ty][tx+1]!==14)blk(px+T-2,py,2,T,"#05060a")}continue}
-  if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&Math.abs(VCX-tx)<40)||(Math.abs(tx-VCX)<=1&&Math.abs(VCY-ty)<40&&Math.abs(VCY-ty)>12));tile(vill?DIRT:bt.fl[h%3],px,py);paint(tx,ty,px,py);if(t===4&&!vill)grassSway(tx,ty,px,py,BIO[z.bio].n,h);if(t===5)trunkDraw(tx,ty,z,px,py);
+  if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&Math.abs(VCX-tx)<40)||(Math.abs(tx-VCX)<=1&&Math.abs(VCY-ty)<40&&Math.abs(VCY-ty)>12));tile(vill?DIRT:bt.fl[FV(h)],px,py);paint(tx,ty,px,py);if(t===4&&!vill)grassSway(tx,ty,px,py,BIO[z.bio].n,h);if(t===5)trunkDraw(tx,ty,z,px,py);
    /* v3.6: cristais e cogumelos brilhantes iluminam a noite (cristais em neve, deserto e pedra; cogumelos nas matas) */
    else if(z.gl&&!vill){const d=h%(z.gl==="c"?173:47);if(d===0){if(z.gl==="c"){if(!CC.has(ty*MW+tx)){imgS(CRY,px+6,py+14);const c=GLC[z.bio]||"120,220,255";LT.push([px+16,py+20,170,.55+.35*NIGHT]);GL.push([px+16,py+20,34,c,.22+.12*NIGHT+.05*Math.sin(time*2+tx)])}}
     else{imgS(MUSH,px+8,py+14);const c=GLC[z.bio]||"60,220,190";LT.push([px+16,py+18,110,.4+.35*NIGHT]);GL.push([px+16,py+18,18,c,.14+.12*NIGHT])}}}continue}
@@ -2453,7 +2456,7 @@ function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floo
   if(t===6){tile(SW[(an+h)%3],px,py);if(R()<.004)burst(px+R()*32,py+R()*32,"#8fd08a",3,.7,0,-14);continue}
   if(t===7){tile(LV[(an+h)%3],px,py);LT.push([px+16,py+16,70,.55]);GL.push([px+16,py+16,36,"255,110,30",.13]);if(R()<.006)burst(px+R()*32,py+R()*32,"#ffd060",3,.6,0,-24);continue}
   if(t===16){water(px,py,tx,ty);continue}
-  tile((bt.fl||BT[0].fl)[h%3],px,py);paint(tx,ty,px,py);if(t===9)rockDraw(tx,ty,z,px,py);
+  tile((bt.fl||BT[0].fl)[FV(h)],px,py);paint(tx,ty,px,py);if(t===9)rockDraw(tx,ty,z,px,py);
   if(t===11){imgS(CHS,px+5,py+12);if(z.out)LT.push([px+16,py+18,70,.5]);GL.push([px+16,py+18,26,"255,220,80",.25+.12*Math.sin(time*4)])}
   if(t===12)imgS(CHO,px+5,py+14);
   /* tochas espalhadas pelo mapa: sempre acesas, mas só fazem diferença à noite */

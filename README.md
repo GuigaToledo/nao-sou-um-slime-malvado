@@ -620,3 +620,8 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 - **Pedras de 6 formatos** (pedregulho, monte, agulha, laje, rachada, com musgo/neve/brasas) em 6 tipos de rocha conforme o lugar (cinza, arenito, basalto com lava, neve, musgo e carmesim).
 - **Árvores e pedras bloqueiam quem anda; só quem voa passa por cima.** As pedras **só quebram com skins de força** (Capacete Viking, Chifres de Touro, Coroa de Rei, Chifres do Dragão de Pedra, Elmo de Pedra, Clava de Ogro, Elmo do Minotauro, Gorro de Gigante, Pirata, Elmo do Cavaleiro Negro, Escamas de Rocha, Elmo de Magma): é só andar contra a pedra. Todos os chefes, a fortaleza e as minas continuam alcançáveis a pé.
 - **Água nova:** ondas que andam, profundidade variada, brilho do sol e **espuma branca na beira**; no raso, reflexos de luz no fundo de areia. **A grama balança ao vento** (em gráficos altos).
+
+## v3.18.0
+
+- **Slime sem skin:** solta **uma magia diferente a cada segundo**, sorteada entre as dos monstros que você já devorou e sem repetir a anterior; se a sorteada não alcança o inimigo, troca na hora por outra. O dano de cada uma é um pouco menor (60%) para compensar a velocidade.
+- **Gráficos baixos sem quadrados no chão:** cada bloco é desenhado 1px maior (sem frestas quando a tela é reduzida) e, no modo baixo, o chão usa uma única textura que encaixa nas bordas, então a divisão dos blocos não aparece mais.
