@@ -580,3 +580,10 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 
 - **A cidade se defende de qualquer monstro:** guardas, moradores (as invocações que vivem na cidade) e torres atacam **qualquer monstro que chegar perto da muralha**, não só os invasores. Fora das invasões eles vigiam um raio maior.
 - **A kill conta para o seu personagem,** esteja onde estiver: você ganha o XP e a devoração (invocação, visual e resistência) do monstro que a cidade abateu. Isso ajuda a subir os primeiros níveis.
+
+## v3.12.0 (sítios, cristais e minas)
+
+- **4 sítios de erva curativa** do lado de fora da cidade (nas diagonais), cada um com casinha, cerca e 6 pés de erva que **voltam a crescer em 1 minuto**. Um **fazendeiro slime com o Brotinho** na cabeça cuida e rega a plantação.
+- **Cristais azuis coletáveis:** encoste num cristal do mapa (no chão ou nas cavernas) para ganhar **50 de ouro**. Ele volta a crescer em 5 minutos. No online, o ouro vai para o tesouro de quem hospeda.
+- **10 minas de cristal** espalhadas perto das montanhas, das rochas e da neve, cada uma com entrada na pedra, vigas, lanterna, carrinho e **7 cristais** para coletar.
+- **A magia de cura recarrega na metade do tempo** (6 s em vez de 12 s).
