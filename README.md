@@ -117,6 +117,60 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.1.0
+
+- **Animações para todas as criaturas:**
+  - Ao andar: passo com balanço e inclinação, e as criaturas voadoras batem asas.
+  - No ataque básico: investida na direção do alvo.
+  - Ao lançar magia: círculo mágico na cor do elemento, com brilho e faíscas.
+  - Vale para o slime, as invocações, os monstros e os amigos online.
+- **Toda criatura tem ataque básico.** As magias e os ataques especiais dependem do nível:
+
+  | Nível | Habilidades além do ataque básico |
+  |---|---|
+  | 1 a 9 | nenhuma |
+  | 10 a 19 | 1 |
+  | 20 a 29 | 2 |
+  | 30 a 39 | 3 |
+  | 40 a 49 | 4 |
+  | 50 ou mais | 5 |
+
+  Os chefes sempre têm pelo menos 3.
+- **Tipos de magia**, inspirados em RPGs de mesa:
+  - de ataque: projéteis, sopro em cone, raio em linha, onda ao redor, explosão no chão (meteoro, nevasca, poça de veneno que fica) e corrente de relâmpagos que pula de alvo em alvo;
+  - de controle: dreno de vida e prender o alvo;
+  - de apoio: cura de aliado, pressa (mais velocidade de ataque e de movimento), escudo (menos dano) e fúria;
+  - de movimento e reforço: investida, teleporte e chamar crias.
+- **Invocações usam as mesmas magias a seu favor:** atacam os monstros, curam você e as outras invocações, e dão pressa e escudo ao grupo. Quando a invocação aprende uma magia nova, aparece uma mensagem.
+- **Habilidades de cada criatura**, na ordem em que liberam:
+
+| Criatura | Habilidades (nível 10 → 50) |
+|---|---|
+| Morcego Gigante | Mordida Vampírica · Grito Sônico · Frenesi da Revoada · Nuvem de Morcegos · Voo Sombrio |
+| Goblin | Lança Arremessada · Rajada de Lanças · Rede de Caça · Grito de Guerra Goblin · Bomba Goblin |
+| Aranha Gigante | Teia · Picada Venenosa · Chuva de Teias · Casulo · Ninhada |
+| Lagarta Carniceira | Fumaça Venenosa · Cuspe Venenoso · Casulo Regenerador · Pele Urticante · Nuvem Pestilenta |
+| Ankheg | Cuspe Ácido · Escavar · Jorro Ácido · Tremor · Carapaça |
+| Lobo-Chifre | Raio · Investida Elétrica · Uivo da Matilha · Corrente de Relâmpagos · Tempestade |
+| Cão Infernal | Sopro de Fogo · Bola de Fogo · Uivo Infernal · Mordida Flamejante · Explosão Infernal |
+| Lobo Invernal | Sopro Gélido · Lança de Gelo · Uivo da Matilha · Nevasca · Armadura de Gelo |
+| Ogro | Pancada Sísmica · Arremesso de Pedra · Fúria do Ogro · Investida · Terremoto |
+| Minotauro | Investida · Golpe Giratório · Grito Aterrorizante · Pisotear · Fúria do Labirinto |
+| Basilisco | Olhar Petrificante · Cuspe Venenoso · Pele de Pedra · Petrificar · Regeneração |
+| Gigante das Colinas | Arremesso de Rocha · Pisão · Chuva de Rochas · Terremoto · Pele de Pedra |
+| Rainha Aranha | Teia Tripla · Ninhada · Poça de Veneno · Casulo · Frenesi |
+| Orc Saqueador | Golpe Giratório · Investida · Grito de Guerra · Machado Arremessado · Berserk |
+| Orc Xamã | Bola de Fogo · Cura Tribal · Bênção de Guerra · Escudo Espiritual · Chuva de Fogo |
+| Lobo Sombrio | Passo Sombrio · Mordida Drenante · Uivo do Terror · Garras das Sombras · Trevas |
+| Lorde Orc | Investida · Terremoto · Grito de Guerra · Golpe Giratório · Berserk |
+| Dragão do Vendaval | Raio · Corrente de Relâmpagos · Tempestade · Vendaval · Vento a Favor |
+| Dragão Verde | Sopro Venenoso · Nuvem Ácida · Rajada Venenosa · Rugido · Regeneração Dracônica |
+| Dragão Vermelho | Sopro de Fogo · Bolas de Fogo · Chuva de Meteoros · Rugido · Asas Flamejantes |
+| Dragão Glacial | Sopro Gélido · Lanças de Gelo · Nevasca · Armadura de Gelo · Rugido |
+| Dragão Negro | Sopro Sombrio · Passo Sombrio · Drenar Vida · Maldição · Trevas Profundas |
+| Dragão de Pedra | Chuva de Rochas · Terremoto · Pele de Pedra · Investida · Pisão |
+| Dragão Ancião | Sopro Ancestral · Tempestade de Relâmpagos · Chuva de Meteoros · Terremoto · Fúria Ancestral |
+
 ## Novidades da v2.0.0
 
 - **Quem sai do jogo some da tela.**
