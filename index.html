@@ -22,7 +22,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.2.0";
+const VERSION="v3.3.0";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VH=480,FT="'VT323',ui-monospace,monospace";
@@ -637,9 +637,9 @@ let SX=0,SY=0,VX=0,VY=0,VCX=0,VCY=0,FTX=0,FTY=0,vXp=0,vYp=0,cpX=0,cpY=0,elder={x
 const G={};
 const vmax=()=>900+WALL_HP[G.vup[0]|0];
 /* nível da zona: o do monstro que mora nela (ou do chefe) */
-const zoneLv=z=>z.boss?NLV[z.boss]:z.t?NLV[z.t]:z.village?12:z.seal?10:1;
+const zoneLv=z=>z.lv?z.lv:z.boss?NLV[z.boss]:z.t?NLV[z.t]:z.village?3:z.seal?10:1;
 /* força do monstro conforme o nível (elite = +3 níveis e mais forte) */
-function setMonLv(m,L){const b=MT[m.t],bs=b.boss&&!b.friend,el=m.elite;m.lv=clamp(L|0,1,MAXLV+10);const r=m.mhp?m.hp/m.mhp:1;
+function setMonLv(m,L){const b=MT[m.t],bs=b.boss&&!b.friend,el=m.elite;m.lv=clamp(L|0,1,MAXLV+50);const r=m.mhp?m.hp/m.mhp:1;
  m.mhp=Math.round(b.hp*HPM*(el?2.5:1)*(bs?2.3:1)*lvHP(m.t,m.lv));m.hp=m.mhp*r;m.dm=b.dm*DMM*(el?1.4:1)*(bs?1.3:1)*lvDM(m.t,m.lv)}
 function mkMon(id,t,px,py,elite,lv){const b=MT[t],bs=b.boss&&!b.friend;
  let L=lv;if(!L){const zl=zoneLv(ZONES[zoneOfPx(px,py)]);L=bs?NLV[t]:Math.max(NLV[t],zl-4)+Math.floor(R()*4)-1+(elite?3:0)}
@@ -661,7 +661,31 @@ function genWorld(){seed=11;
  for(let i=0;i<ZONES.length;i++)genZone(i);
  links.forEach((l,i)=>{const[dx,dy]=l.dir;for(let k=-7;k<=7;k++)for(let w=-1;w<=1;w++){const x=l.x+dx*k+(dy?w:0),y=l.y+dy*k+(dx?w:0);if(map[y]?.[x]===undefined)continue;const zz=ZONES[zoneAt(x,y)];if(map[y][x]===1||map[y][x]===5)map[y][x]=zz.out?4:0}
   const g=GATES[i];if(g)for(let k=-2;k<=2;k++)for(let w=-1;w<=1;w++){const x=l.x+dx*k+(dy?w:0),y=l.y+dy*k+(dx?w:0);map[y][x]=g}});
- N0=MID;seen.fill(0);MM32.fill(0xff120a0a);mmDirty=1}
+ N0=MID;reorgWorld();seen.fill(0);MM32.fill(0xff120a0a);mmDirty=1}
+/* ===== Mundo reorganizado (v3.3): você nasce na cidade; a caverna do começo virou o covil do Vendaval (chefe final, nível 150),
+   com as criaturas mais fortes (nível 100 a 140) no caminho; insetos (de dia) e morcegos (à noite) em volta da cidade; um chefe em cada área ===== */
+const CAVE={4:{lv:100,ts:[25,26],bt:27},3:{lv:110,ts:[27,28],bt:28},2:{lv:120,ts:[29,32],bt:29},1:{lv:130,ts:[30,31],bt:31},0:{lv:140,ts:[33,34],bt:34}};
+for(const k in CAVE){ZONES[k].lv=CAVE[k].lv;ZONES[k].ts=CAVE[k].ts}
+const VEND_LV=150;
+const zFloor=(i,ok)=>{const[x0,y0]=zOrigin(i);for(let k=0;k<600;k++){const x=x0+6+Math.floor(R()*(ZW-12)),y=y0+6+Math.floor(R()*(ZH-12)),t=map[y][x];if((t===0||t===4)&&ZONES[zoneAt(x,y)]===ZONES[i]&&(!ok||ok(x,y)))return[x,y]}return null};
+function mkZB(t,x,y,lv){const m=mkMon(MID++,t,x*T+16,y*T+16,1,lv);m.boss2=1;m.zb=1;m.mhp=m.hp=Math.round(m.mhp*5);m.dm*=1.5;m.sp=-1;return m}
+function mkVend(x,y){const m=mkMon(MID++,DRG,x,y,0,VEND_LV);m.vb=1;m.sp=-1;m.mhp=m.hp=Math.round(m.mhp*2);m.dm*=.55;return m}
+function reorgWorld(){const host=typeof NET==="undefined"||NET.mode!=="client";
+ /* tira os bichos antigos da caverna (e a Rainha Aranha, que se mudou para a floresta perto da cidade) */
+ mons=mons.filter(m=>{const zi=zoneOfPx(m.x,m.y);if(CAVE[zi]||m.t===QUEEN){MIDX.delete(m.id);return false}return true});
+ /* os pontos de nascimento da caverna agora são das criaturas fortes */
+ const now=time||0;spawns.forEach((s,si)=>{const zi=zoneAt(s.x,s.y);if(!CAVE[zi])return;const c=CAVE[zi];s.t=c.ts[si%2];s.lv=c.lv+Math.floor(R()*9)-2;s.el=0;if(host){const m=mkMon(MID++,s.t,s.x*T+16,s.y*T+16,0,s.lv);m.sp=si}});
+ /* o santuário (zona 4) não tinha bichos: ganha alguns no caminho */
+ for(let k=0;k<14;k++){const p=zFloor(4);if(!p)break;const c=CAVE[4];spawns.push({x:p[0],y:p[1],t:c.ts[k%2],el:0,lv:c.lv+Math.floor(R()*6)});if(host){const s=spawns[spawns.length-1],m=mkMon(MID++,s.t,s.x*T+16,s.y*T+16,0,s.lv);m.sp=spawns.length-1}}
+ /* em volta da cidade: insetos de dia, morcegos à noite (fracos, para começar) */
+ for(let k=0;k<22;k++){let p=null;for(let q=0;q<80&&!p;q++){const a=R()*6.283,d=19+R()*24,x=Math.round(VCX+Math.cos(a)*d),y=Math.round(VCY+Math.sin(a)*d*.8);if(map[y]?.[x]===4&&ZONES[zoneAt(x,y)].village)p=[x,y,d]}if(!p)continue;
+  const dn=k%3===0?"n":"d",t=dn==="n"?1:INSECTS[(k>>1)%3],lv=1+Math.floor((p[2]-19)/5);spawns.push({x:p[0],y:p[1],t,el:0,lv,dn});const si=spawns.length-1;
+  if(host){if(dn===(NIGHT>.5?"n":"d")){const m=mkMon(MID++,t,p[0]*T+16,p[1]*T+16,0,lv);m.sp=si}else G.rq&&G.rq.push({si,at:now+2})}}
+ if(!host)return;
+ /* chefes: o Vendaval onde o slime nascia; a Rainha Aranha na Floresta dos Goblins; um chefe gigante em cada outra área */
+ mkVend((SX+6)*T+16,SY*T+16);
+ {const p=zFloor(6,(x,y)=>Math.hypot(x-VCX,y-VCY)>30);if(p){const q=put(QUEEN,p[0],p[1]);q.sp=-1}}
+ ZONES.forEach((z,i)=>{if(z.village||i===0||i===6||z.boss===LORD||z.boss===ANCIENT)return;const t=CAVE[i]?CAVE[i].bt:z.t;if(!t)return;const p=zFloor(i,(x,y)=>Math.hypot(x-VCX,y-VCY)>30);if(p)mkZB(t,p[0],p[1],zoneLv(z)+(CAVE[i]?6:4))})}
 function genZone(i){const z=ZONES[i],[x0,y0]=zOrigin(i),X0=x0+3,X1=x0+ZW-4,Y0=y0+3,Y1=y0+ZH-4;
  const ctr=[x0+50,y0+50],inn=i===0?[x0+8,y0+50]:i<=CAVE_CHAIN?linkIn(links[i-1],i):ctr,out=i<CAVE_CHAIN?linkIn(links[i],i):ctr;
  const ok=(a,b)=>a>=X0&&a<=X1&&b>=Y0&&b<=Y1;
@@ -720,11 +744,16 @@ function removeType(t){for(const m of [...mons])if(m.t===t){m.gone=1;mons.splice
 /* ===== Dia e noite: um ciclo de 16 minutos; 3/4 dia (12 min) e 1/4 noite (4 min), com 30 s de entardecer/amanhecer ===== */
 const DAYLEN=960,DAYP=720;let NIGHT=0,wasNight=0;
 function nightF(){const t=(G.tod||0)%DAYLEN;if(t<DAYP-30)return 0;if(t<DAYP)return(t-(DAYP-30))/30;if(t<DAYLEN-30)return 1;return(DAYLEN-t)/30}
-function dayTick(dt){G.tod=((G.tod||0)+dt)%DAYLEN;NIGHT=nightF();const n=NIGHT>.5?1:0;if(n!==wasNight){wasNight=n;if(state==="play")say(n?"A noite caiu… fique perto da luz: tochas, cristais e o brilho do seu slime.":"O sol nasceu sobre o reino.")}}
+function dayTick(dt){G.tod=((G.tod||0)+dt)%DAYLEN;NIGHT=nightF();const n=NIGHT>.5?1:0;if(n!==wasNight){wasNight=n;dnSwap(n);if(state==="play")say(n?"A noite caiu… fique perto da luz: tochas, cristais e o brilho do seu slime.":"O sol nasceu sobre o reino.")}}
+/* troca de turno em volta da cidade: de dia os morcegos voltam para as árvores; à noite os insetos se enterram */
+function dnSwap(n){if(typeof NET!=="undefined"&&NET.mode==="client")return;const want=n?"n":"d";mons=mons.filter(m=>{const s=m.sp>=0?spawns[m.sp]:null;if(!s||!s.dn||s.dn===want||m.hp<m.mhp)return true;
+ m.gone=1;MIDX.delete(m.id);for(let i=0;i<6;i++)burst(m.x,m.y-6,s.dn==="n"?"#5a4a7a":"#8a6a3a",3,.5,(R()-.5)*60,-R()*40);G.rq.push({si:m.sp,at:time+1});return false})}
 function clockTxt(){const t=(G.tod||0)%DAYLEN;let h=t<DAYP?5+18*t/DAYP:23+6*(t-DAYP)/(DAYLEN-DAYP);h%=24;const hh=Math.floor(h),mm=Math.floor((h-hh)*60/10)*10;return(hh<10?"0":"")+hh+":"+(mm<10?"0":"")+mm}
 function resetWorld(w){ctKey=-1;cityTiles=null;Object.assign(G,{tod:60,ws:Array(24).fill(1),th:[1,1,1,1,1,1],rep:0,brq:[],it:900,ninv:0,inv:0,warned:0,ig:0,ia:0,phase:0,ch:1,vname:"",vup:[0,0,0,0,0,0,0],cr:0,wave:1,wact:0,wt:0,vhp:900,mb:0,ld:0,dead:[],spawnLeft:0,st:0,rq:[],tw:[0,0],pool:14});
- if(w&&typeof w==="object"){G.ch=clamp(w.ch|0,1,3);G.phase=w.phase>=1||G.ch>1?1:0;G.vname=String(w.vname||"").slice(0,16);if(Array.isArray(w.vup))G.vup=[0,1,2,3,4,5,6].map(i=>clamp(+w.vup[i]||0,0,10));G.it=+w.it>0?Math.min(900,+w.it):900;G.ninv=w.ninv|0;G.cr=Math.max(0,w.cr|0);G.wave=clamp(w.wave|0,1,5);G.mb=w.mb?1:0;G.ld=w.ld?1:0;G.tod=+w.tod>=0?(+w.tod)%DAYLEN:60;if(Array.isArray(w.ws)&&w.ws.length===24)G.ws=w.ws.map(v=>clamp(+v||0,0,1));if(Array.isArray(w.th)&&w.th.length===6)G.th=w.th.map(v=>clamp(+v||0,0,1));G.rep=clamp(+w.rep||0,0,20)}
- genWorld();if(G.phase>=1)setPhase(1);/* chefes renascem: ao carregar, todos estão no lugar */G.vhp=vmax();if(G.ch===2&&G.wave<5){G.wact=0;G.wt=20}}
+ if(w&&typeof w==="object"){G.ch=clamp(w.ch|0,2,3);G.phase=w.phase>=1||G.ch>1?1:0;G.vname=String(w.vname||"").slice(0,16);if(Array.isArray(w.vup))G.vup=[0,1,2,3,4,5,6].map(i=>clamp(+w.vup[i]||0,0,10));G.it=+w.it>0?Math.min(900,+w.it):900;G.ninv=w.ninv|0;G.cr=Math.max(0,w.cr|0);G.wave=clamp(w.wave|0,1,5);G.mb=w.mb?1:0;G.ld=w.ld?1:0;G.tod=+w.tod>=0?(+w.tod)%DAYLEN:60;if(Array.isArray(w.ws)&&w.ws.length===24)G.ws=w.ws.map(v=>clamp(+v||0,0,1));if(Array.isArray(w.th)&&w.th.length===6)G.th=w.th.map(v=>clamp(+v||0,0,1));G.rep=clamp(+w.rep||0,0,20)}
+ /* v3.3: sempre começa na cidade, sem as ondas iniciais (invasões a partir do nível 30) */
+ G.ch=Math.max(2,G.ch|0);G.wave=5;G.phase=1;
+ genWorld();setPhase(1);/* chefes renascem: ao carregar, todos estão no lugar */G.vhp=vmax();G.wact=0}
 function applySecrets(mask){secrets.forEach((s,i)=>{if(mask&(1<<i)){if(s.wx>=0)map[s.wy][s.wx]=0;map[s.y][s.x]=12}})}
 /* ===== Perfis e salvamento ===== */
 const PF=["vn","tv","lv","xp","own","sp","sk","sum","sum2","sec","reg","res","nm","col","slv","sxp","cos","skin"];
@@ -792,7 +821,8 @@ const u32=h=>{const[r,g,b]=hx3(h);return(0xff000000|(b<<16)|(g<<8)|r)>>>0};
 const MMC={15:u32("#9aa0aa"),16:u32("#3a7ac8"),wall:u32("#1a1e2a"),out:u32("#143018"),0:u32("#4a5068"),2:u32("#000000"),3:u32("#a35bff"),4:u32("#3a7a30"),5:u32("#1e4a22"),6:u32("#2f6a3a"),7:u32("#f06a20"),9:u32("#9aa0aa"),14:u32("#8a8a9a")};
 const BIOMM=BIO.map(b=>u32(b.f[1]));
 function mmTile(x,y){if(!seen[y*MW+x])return;const t=map[y][x],z=ZONES[BZ?BZ[y*MW+x]:zoneAt(x,y)];let c;if(t===1||t===10)c=z.out?MMC.out:MMC.wall;else if(t===0||t===11||t===12)c=BIOMM[z.bio];else c=MMC[t]||BIOMM[z.bio];MM32[y*MW+x]=c;mmDirty=1}
-function spawnPoint(){if(G.ch>=2)return[cpX-60,cpY+50];if(G.phase>=1)return[vXp,vYp+90];return[SX*T+16,SY*T+16]}
+/* v3.3: o slime nasce (e renasce) na cidade */
+function spawnPoint(){return[cpX-60,cpY+50]}
 /* ===== Atributos ===== */
 /* pontos colocados na habilidade (0 até o máximo dela) */
 const S=(p,k)=>p.sk?p.sk[SKI[k]]|0:0;
@@ -835,16 +865,19 @@ function hurt(m,d,eff,el,src,crit){if(m.gone)return;
  m.hp-=d;if(m.hp<=0)kill(m)}
 function kill(m){if(m.gone)return;m.gone=1;const i=mons.indexOf(m);if(i>=0)mons.splice(i,1);MIDX.delete(m.id);if(m.id<N0)G.dead.push(m.id);
  if(m.sp>=0&&m.sp!==undefined)G.rq.push({si:m.sp,at:time+RESPAWN_S});
+ /* chefes das áreas e o Vendaval também voltam depois de 5 minutos */
+ else if(m.zb||m.vb)(G.brq||(G.brq=[])).push({t:m.t,x:m.hx,y:m.hy,at:time+BOSS_RESPAWN_S,lv:m.lv,zb:m.zb?1:0,vb:m.vb?1:0});
  /* chefes (inclusive o Lorde Orc) voltam 5 minutos depois, no mesmo lugar */
  else if(MT[m.t].boss&&!MT[m.t].friend&&!m.minion)(G.brq||(G.brq=[])).push({t:m.t,x:m.hx,y:m.hy,at:time+BOSS_RESPAWN_S});
- NET.kills.push([++NET.kseq,m.t,m.x|0,m.y|0,m.elite,m.lv]);if(NET.kills.length>14)NET.kills.shift();
- G.cr+=Math.round(goldOf(m.t,m.lv,m.elite)*GOLD_M[cl("house")]);if(m.t===QUEEN){G.mb=1}if(m.t===LORD){G.ld=1;if(G.ch===2&&G.wave>=5)G.ch=3}
- onKill(m.t,m.x,m.y,m.elite,m.lv)}
+ const ek=m.vb?20:m.zb?8:m.elite?1:0;if(m.vb){showBanner("VENDAVAL DERROTADO!");say("Você venceu o Dragão do Vendaval, o chefe final! Ele volta em 5 minutos para quem quiser enfrentá-lo de novo.");shake=16}else if(m.zb)say("Chefe derrotado: "+MT[m.t].n+"! Ele volta em 5 minutos.");
+ NET.kills.push([++NET.kseq,m.t,m.x|0,m.y|0,ek,m.lv]);if(NET.kills.length>14)NET.kills.shift();
+ G.cr+=Math.round(goldOf(m.t,m.lv,ek)*GOLD_M[cl("house")]);if(m.t===QUEEN){G.mb=1}if(m.t===LORD){G.ld=1;if(G.ch===2&&G.wave>=5)G.ch=3}
+ onKill(m.t,m.x,m.y,ek,m.lv)}
 function onKill(t,x,y,el,lv){sfx("kill");dropCoins(x,y,Math.round(goldOf(t,lv,el)*GOLD_M[cl("house")]));for(let i=0;i<14;i++)burst(x,y-6,pk(["#d8d0c0","#8a8090","#5a5060"]),4,.6,(R()-.5)*140,-R()*120,null,260);
  for(const p of PL)if(p.dead<=0&&Math.hypot(p.x-x,p.y-y)<420)devourGain(p,t,x,y,el,lv)}
 /* XP pelo nível do monstro: elite x2, chefe x15; 5+ níveis acima x1,5 e 10+ x2 */
 function devourGain(p,t,x,y,el,lv){const m=MT[t];lv=lv||NLV[t];const tier=lvTier(lv-p.lv);
- const xp=Math.round(xpOfLv(lv)*(el?2:1)*(m.boss?15:1)*TIER_MUL[tier]*(1+.08*S(p,"mag4"))*(cosOf(p).xp||1));p.eatT=.35;
+ const xp=Math.round(xpOfLv(lv)*(el>1?el:el?2:1)*(m.boss&&!m.friend?15:1)*TIER_MUL[tier]*(1+.08*S(p,"mag4"))*(cosOf(p).xp||1));p.eatT=.35;
  if(tier)num(x,y-50,"XP x"+TIER_MUL[tier],TIER_COL[tier],1);
  for(let i=0;i<18;i++)burst(x+(R()-.5)*30,y-8+(R()-.5)*30,R()<.5?"#9a7aff":PCOL[p.col],4,1.2,(R()-.5)*120,(R()-.5)*120,p);
  rings.push({x,y,r0:34,r1:2,t:.35,m:.35,c:"#b48aff"});sfx("devour");if(S(p,"mag5"))p.hp=Math.min(mhp(p),p.hp+mhp(p)*.03*S(p,"mag5"));
@@ -951,9 +984,9 @@ function healSpell(p){if(p.hcd>0){num(p.x,p.y-40,"Cura em "+Math.ceil(p.hcd)+"s"
  if(S(p,"mag3")){const ar=60+60*S(p,"mag3");for(const q of PL)if(q!==p&&q.dead<=0&&Math.hypot(q.x-p.x,q.y-p.y)<ar){doHeal(q,mhp(q));for(const s of[q.su,q.su2])if(s&&s.dead<=0&&Math.hypot(s.x-p.x,s.y-p.y)<ar)doHeal(s,s.mhp)}}}
 function die(p){p.dead=Math.round((4-.67*S(p,"mag8"))*10)/10;p.hp=0;p.pz=0;p.dash=0;p.dsh=0;for(let i=0;i<20;i++)burst(p.x,p.y-8,PCOL[p.col],4,.8,(R()-.5)*160,(R()-.5)*160,null,200);say(pn(p)+" foi derrotado… a gosma se junta de novo em "+p.dead+"s.");sfx("hurt")}
 function respawn(p){const al=PL.find(q=>q!==p&&q.dead<=0);if(al){p.x=al.x;p.y=al.y}else{[p.x,p.y]=spawnPoint()}p.hp=mhp(p);p.su=null;p.su2=null;if(S(p,"mag8"))p.inv=S(p,"mag8")}
-function canInteract(p){return(Math.hypot(p.x-vXp,p.y-vYp)<120&&!p.own[DRG])||(G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80)}
+function canInteract(p){return G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80}
 function interact(p){
- if(Math.hypot(p.x-vXp,p.y-vYp)<120){
+ if(false){
   if(p.own[DRG]){say("O Dragão do Vendaval já é seu amigo. Invoque-o na roda de invocação.");return}
   if(p.lv<5){say("Dragão: “Kuahaha! Uma gosminha? Volte quando tiver Nível 5 e conversaremos.”");sfx("roar");return}
   p.own[DRG]=1;p.res|=1<<ER;p.sum=DRG;p.su=null;p.ws=1;shake=12;sfx("dragon");
@@ -961,7 +994,8 @@ function interact(p){
   rings.push({x:vXp,y:vYp,r0:150,r1:4,t:.7,m:.7,c:"#ffe14a"});
   if(G.phase<1){if(NET.mode==="client")netHit(-1,0,99);else setPhase(1)}
   gain(p,p.lv>=MAXLV?0:Math.round(need(p)*.5));grantSkin(p);say("O Dragão do Vendaval aceitou sua amizade! Ele luta ao seu lado como invocação e você também pode se transformar nele.");saveDirty=1;return}
- if(G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80){state="upgrade";menuSel=0;sfx("ui");return}
+ /* a primeira conversa com o Ancião decide o nome da cidade */
+ if(G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80){if(!PL[0].vn){state="naming";nameBuf=randName();nameSel=0;sfx("ok");say("Ancião: “Bem-vindo, pequeno slime! Como vamos chamar a nossa cidade?”");return}state="upgrade";menuSel=0;sfx("ui");return}
  const v=villagers.find(q=>Math.hypot(q.x-p.x,q.y-p.y)<50);if(v&&G.ch>=2)say(pk(["Slime: “Obrigado por proteger "+cityName()+"!”","Slime: “Os orcs vêm do sul!”","Slime: “Você é o slime mais legal da vila!”","Slime: “Com o visual de DJ a vila inteira dança!”"]))}
 /* ===== Jogador ===== */
 function updPlayer(p,dt,inp,ctl){p.hit-=dt;p.eatT-=dt;p.cast-=dt;
@@ -999,7 +1033,7 @@ function updPlayer(p,dt,inp,ctl){p.hit-=dt;p.eatT-=dt;p.cast-=dt;
  let rg=(p.reg?1.2:.25)+mhp(p)*(.003*S(p,"def3")+.004*S(p,"mag6"))+(fm.regen||0);if(G.ch>=2&&Math.hypot(p.x-cpX,p.y-cpY)<170)rg+=HEAL_R[cl("heal")];p.hp=Math.min(mhp(p),p.hp+dt*rg);
  for(let j=-7;j<=7;j++)for(let i=-10;i<=10;i++){const a=tx+i,b=ty+j;if(a>=0&&b>=0&&a<MW&&b<MH&&!seen[b*MW+a]){seen[b*MW+a]=1;mmTile(a,b)}}
  if(!hints.cr)for(let j=-2;j<=2;j++)for(let i=-2;i<=2;i++)if(map[ty+j]?.[tx+i]===10){hints.cr=1;say("Sábio: essa parede parece rachada… bata nela com ["+kn(p,"act")+"].")}
- if(!hints.v&&Math.hypot(p.x-vXp,p.y-vYp)<180&&!p.own[DRG]){hints.v=1;say("Sábio: o Dragão do Vendaval está selado aqui. Com Nível 5, aperte ["+kn(p,"act")+"] para fazer amizade com ele.")}
+ if(!hints.v&&ZONES[zoneOfPx(p.x,p.y)].lv>=100){hints.v=1;say("Sábio: cuidado! Esta é a caverna do Vendaval. As criaturas aqui são do nível 100 ao 140, e o dragão, no fundo, é nível 150.")}
  if(!hints.b&&p.skin>=0&&fm.k){hints.b=1;say("Sábio: com este visual você lança “"+fm.sk+"” sozinho quando há inimigos por perto.")}
  if(!hints.h&&p.hp<mhp(p)*.4){hints.h=1;say("Sábio: vida baixa! Aperte ["+kn(p,"heal")+"] para usar a magia de cura.")}
  if(p.hp<=0)die(p);
@@ -1083,9 +1117,9 @@ function monsterAI(dt){const tg=targets();
 function lerpMons(dt){const k=Math.min(1,dt*10);for(const m of mons){const ox=m.x;m.x+=(m.tx-m.x)*k;m.y+=(m.ty-m.y)*k;if(Math.abs(m.x-ox)>.2)m.fl=m.x<ox;m.f-=dt;m.web-=dt;m.slow-=dt;m.pz-=dt;m.dash-=dt;m.wind-=dt;m.castT-=dt;m.atkT-=dt;m.haste-=dt;m.shield-=dt}}
 const BOSS_RESPAWN_S=300;
 function respawnTick(){if(G.brq&&G.brq.length){for(let i=G.brq.length-1;i>=0;i--){const q=G.brq[i];if(time<q.at)continue;const tg=targets();if(tg.some(e=>Math.hypot(e.x-q.x,e.y-q.y)<380)){q.at=time+5;continue}
-  G.brq.splice(i,1);const m=mkMon(MID++,q.t,q.x,q.y,0);m.sp=-1;for(let k=0;k<30;k++)burst(q.x,q.y-10,pk(["#ff4a6a","#ffd84a","#9a7aff"]),4,.9,(R()-.5)*160,(R()-.5)*160);say(MT[q.t].n+" voltou! O chefe renasceu.");sfx("roar")}}
+  G.brq.splice(i,1);const m=q.vb?mkVend(q.x,q.y):q.zb?mkZB(q.t,(q.x-16)/T,(q.y-16)/T,q.lv):mkMon(MID++,q.t,q.x,q.y,0);m.sp=-1;for(let k=0;k<30;k++)burst(q.x,q.y-10,pk(["#ff4a6a","#ffd84a","#9a7aff"]),4,.9,(R()-.5)*160,(R()-.5)*160);say(MT[q.t].n+" voltou! O chefe renasceu.");sfx("roar")}}
  if(!G.rq.length)return;const tg=targets();for(let i=G.rq.length-1;i>=0;i--){const q=G.rq[i];if(time<q.at)continue;const s=spawns[q.si];if(!s){G.rq.splice(i,1);continue}
- const x=s.x*T+16,y=s.y*T+16;if(tg.some(e=>Math.hypot(e.x-x,e.y-y)<420)){q.at=time+5;continue}G.rq.splice(i,1);const m=mkMon(MID++,s.t,x,y,s.el);m.sp=q.si;
+ const x=s.x*T+16,y=s.y*T+16;if(s.dn&&s.dn!==(NIGHT>.5?"n":"d")){q.at=time+5;continue}if(tg.some(e=>Math.hypot(e.x-x,e.y-y)<420)){q.at=time+5;continue}G.rq.splice(i,1);const m=mkMon(MID++,s.t,x,y,s.el,s.lv);m.sp=q.si;
  for(let k=0;k<10;k++)burst(x,y-8,"#9a7aff",3,.6,(R()-.5)*80,(R()-.5)*80)}}
 /* ===== Projéteis e efeitos ===== */
 function pboom(s){rings.push({x:s.x,y:s.y,r0:6,r1:55,t:.3,m:.3,c:"#ff8a1f"});flashes.push({x:s.x,y:s.y,r:120,c:"255,140,40",t:.3,m:.3});sfx("fire");
@@ -1360,7 +1394,9 @@ const INVS=[
  /* exércitos com as criaturas novas (só aparecem nas invasões) */
  {n:"Legião Morta-Viva",m:[25,26,27],r:[28],f:[33],b:27},{n:"Hordas do Abismo",m:[29,34,25],r:[28,29],f:[33],b:34},{n:"Exército do Inverno Eterno",m:[30,31],r:[32,30],f:[33],b:31}];
 /* ouro que um monstro deixa cair (vai para o tesouro da vila) */
-const goldOf=(t,lv,el)=>Math.max(1,Math.round((lv||NLV[t])*.6))*(el?3:1)*(MT[t].boss?20:1);
+const goldOf=(t,lv,el)=>Math.max(1,Math.round((lv||NLV[t])*.6))*(el>1?el*2:el?3:1)*(MT[t].boss&&!MT[t].friend?20:1);
+/* v3.3: as criaturas novas moram na caverna do Vendaval e não vêm mais nas invasões */
+INVS.splice(7);
 let coins=[];
 function dropCoins(x,y,v){const tg=PL.find(p=>p.dead<=0);if(!tg)return;const n=Math.min(7,1+Math.floor(v/6));for(let i=0;i<n;i++)coins.push({x,y:y-8,vx:(R()-.5)*160,vy:-90-R()*90,t:0,tg,v:i===0?v:0})}
 function updCoins(dt){for(const c of coins){c.t+=dt;if(c.t<.45){c.vy+=420*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;continue}const ex=c.tg.x-c.x,ey=c.tg.y-10-c.y,d=Math.hypot(ex,ey)||1,s=Math.min(d,(260+c.t*500)*dt);c.x+=ex/d*s;c.y+=ey/d*s;
@@ -1458,7 +1494,8 @@ function walkTo(v,gx,gy,sp){const r=ringRoute(v,gx,gy),ex=r[0]-v.x,ey=r[1]-v.y,d
 function defend(v,dt){if(v.ko)return true;if(!v.mhp||v.hp===undefined){v.mhp=defHP(v);v.hp=v.mhp}
  /* defensores saem pelo portão para pegar invasores até um pouco além do fosso */
  /* defende o cristal: pega invasores dentro da muralha ou perto do seu posto */
- const ps=postOf(v);let b=null,bd=1e9;for(const m of mons){if(!m.inv)continue;if(wallD(m.x,m.y)>1.1&&Math.hypot(m.x-ps[0],m.y-ps[1])>230)continue;const d=Math.hypot(m.x-v.x,m.y-v.y);if(d<bd){bd=d;b=m}}
+ /* cada defensor age sozinho: só ataca quem entrar no seu alcance (perto dele ou do seu posto), e depois volta ao posto */
+ const ps=postOf(v),RG=v.g?190:150;let b=null,bd=1e9;for(const m of mons){if(!m.inv)continue;const d=Math.hypot(m.x-v.x,m.y-v.y);if(d>RG&&Math.hypot(m.x-ps[0],m.y-ps[1])>RG*.8)continue;if(d<bd){bd=d;b=m}}
  v.cd=(v.cd||0)-dt;v.atkT=(v.atkT||0)-dt;const sp=(v.g?80:65)*dt;
  if(!b)return false;
  const ex=b.x-v.x,ey=b.y-v.y,d=bd||1;v.fl=ex<0;
@@ -1547,6 +1584,10 @@ function repairTick(dt){if(!(G.rep>0))return;if(G.inv||G.wact)return;G.rep-=dt;i
 function cityTick(dt){if(G.ch<2)return;applyCityTiles();syncGuards();styleSlimes();if(cl("tow"))updTowers(dt);repairTick(dt);
  if(cl("heal")>=3&&!G.wact)G.vhp=Math.min(vmax(),G.vhp+5*dt);if(G.inv)cityEffects(dt);
  if(G.wave<5)return;/* a missão das 4 ondas ainda não acabou */
+ if(!INVS[G.ig|0])G.ig=0;
+ /* v3.3: as invasões só começam quando algum jogador chega ao nível 30 */
+ if(!G.inv&&topLv()<30){G.it=INV_EVERY;G.warned=0;return}
+ if(!G.inv&&!G.inv30){G.inv30=1;say("Sua fama cresceu: a partir de agora "+cityName()+" sofre invasões a cada 15 minutos!");showBanner("INVASÕES COMEÇARAM")}
  if(!G.inv){G.it=(G.it??INV_EVERY)-dt;if(G.it<=INV_WARN&&!G.warned){G.warned=1;G.ig=Math.floor(R()*INVS.length);showBanner("INVASÃO EM 1 MINUTO!");say("Batedores avistaram a "+INVS[G.ig].n+"! Ela chega em 1 minuto, por todos os lados. Prepare a defesa.");sfx("warn")}
   if(G.it<=0)startInvasion();return}
  if(G.spawnLeft>0){G.st-=dt;if(G.st<=0){G.st=.75;G.spawnLeft--;spawnTick()}}
@@ -1654,7 +1695,7 @@ function hostHits(peer,h){let last=NET.lastH[peer]??-1,mx=last;for(const e of h)
  if(ef)applyEff(m,ef);if(d>0){const dd=m.shield>0?Math.round(d*.6):d;m.hp-=dd;m.f=.12;num(m.x,m.y-28,d,"#ffffff");if(m.hp<=0)kill(m)}}NET.lastH[peer]=mx}
 function buildSnap(){const ents=[...localEnts(),...NET.remote.filter(r=>!r.dead)];
  const ms=[];for(const m of mons){let d=1e9;for(const e of ents)d=Math.min(d,Math.max(Math.abs(e.x-m.x),Math.abs(e.y-m.y)*1.25));if(d<700)ms.push([d,m])}ms.sort((a,b)=>a[0]-b[0]);
- const st=m=>(m.web>0?1:0)|(m.slow>0?2:0)|(m.pz>0?4:0)|(m.f>0?8:0)|(m.dash>0?16:0)|(m.wind>0?32:0)|(m.elite?64:0)|(m.atkT>0?128:0)|(m.castT>0?256:0)|(m.haste>0?512:0)|(m.shield>0?1024:0);
+ const st=m=>(m.boss2?2048:0)|(m.vb?4096:0)|(m.web>0?1:0)|(m.slow>0?2:0)|(m.pz>0?4:0)|(m.f>0?8:0)|(m.dash>0?16:0)|(m.wind>0?32:0)|(m.elite?64:0)|(m.atkT>0?128:0)|(m.castT>0?256:0)|(m.haste>0?512:0)|(m.shield>0?1024:0);
  const w={s:++NET.ss,p:G.phase,c:G.ch,v:G.vname,u:G.vup,cr:G.cr,wv:G.wave,wa:G.wact,wt:Math.max(0,G.wt|0),vh:Math.max(0,G.vhp|0),mb:G.mb,ld:G.ld,it:Math.round(G.it||0),ig:G.ig|0,iv:G.inv?1:0,ni:G.ninv|0,td:Math.round(G.tod||0),ws:(G.ws||[]).map(v=>Math.round(v*100)),th:(G.th||[]).map(v=>Math.round(v*100)),rp:Math.round((G.rep||0)*10),
   m:ms.slice(0,90).map(([,m])=>[m.id,m.t,m.x|0,m.y|0,Math.max(0,m.hp|0),st(m),m.lv]),k:NET.kills.slice(-12),
   e:eshots.slice(0,24).map(s=>[s.id,s.x|0,s.y|0,Math.round(s.dx*100),Math.round(s.dy*100),EKL.indexOf(s.k),Math.round(s.t*100),s.sp|0,s.d|0,s.el,s.R|0,Math.round(s.warn*100),Math.round(s.age*100),s.ml|0])};
@@ -1663,9 +1704,10 @@ function applySnap(w){if(!w||typeof w!=="object")return;
  if(Array.isArray(w.ws)&&w.ws.length===24)G.ws=w.ws.map(v=>clamp((+v||0)/100,0,1));if(Array.isArray(w.th)&&w.th.length===6)G.th=w.th.map(v=>clamp((+v||0)/100,0,1));G.rep=clamp((+w.rp||0)/10,0,20);if(w.td!==undefined&&Math.abs(((+w.td)-(G.tod||0)+DAYLEN*1.5)%DAYLEN-DAYLEN/2)>3)G.tod=(+w.td)%DAYLEN;if((w.p|0)>=1&&G.phase<1)setPhase(1);G.ch=clamp(w.c|0,1,3);G.vname=String(w.v||"").slice(0,16);if(Array.isArray(w.u)){const nv=[0,1,2,3,4,5,6].map(i=>clamp(+w.u[i]||0,0,10));nv.forEach((l,i)=>{if(!NET.first&&l>(G.vup[i]|0)){showBanner(CITY[i].n.toUpperCase()+" NÍVEL "+l);sfx("chest")}});G.vup=nv}G.it=+w.it||0;G.ig=clamp(w.ig|0,0,INVS.length-1);G.inv=w.iv?1:0;G.ninv=w.ni|0;
  G.cr=Math.max(0,w.cr|0);G.wave=clamp(w.wv|0,1,5);G.wact=w.wa?1:0;G.wt=+w.wt||0;G.vhp=+w.vh||0;G.mb=w.mb?1:0;G.ld=w.ld?1:0;
  const seenIds=new Set();
- if(Array.isArray(w.m))for(const e of w.m){if(!Array.isArray(e))continue;const id=e[0]|0,t=e[1]|0;if(t<1||t>=NF||t===DRG)continue;seenIds.add(id);let m=MIDX.get(id);const s=e[5]|0;
+ if(Array.isArray(w.m))for(const e of w.m){if(!Array.isArray(e))continue;const id=e[0]|0,t=e[1]|0,s=e[5]|0;if(t<1||t>=NF||(t===DRG&&!(s&4096)))continue;seenIds.add(id);let m=MIDX.get(id);
   if(!m||m.t!==t){if(m){mons.splice(mons.indexOf(m),1);MIDX.delete(id)}m=mkMon(id,t,+e[2]||0,+e[3]||0,s&64,e[6]|0||undefined)}
   if((e[6]|0)&&m.lv!==(e[6]|0))setMonLv(m,e[6]|0);
+  m.boss2=s&2048?1:0;m.vb=s&4096?1:0;if(m.boss2||m.vb){const k=m.vb?2:5;if(!m._bk){m._bk=1;m.mhp=Math.round(m.mhp*k)}}
   m.tx=+e[2]||0;m.ty=+e[3]||0;m.hp=+e[4]||0;m.web=s&1?.25:0;m.slow=s&2?.25:0;m.pz=s&4?.25:0;if(s&8)m.f=.1;m.dash=s&16?.25:0;m.wind=s&32?.25:0;m.miss=0;
   /* animações e reforços vistos de quem hospeda */
   if(s&128&&!m._sa)m.atkT=.25;m._sa=s&128;if(s&256&&!m._sc)m.castT=m.castM=.4;m._sc=s&256;m.haste=s&512?.3:0;m.shield=s&1024?.3:0}
@@ -1748,7 +1790,7 @@ function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floo
    if(t===0){const d=h%17;if(d===0){imgS(CRY,px+6,py+14);const c=z.bio===4?"200,240,255":z.bio===9?"255,230,90":z.bio===3?"255,120,60":"90,200,255";LT.push([px+16,py+20,140,.75]);GL.push([px+16,py+20,34,c,.3+.06*Math.sin(time*2+tx)])}else if(d===1&&z.bio!==4&&z.bio!==3){imgS(MUSH,px+8,py+14);LT.push([px+16,py+18,60,.4]);GL.push([px+16,py+18,24,"60,220,190",.18])}}}}}
 function barrier(){if(G.phase)return;for(let ty=Math.floor(camy/T);ty<=Math.floor((camy+VH)/T);ty++)for(let tx=Math.floor(camx/T);tx<=Math.floor((camx+VW)/T);tx++){if(map[ty]?.[tx]!==3)continue;const px=tx*T,py=ty*T;
  X.globalAlpha=.35+.15*Math.sin(time*3+tx);blk(px,py,T,T,"#7a4ad0");X.globalAlpha=.8;for(let i=0;i<3;i++)blk(px+4+i*10,py+((time*30+i*11+tx*7)%T),2,6,"#e0c8ff");X.globalAlpha=1;LT.push([px+16,py+16,60,.35])}}
-function seal(){if(Math.abs(vXp-camx-VW/2)>VW||Math.abs(vYp-camy-VH/2)>VH)return;const cx=vXp,cy=vYp+14;
+function seal(){return;const cx=vXp,cy=vYp+14;
  for(let i=0;i<36;i++){const a=i/36*6.283+time*.4;blk(cx+Math.cos(a)*110-2,cy+Math.sin(a)*56-2,4,4,i%4?"#4a6ad0":"#e0f0ff")}
  for(let i=0;i<24;i++){const a=-i/24*6.283-time*.6;blk(cx+Math.cos(a)*80-1,cy+Math.sin(a)*40-1,3,3,"#ffe14a")}
  const spirit=G.phase>=1;if(spirit&&!PL.some(p=>!p.own[DRG]))return;const al=spirit?.35:1,bob=Math.sin(time*1.5)*3;
@@ -2035,10 +2077,9 @@ function panel(p,x,y){curSkin=p.skin;frame(x,y,212,60);rr(x+6,y+6,48,48,5);X.fil
  let ix=x+60;const st=[];if(p.sp>0)st.push([p.sp+" pt ["+(p.src.pad>=0?"Select":"K")+"]","#ffe14a"]);if(pz)st.push(["VENENO","#9aff5a"]);
  for(const[s,c]of st){txt(s,ix,y+56,c,14);ix+=s.length*6.5+7}
  for(let e=0;e<ELN.length;e++)if(hasRes(p,e)&&ix<x+200){X.fillStyle="#07050d";X.fillRect(ix,y+48,9,9);X.fillStyle=ELC[e];X.fillRect(ix+1,y+49,7,7);ix+=11}}
-function goal(){if(G.ch===1&&PL.length&&zoneOfPx(PL[0].x,PL[0].y)<4)return{x:vXp,y:vYp,t:"Santuário do Vendaval"};
- if(G.ch===1)return{x:cpX,y:cpY,t:"Vila dos Slimes"};
- if(G.ch===2){if(G.wave>=5)return{x:FTX*T,y:FTY*T,t:"Derrote o Lorde Orc"};if(G.wact){let b=null,bd=1e9;for(const m of mons)if(m.inv){const d=Math.hypot(m.x-cpX,m.y-cpY);if(d<bd){bd=d;b=m}}return{x:b?b.x:cpX,y:b?b.y:cpY,t:"Onda "+G.wave+"/4 · proteja a vila"}}return{x:cpX,y:cpY,t:"Próxima onda em "+Math.ceil(G.wt)+"s"}}
- return{x:cpX,y:cpY,t:"Explore e fique mais forte"}}
+/* objetivo (só texto; a seta de missão saiu na v3.3) */
+function goal(){if(PL[0]&&!PL[0].vn)return{x:elder.x,y:elder.y,t:"Fale com o Ancião"};if(topLv()<30)return{x:cpX,y:cpY,t:"Fique forte · nível 30"};
+ if(G.ch===2)return{x:FTX*T,y:FTY*T,t:"Derrote o Lorde Orc"};return{x:cpX,y:cpY,t:"Vendaval · nível 150"}}
 function flushMM(){if(mmDirty){mg.putImageData(MMI,0,0);mmDirty=0}}
 /* minimapa redondo, com o norte marcado; objetivo e, na invasão, a cidade aparecem como setas na borda quando estão fora do círculo */
 function minimap(x,y,cxp,cyp){flushMM();const cx=x+85,cy=y+58,Rr=51,span=110,k=Rr*2/span,sx=cxp/T-span/2,sy=cyp/T-span/2,P=(wx,wy)=>[cx+(wx/T-cxp/T)*k,cy+(wy/T-cyp/T)*k];
@@ -2049,7 +2090,7 @@ function minimap(x,y,cxp,cyp){flushMM();const cx=x+85,cy=y+58,Rr=51,span=110,k=R
  const mark=(wx,wy,col,big)=>{const[a,b]=P(wx,wy),dx=a-cx,dy=b-cy,d=Math.hypot(dx,dy);if(d<Rr-4){const s=big?4+Math.sin(time*8)*1.5:2.5;X.fillStyle=col;X.beginPath();X.arc(a,b,s,0,6.283);X.fill();return}
   const ang=Math.atan2(dy,dx),ex=cx+Math.cos(ang)*(Rr-1),ey=cy+Math.sin(ang)*(Rr-1),sz=big?9:6;X.save();X.translate(ex,ey);X.rotate(ang);X.fillStyle=col;X.strokeStyle="#07050d";X.lineWidth=1.5;
   X.beginPath();X.moveTo(sz,0);X.lineTo(-sz*.7,-sz*.75);X.lineTo(-sz*.3,0);X.lineTo(-sz*.7,sz*.75);X.closePath();X.stroke();X.fill();X.restore()};
- const gl=goal();if(Math.sin(time*6)>-.3)mark(gl.x,gl.y,"#ffd84a",0);
+
  /* invasão (ou aviso de 1 minuto): seta vermelha piscando apontando para a cidade */
  if(G.ch>=2&&G.wave>=5&&(G.inv||(G.it||0)<=INV_WARN)&&Math.sin(time*10)>-.5)mark(cpX,cpY,"#ff3a3a",1);
  X.fillStyle="#c83a3a";X.beginPath();X.moveTo(cx,cy-Rr-11);X.lineTo(cx-5,cy-Rr-3);X.lineTo(cx+5,cy-Rr-3);X.closePath();X.fill();txt("N",cx,cy-Rr+9,"#ffffff",13,"center");
@@ -2063,8 +2104,7 @@ function msgBox(x,y,w){if(mt<=0)return;const a=clamp(mt,0,1);X.font="19px "+FT;l
 function hud(){const multi=PL.length>1,gl=goal();
  const fw=multi?188:220,fx0=VW/2-fw/2;frame(fx0,8,fw,30);
  const ax=multi?camx+VW/2:PL[0].x,ay=multi?camy+VH/2:PL[0].y,a=Math.atan2(gl.y-ay,gl.x-ax);
- X.save();X.translate(fx0+16,23);X.rotate(a);X.fillStyle="#07050d";X.fillRect(-7,-3,14,6);X.fillStyle="#ffd84a";X.fillRect(-6,-2,8,4);X.fillRect(2,-4,2,8);X.fillRect(4,-3,2,6);X.fillRect(6,-1,2,2);X.restore();
- txt(gl.t,fx0+fw/2+10,29,"#ffe7a0",multi?16:18,"center");
+ txt(gl.t,fx0+fw/2,29,"#ffe7a0",multi?16:18,"center");
  let ty=42;
  if(G.ch>=2&&ZONES[zoneOfPx(camx+VW/2,camy+VH/2)].village){frame(fx0,ty,fw,26);bar(fx0+8,ty+15,fw-16,6,G.vhp/vmax(),"#e8a23a","#ffe08a");txt(cityName()+" · Ouro "+G.cr,fx0+fw/2,ty+13,"#ffe7a0",15,"center");ty+=30}
  /* invasões: contagem regressiva nos últimos 5 minutos e andamento da batalha (aparece em qualquer lugar do mapa) */
@@ -2080,8 +2120,8 @@ function hud(){const multi=PL.length>1,gl=goal();
  if(savedT>0){X.globalAlpha=clamp(savedT,0,1);txt("Jogo salvo",VW-8,VH-8,"#a8ffb8",16,"right");X.globalAlpha=1}
  if(bt>0){X.globalAlpha=clamp(bt,0,1);txt(bannerT,VW/2,VH/2-40,"#ffe14a",44,"center");X.globalAlpha=1}}
 function nameAt(){for(const p of PL){if(p.dead>0)continue;const k=kn(p,"act");
- if(Math.hypot(p.x-vXp,p.y-vYp)<120&&!p.own[DRG]){txt(p.lv>=5?"["+k+"] Fazer amizade com o dragão":"Precisa do Nível 5",vXp+ox,vYp+oy-110,"#ffe14a",19,"center");break}
- if(G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80){txt("["+k+"] Ancião · melhorias",elder.x+ox,elder.y+oy-40,"#ffe14a",17,"center");break}}}
+ if(false){txt(p.lv>=5?"["+k+"] Fazer amizade com o dragão":"Precisa do Nível 5",vXp+ox,vYp+oy-110,"#ffe14a",19,"center");break}
+ if(G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80){txt("["+k+"] "+(PL[0].vn?"Ancião · melhorias":"Falar com o Ancião"),elder.x+ox,elder.y+oy-40,"#ffe14a",17,"center");break}}}
 /* ===== Menus ===== */
 function menuList(items,x,y,sel,w=300){items.forEach((it,i)=>{const s=i===sel,yy=y+i*30;HIT.push({x:x-w/2,y:yy-20,w,h:26,fn:()=>{menuSel=i;if(it.act)it.act()},hov:()=>{menuSel=i}});
  if(s){rr(x-w/2,yy-20,w,26,4);X.fillStyle="rgba(200,160,80,.3)";X.fill();X.strokeStyle="#ffe14a";X.lineWidth=1;X.stroke()}txt(it.t,x,yy,s?"#ffffff":it.dim?"#7a6a50":"#d8c8a0",21,"center")})}
@@ -2157,7 +2197,7 @@ function controlsScreen(){win(30,124,580,350,"Controles");const CB=()=>closeBtn(
 function worldMap(){const k=.8,mx=VW/2-MW*k/2,my=66;X.fillStyle="rgba(6,6,8,.85)";X.fillRect(0,0,VW,VH);win(mx-8,40,MW*k+16,MH*k+40,"Mapa do mundo");flushMM();X.imageSmoothingEnabled=false;X.drawImage(MM,mx,my,MW*k,MH*k);
  X.strokeStyle="rgba(232,194,90,.3)";X.lineWidth=1;for(let i=0;i<ZONES.length;i++){const[x,y]=zOrigin(i);X.strokeRect(mx+x*k+.5,my+y*k+.5,ZW*k,ZH*k);txt(ZONES[i].n.length>20?ZONES[i].n.replace(/^(\S+ \S+ ).*/,"$1…"):ZONES[i].n,mx+(x+ZW/2)*k,my+y*k+12,"#f0e4c8",12,"center");if(ZONES[i].t)icon(ZONES[i].t,mx+(x+ZW/2)*k,my+y*k+32,22)}
  for(const p of PL){X.fillStyle=PCOL[p.col];X.fillRect(mx+p.x/T*k-3,my+p.y/T*k-3,6,6)}for(const r of NET.remote){X.fillStyle=PCOL[r.c];X.fillRect(mx+r.x/T*k-2,my+r.y/T*k-2,4,4)}
- const gl=goal();if(Math.sin(time*6)>0){X.fillStyle="#ffd84a";X.fillRect(mx+gl.x/T*k-3,my+gl.y/T*k-3,6,6)}
+
  txt("Áreas escuras ainda não foram exploradas · B / Esc / clique para voltar",VW/2,424,"#a89878",16,"center");HIT.push({x:0,y:0,w:VW,h:VH,fn:()=>{state="pause"}});closeBtn(VW/2+MW*.4-18,43,()=>{state="play"})}
 function overlay(){if(state==="worldmap"){worldMap();return}X.fillStyle="rgba(8,6,4,.6)";X.fillRect(0,0,VW,VH);
  if(state==="pause"){win(170,46,300,414,"Menu");closeBtn(444,49,()=>{state="play"});menuList(pauseItems(),VW/2,98,menuSel,240);
@@ -2234,7 +2274,7 @@ function nmFocus(){if(!NMI){NMI=document.createElement("input");NMI.id="nmIn";NM
   NMI.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();NMI.blur();if(state==="naming")confirmVillage()}e.stopPropagation()})}
  NMI.value=nameBuf;try{NMI.focus({preventScroll:true});NMI.setSelectionRange(nameBuf.length,nameBuf.length)}catch(e){}}
 addEventListener("pointerup",()=>{if(wantNF&&state==="naming"){wantNF=0;nmFocus()}});
-function confirmVillage(){if(NMI)NMI.blur();const nm=nameBuf.trim().slice(0,16)||VNAMES[0];for(const p of PL)p.vn=nm;state="play";showBanner(nm.toUpperCase());sfx("lvl");saveDirty=1;
+function confirmVillage(){if(NMI)NMI.blur();const nm=nameBuf.trim().slice(0,16)||VNAMES[0];for(const p of PL)p.vn=nm;if(!G.vname&&!NET.foreign)G.vname=nm;state="play";showBanner(nm.toUpperCase());sfx("lvl");saveDirty=1;
  if(G.ch>=2){say("Agora a cidade se chama "+nm+" para você. Os outros jogadores veem o nome que eles mesmos escolheram.");return}
  G.vname=nm;G.ch=2;G.wave=1;G.wt=25;G.wact=0;G.vhp=vmax();say("Os slimes comemoram: bem-vindo a "+nm+"! Os orcs atacam em 25s. Fale com o Ancião para melhorar a vila.")}
 function upgItems(){const items=CITY.map((u,i)=>{const l=G.vup[i]|0,c=costOf(u,l),lock=u.k==="moat"&&cl("wall")<10;return{t:u.n+" · Nv "+l+(lock?" · precisa da muralha nível 10":l>=LMAX?" · máximo":" → "+(l+1)+" · "+c+" ouro"),dim:lock||l>=LMAX||G.cr<c,act:()=>{if(lock||l>=LMAX||G.cr<c){sfx("hurt");return}
@@ -2246,7 +2286,7 @@ function upgItems(){const items=CITY.map((u,i)=>{const l=G.vup[i]|0,c=costOf(u,l
 function clearFx(){allyZ=[];shots=[];eshots=[];parts=[];clouds=[];torn=[];bolts=[];rings=[];nums=[];flashes=[];pillars=[]}
 function startGame(world,profs,keep){if(!keep)leaveNet();NET.foreign=0;resetWorld(world);clearFx();hints={};PL=[];lastZone=-1;
  const p=mkPlayer(0,profs&&profs[0],{kb:true,pad:p1pad});PL.push(p);applySecrets(p.sec);loadSeen();chShown=G.ch>=3?1:0;state="play";updCam();
- say(G.ch>=2?"Bem-vindo de volta a "+(G.vname||"sua vila")+"!":G.phase?"De volta ao Santuário. Siga a seta até a Vila dos Slimes.":"Sábio: você renasceu como um slime… mas não é um slime malvado! Siga a seta até o Santuário da Tempestade.");sfx("ok")}
+ say(PL[0].vn?"Bem-vindo de volta a "+cityName()+"!":"Sábio: você renasceu como um slime… mas não é um slime malvado! Fale com o Ancião da cidade (aperte ["+kn(p,"act")+"] perto dele).");sfx("ok")}
 function toTitle(){writeSave();leaveNet();NET.foreign=0;PL=[];state="title";menuSel=0;tSel=3;selectChar(curChar)}
 function updCam(){const al=PL.filter(p=>p.dead<=0),s=al.length?al:PL;if(!s.length)return;let x=0,y=0;for(const p of s){x+=p.x;y+=p.y}x/=s.length;y/=s.length;camx=clamp(x-VW/2,0,MW*T-VW);camy=clamp(y-VH/2,0,MH*T-VH)}
 const OVER=["pause","tree","upgrade","naming","chend","worldmap"];
@@ -2258,7 +2298,7 @@ function play(dt){shake=Math.max(0,shake-dt*22);const ctl=state==="play";
  contact(dt);updShots(dt);updEshots(dt);updFx(dt);updVillagers(dt);
  if(G.ch===1&&PL.some(p=>p.dead<=0&&ZONES[zoneOfPx(p.x,p.y)].village&&Math.hypot(p.x-cpX,p.y-cpY)<16*T)){if(NET.mode!=="client"){if(state==="play"){state="naming";nameBuf=VNAMES[0];nameSel=0;sfx("ok")}}else if(!hints.w){hints.w=1;say("O servidor está dando nome à vila…")}}
  /* quem chega numa cidade já fundada (ou num save antigo) escolhe o próprio nome para ela */
- if(G.ch>=2&&state==="play"&&PL[0]&&!PL[0].vn&&!hints.vn&&ZONES[zoneOfPx(PL[0].x,PL[0].y)].village&&Math.hypot(PL[0].x-cpX,PL[0].y-cpY)<14*T){hints.vn=1;if(G.vname&&!NET.foreign){PL[0].vn=G.vname;saveDirty=1}else{state="naming";nameBuf=VNAMES[0];nameSel=0;sfx("ok")}}
+ if(false&&G.ch>=2&&state==="play"&&PL[0]&&!PL[0].vn&&!hints.vn&&ZONES[zoneOfPx(PL[0].x,PL[0].y)].village&&Math.hypot(PL[0].x-cpX,PL[0].y-cpY)<14*T){hints.vn=1;if(G.vname&&!NET.foreign){PL[0].vn=G.vname;saveDirty=1}else{state="naming";nameBuf=VNAMES[0];nameSel=0;sfx("ok")}}
  if(G.ch===3&&!chShown){chShown=1;state="chend";sfx("lvl")}
  const z=zoneOfPx(PL[0].x,PL[0].y);if(z!==lastZone){lastZone=z;zoneName=ZONES[z].n;zoneT=5}
  updCam();saveT+=dt;if(saveT>=SAVE_EVERY)writeSave()}

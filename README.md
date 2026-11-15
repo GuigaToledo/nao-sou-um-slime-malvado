@@ -117,6 +117,16 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v3.3.0 (mundo reorganizado)
+
+- **Você nasce na cidade.** As ondas iniciais da vila saíram, e as **invasões só começam quando alguém chega ao nível 30**.
+- **O nome da cidade** é escolhido na **primeira conversa com o Ancião**.
+- **A caverna do começo virou o covil do Vendaval**, o **chefe final, nível 150**. Ele fica onde o slime nascia, e o caminho até lá tem as **criaturas mais fortes do jogo, do nível 100 ao 140** (esqueletos, zumbis, cavaleiros negros, magos sombrios, demônios, druidas, guerreiros de gelo, gigantes musgosos, gárgulas e golens de lava). Elas não aparecem mais nas invasões.
+- **Em volta da cidade** ficam os bichos fracos para começar: **insetos de dia e morcegos à noite**.
+- **Um chefe em cada área** (fora a cidade): versões gigantes, com muito mais vida, XP e ouro, que **voltam 5 minutos depois** de derrotados. A **Rainha Aranha** mudou-se para a Floresta dos Goblins.
+- **Defensores independentes:** cada um só ataca quem entra no seu alcance e depois volta ao posto. Não sai mais todo mundo de uma vez.
+- **A seta de missão saiu**; o quadro no alto mostra só o objetivo em texto.
+
 ## Novidades da v3.2.0 (muralha, torres e cidadela do Lorde)
 
 - **Título novo** em estilo grafite: uma linha só, letras do mesmo tamanho, arco-íris brilhante com contorno preto.
