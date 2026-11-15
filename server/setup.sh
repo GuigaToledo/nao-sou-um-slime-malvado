@@ -38,7 +38,7 @@ After=network.target
 User=slime
 WorkingDirectory=$APP
 Environment=PORT=8080
-Environment=MAX_PLAYERS=8
+Environment=MAX_PLAYERS=10
 ExecStart=/usr/bin/node $APP/server.js
 Restart=always
 RestartSec=3

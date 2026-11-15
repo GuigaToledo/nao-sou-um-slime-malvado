@@ -18,7 +18,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v2.5.0";
+const VERSION="v2.6.0";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VW=640,VH=480,FT="'VT323',ui-monospace,monospace";
@@ -669,9 +669,9 @@ function resetWorld(w){Object.assign(G,{brq:[],it:1800,ninv:0,inv:0,warned:0,ig:
  genWorld();if(G.phase>=1)setPhase(1);/* chefes renascem: ao carregar, todos estão no lugar */G.vhp=vmax();if(G.ch===2&&G.wave<5){G.wact=0;G.wt=20}}
 function applySecrets(mask){secrets.forEach((s,i)=>{if(mask&(1<<i)){if(s.wx>=0)map[s.wy][s.wx]=0;map[s.y][s.x]=12}})}
 /* ===== Perfis e salvamento ===== */
-const PF=["tv","lv","xp","own","sp","sk","sum","sum2","sec","reg","res","nm","col","slv","sxp","cos","skin"];
+const PF=["vn","tv","lv","xp","own","sp","sk","sum","sum2","sec","reg","res","nm","col","slv","sxp","cos","skin"];
 const cleanName=s=>String(s||"").replace(/[^\p{L}\p{N} '-]/gu,"").replace(/^\s+/,"").slice(0,12);
-function newProf(){const own=Array(NF).fill(0);own[0]=1;return{tv:2,lv:1,xp:0,own,sp:0,sk:Array(NSK).fill(0),form:0,sum:-1,sum2:-1,sec:0,reg:0,res:0,nm:"",col:0,slv:Array(NF).fill(1),sxp:Array(NF).fill(0),cos:Array(NSKIN).fill(0),skin:-1}}
+function newProf(){const own=Array(NF).fill(0);own[0]=1;return{vn:"",tv:2,lv:1,xp:0,own,sp:0,sk:Array(NSK).fill(0),form:0,sum:-1,sum2:-1,sec:0,reg:0,res:0,nm:"",col:0,slv:Array(NF).fill(1),sxp:Array(NF).fill(0),cos:Array(NSKIN).fill(0),skin:-1}}
 /* visual liberado: os de monstro vêm de devorar aquele monstro; os especiais vêm de baús e chefes */
 const cosOwned=(p,i)=>i>=0&&i<NSKIN&&(COS[i].t?!!p.own[COS[i].t]:!!p.cos[i]);
 function fixProf(o){const p=newProf();if(!o||typeof o!=="object")return p;p.lv=clamp(o.lv|0,1,MAXLV);p.xp=p.lv>=MAXLV?0:Math.max(0,+o.xp||0);
@@ -681,7 +681,7 @@ function fixProf(o){const p=newProf();if(!o||typeof o!=="object")return p;p.lv=c
  const spent=p.sk.reduce((a,b)=>a+b,0);p.sp=o.tv===2?clamp(p.sp,0,Math.max(0,p.lv-1-spent)):Math.max(0,p.lv-1-spent);
  const s=o.sum|0,s2=o.sum2|0;p.sum=s>=1&&s<NF&&p.own[s]?s:-1;p.sum2=s2>=1&&s2<NF&&p.own[s2]&&s2!==p.sum?s2:-1;p.sec=o.sec|0;p.reg=o.reg?1:0;
  p.res=(o.res|0)&127;if(o.imm)p.res|=1<<EV;for(let i=1;i<NF;i++)if(p.own[i]&&EL_OF[i]!==undefined)p.res|=1<<EL_OF[i];
- p.nm=cleanName(o.nm).trim();p.col=clamp(o.col|0,0,NCOL-1);
+ p.nm=cleanName(o.nm).trim();p.vn=String(o.vn||"").replace(/[^\p{L}\p{N} '-]/gu,"").slice(0,16).trim();p.col=clamp(o.col|0,0,NCOL-1);
  if(Array.isArray(o.slv))o.slv.forEach((v,i)=>{if(i<NF)p.slv[i]=clamp(v|0,1,p.lv)});if(Array.isArray(o.sxp))o.sxp.forEach((v,i)=>{if(i<NF)p.sxp[i]=Math.max(0,+v||0)});
  if(Array.isArray(o.cos)){o.cos.forEach((v,i)=>{if(i<NSKIN&&v&&COS[i].chest)p.cos[i]=1});const k=o.skin|0;p.skin=cosOwned(p,k)?k:-1}
  else if(Array.isArray(o.skins)){/* salvamento antigo: os visuais antigos viram os novos de mesmo nome; o que era forma vira o visual do monstro */
@@ -875,8 +875,8 @@ function interact(p){
   rings.push({x:vXp,y:vYp,r0:150,r1:4,t:.7,m:.7,c:"#ffe14a"});
   if(G.phase<1){if(NET.mode==="client")netHit(-1,0,99);else setPhase(1)}
   gain(p,p.lv>=MAXLV?0:Math.round(need(p)*.5));grantSkin(p);say("O Dragão do Vendaval aceitou sua amizade! Ele luta ao seu lado como invocação e você também pode se transformar nele.");saveDirty=1;return}
- if(G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80){if(NET.mode==="client"){say("Ancião: “Quem é o servidor cuida das melhorias da vila.”");return}state="upgrade";menuSel=0;sfx("ui");return}
- const v=villagers.find(q=>Math.hypot(q.x-p.x,q.y-p.y)<50);if(v&&G.ch>=2)say(pk(["Slime: “Obrigado por proteger "+G.vname+"!”","Slime: “Os orcs vêm do sul!”","Slime: “Você é o slime mais legal da vila!”","Slime: “Com o visual de DJ a vila inteira dança!”"]))}
+ if(G.ch>=2&&Math.hypot(p.x-elder.x,p.y-elder.y)<80){state="upgrade";menuSel=0;sfx("ui");return}
+ const v=villagers.find(q=>Math.hypot(q.x-p.x,q.y-p.y)<50);if(v&&G.ch>=2)say(pk(["Slime: “Obrigado por proteger "+cityName()+"!”","Slime: “Os orcs vêm do sul!”","Slime: “Você é o slime mais legal da vila!”","Slime: “Com o visual de DJ a vila inteira dança!”"]))}
 /* ===== Jogador ===== */
 function updPlayer(p,dt,inp,ctl){p.hit-=dt;p.eatT-=dt;p.cast-=dt;
  const dec=v=>v-Math.sign(v)*Math.min(Math.abs(v),dt*7);p.wf=dec(p.wf);p.ws=dec(p.ws);p.ws2=dec(p.ws2);
@@ -1101,7 +1101,7 @@ function joinLocal(pad){let slot=0;while(PL.some(p=>p.slot===slot))slot++;if(slo
  if(!pr||!pr.nm){p.col=freeCol();p.nm="Jogador "+(slot+1)}const a=PL[0];if(a){p.x=a.x;p.y=a.y}PL.push(p);say(p.nm+" entrou no jogo!");sfx("ok")}
 const REAL_BTN=[0,1,2,3,8,9,12,13,14,15];
 function handlePads(){for(let i=0;i<4;i++){const g=padNow[i];if(!g||!REAL_BTN.some(j=>g.pr[j]))continue;if(PL.some(p=>p.src.pad===i)||p1pad===i)continue;
- if(g.pr[9]&&state==="play"&&PL.length&&totalPlayers()<4){joinLocal(i);continue}
+ if(g.pr[9]&&state==="play"&&PL.length&&totalPlayers()<10&&PL.length<4){joinLocal(i);continue}
  if(PL.length){if(PL[0].src.pad<0){PL[0].src.pad=i;p1pad=i}}else if(p1pad<0)p1pad=i}}
 /* ===== Magias e ataques especiais das criaturas (monstros e invocações) =====
    Toda criatura tem o ataque básico. A cada 10 níveis ela libera mais uma habilidade da sua lista:
@@ -1259,7 +1259,7 @@ function updTowers(dt){const ts=towers(),lv=Math.max(...PL.map(p=>p.lv)),st=cl("
 /* ---- invasões depois da missão ---- */
 function invSpawnAt(t,el){for(let k=0;k<30;k++){const a=G.ia+(R()-.5)*.6,r=(17+R()*4)*T,x=cpX+Math.cos(a)*r,y=cpY+Math.sin(a)*r;if(!solid(x,y,{})){const m=mkMon(MID++,t,x,y,el,invLv(el));m.inv=1;return m}}return spawnInvader(t,el)}
 function startInvasion(){const I=INVS[G.ig||0];G.wact=1;G.inv=1;G.spawnLeft=I.few?3+Math.min(6,G.ninv):Math.min(30,10+G.ninv*2);G.st=0;G.ia=[Math.PI/2,-Math.PI/2,0,Math.PI][(G.ninv+(G.ig||0))%4];
- showBanner("INVASÃO: "+I.n.toUpperCase()+"!");say("A "+I.n+" está atacando "+(G.vname||"a vila")+"! Moradores, guardas e torres defendem junto com você.");sfx("wave");shake=8}
+ showBanner("INVASÃO: "+I.n.toUpperCase()+"!");say("A "+I.n+" está atacando "+cityName()+"! Moradores, guardas e torres defendem junto com você.");sfx("wave");shake=8}
 function endInvasion(){const g=Math.round((40+G.ninv*12)*GOLD_M[cl("house")]);G.cr+=g;G.wact=0;G.inv=0;G.ninv++;G.it=INV_EVERY;G.warned=0;showBanner("INVASÃO REPELIDA!");say("A cidade resistiu! +"+g+" ouro. Próxima invasão em 30 minutos.");saveDirty=1}
 function cityTick(dt){if(G.ch<2)return;syncGuards();if(cl("tow"))updTowers(dt);
  if(cl("heal")>=3&&!G.wact)G.vhp=Math.min(vmax(),G.vhp+5*dt);
@@ -1269,6 +1269,9 @@ function cityTick(dt){if(G.ch<2)return;syncGuards();if(cl("tow"))updTowers(dt);
  if(G.spawnLeft>0){G.st-=dt;if(G.st<=0){G.st=1;G.spawnLeft--;const I=INVS[G.ig||0];invSpawnAt(pk(I.t),R()<.12?1:0)}}
  else if(!mons.some(m=>m.inv))endInvasion();
  if(G.vhp<=0){const lost=Math.floor(G.cr*.25);G.cr-=lost;villageFall();G.inv=0;G.wact=0;G.it=INV_EVERY;G.warned=0;say("A cidade caiu e perdeu "+lost+" de ouro… os slimes reconstroem tudo. Próxima invasão em 30 minutos.")}}
+/* construir: quem hospeda aplica (pedidos dos outros jogadores chegam pela rede) */
+function cityUpgrade(i){const u=CITY[i];if(!u)return;const l=G.vup[i]|0,c=u.c[l];if(l>=3||G.cr<c)return;G.cr-=c;G.vup[i]=l+1;if(u.k==="wall")G.vhp+=WALL_HP[l+1]-WALL_HP[l];sfx("chest");showBanner(u.n.toUpperCase()+" NÍVEL "+(l+1));saveDirty=1}
+const cityName=()=>(PL[0]&&PL[0].vn)||(!NET.foreign&&G.vname)||"Vila dos Slimes";
 const mmss=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
 /* ===== Multijogador online (PeerJS): quem entra primeiro vira o servidor ===== */
 const ROOM=((location.hash||"").slice(1).toLowerCase().replace(/[^a-z0-9]/g,"")||"principal").slice(0,20);
@@ -1278,7 +1281,7 @@ const HOST_ID="naosouumslimemalvado-q7k2-"+ROOM,PEER_OPTS={debug:0};
 const SERVER_DEFAULT="";
 const SERVER_URL=(()=>{let u="";try{u=new URLSearchParams(location.search).get("servidor")||""}catch(e){}u=u||SERVER_DEFAULT;return/^wss?:\/\/[^\s]+$/i.test(u)?u.replace(/\/+$/,""):""})();
 const STALE_MS=6000; /* jogador sem mandar sinal por 6s sai da tela */
-const NET={max:4,ws:null,mode:"off",room:null,peer:null,conn:null,code:ROOM,remote:[],hits:[],hseq:0,lastH:{},kseq:0,kills:[],lastK:-1,first:1,ss:0,lastSnap:-1,lastHost:0,joinT:0,wait:0,presT:0,used:new Set(),foreign:0,me:"",rs:{},tries:0,gen:0};
+const NET={max:10,ws:null,mode:"off",room:null,peer:null,conn:null,code:ROOM,remote:[],hits:[],hseq:0,lastH:{},kseq:0,kills:[],lastK:-1,first:1,ss:0,lastSnap:-1,lastHost:0,joinT:0,wait:0,presT:0,used:new Set(),foreign:0,me:"",rs:{},tries:0,gen:0};
 const netAvail=()=>typeof Peer!=="undefined";
 function netHit(id,d,e){NET.hits.push([++NET.hseq,id,Math.round(d),e|0]);if(NET.hits.length>20)NET.hits.shift()}
 function hostShim(){const s={pres:{},others:new Map(),seen:new Map(),conns:new Map(),
@@ -1331,7 +1334,7 @@ function promoteHost(){NET.mode="host";NET.kills=[];NET.kseq=0;NET.lastH={};
   G.rq=[];spawns.forEach((s,i)=>{if(!live.has(i))G.rq.push({si:i,at:time+RESPAWN_S})})}
  say("Quem hospedava saiu: agora o seu jogo hospeda o mundo. Ninguém precisa sair.");sfx("ok")}
 function hostConn(c){c.on("open",()=>{if(!NET.room||NET.mode!=="host"){try{c.close()}catch(e){}return}
-  if(totalPlayers()>=4){try{c.send({t:"full"})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},400);return}
+  if(totalPlayers()>=10){try{c.send({t:"full"})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},400);return}
   NET.room.conns.set(c.peer,c);say("Um amigo entrou na sala!");sfx("ok")});
  c.on("data",d=>{if(NET.mode!=="host"||!NET.room||!NET.room.conns.has(c.peer)||!d)return;if(d.t==="bye"){c.close();return}if(d.t==="p"&&d.d&&typeof d.d==="object"){NET.room.others.set(c.peer,d.d);NET.room.seen.set(c.peer,performance.now())}});
  const bye=()=>{if(NET.room&&NET.room.conns&&NET.room.conns.has(c.peer)){NET.room.conns.delete(c.peer);NET.room.others.delete(c.peer);NET.room.seen.delete(c.peer);forgetPeer(c.peer);say("Um jogador saiu da sala.")}};c.on("close",bye);c.on("error",bye)}
@@ -1340,9 +1343,9 @@ function prepClient(){resetWorld(null);clearFx();hints={};PL=[];const p=mkPlayer
 function joinAsClient(g){let p;try{p=new Peer(PEER_OPTS)}catch(e){netFail("Falha ao iniciar a conexão.");return}NET.peer=p;netMsg="Servidor encontrado. Entrando no mundo dele…";
  p.on("open",id=>{if(g!==NET.gen)return;NET.me=id;const c=p.connect(HOST_ID,{serialization:"json"});NET.conn=c;
   c.on("open",()=>{if(g!==NET.gen)return;prepClient();NET.room=clientShim(c);NET.mode="client";NET.wait=1;NET.joinT=time;NET.lastHost=time});
-  c.on("data",d=>{if(g!==NET.gen||!d)return;if(d.t==="all"&&Array.isArray(d.l)&&NET.room&&NET.room.list){NET.room.list=d.l.slice(0,8).filter(Array.isArray).map(([peer,pr])=>({peer:String(peer),sameTab:String(peer)===NET.me,presence:pr&&typeof pr==="object"?pr:{}}));
+  c.on("data",d=>{if(g!==NET.gen||!d)return;if(d.t==="all"&&Array.isArray(d.l)&&NET.room&&NET.room.list){NET.room.list=d.l.slice(0,10).filter(Array.isArray).map(([peer,pr])=>({peer:String(peer),sameTab:String(peer)===NET.me,presence:pr&&typeof pr==="object"?pr:{}}));
     const ids=new Set(NET.room.list.map(e=>e.peer));for(const k in NET.rs)if(!ids.has(NET.rs[k].peer))delete NET.rs[k]}
-   else if(d.t==="full")netFail("A sala está cheia (4 jogadores).")});
+   else if(d.t==="full")netFail("A sala está cheia (10 jogadores).")});
   c.on("close",()=>{if(g===NET.gen&&NET.mode==="client")netLost("O servidor saiu. Escolha Jogar online de novo: quem entrar primeiro vira o novo servidor.")})});
  p.on("error",e=>{if(g!==NET.gen)return;if(e&&e.type==="peer-unavailable"&&NET.tries<3){NET.tries++;setTimeout(()=>{if(g===NET.gen)goOnline()},800)}else if(NET.mode!=="client")netFail("Não foi possível entrar na sala ("+((e&&e.type)||"erro")+").")})}
 function compactP(p){const pk2=u=>u&&u.dead<=0?[u.t,u.x|0,u.y|0,u.fl?1:0]:0,s=pk2(p.su),s2=pk2(p.su2);return{s2,x:p.x|0,y:p.y|0,f:0,fl:p.fl?1:0,v:viewOf(p.fx,p.fy),h:Math.max(0,p.hp|0),mh:mhp(p),l:p.lv,c:p.col,n:p.nm,w:p.skin,d:p.dead>0?1:0,a:p.aseq%100,k:[p.kk,p.kseq%100],s}}
@@ -1357,11 +1360,11 @@ function readRemote(dt){const out=[];let host=null,ps=[];try{ps=NET.room.peers()
    const kq=Array.isArray(q.k)?q.k:[0,0];if((kq[1]|0)!==o.k){if(o.k>=0){o.castT=.35;remoteFx(r,KL[kq[0]|0]);if(KL[kq[0]|0]==="holy"&&!r.dead)holyHeal(r.x,r.y)}o.k=kq[1]|0}
    out.push(r)});
   if(NET.mode==="host"&&Array.isArray(pr.h))hostHits(pe.peer,pr.h)}
- NET.remote=out.slice(0,16);return host}
+ NET.remote=out.slice(0,40);return host}
 function remoteFx(r,k){const c=k==="fire"||k==="fireball"?"#ff8a1f":k==="frost"?"#bff0ff":k==="bolt"?"#ffe14a":k==="cloud"?"#8bd06a":k==="blink"?"#b48aff":"#e0e6ee";
  rings.push({x:r.x,y:r.y,r0:6,r1:50,t:.3,m:.3,c});for(let i=0;i<10;i++)burst(r.x,r.y-8,c,4,.35,(R()-.5)*200,(R()-.5)*200)}
 function hostHits(peer,h){let last=NET.lastH[peer]??-1,mx=last;for(const e of h){if(!Array.isArray(e))continue;const seq=e[0]|0;if(seq<=last)continue;mx=Math.max(mx,seq);
- const id=e[1]|0,d=clamp(e[2]|0,0,5000),ef=e[3]|0;if(id===-1&&ef===99){if(G.phase<1)setPhase(1);continue}const m=MIDX.get(id);if(!m||m.gone)continue;
+ const id=e[1]|0,d=clamp(e[2]|0,0,5000),ef=e[3]|0;if(id===-1&&ef===99){if(G.phase<1)setPhase(1);continue}if(id===-2&&ef===98){cityUpgrade(d);continue}const m=MIDX.get(id);if(!m||m.gone)continue;
  if(ef)applyEff(m,ef);if(d>0){const dd=m.shield>0?Math.round(d*.6):d;m.hp-=dd;m.f=.12;num(m.x,m.y-28,d,"#ffffff");if(m.hp<=0)kill(m)}}NET.lastH[peer]=mx}
 function buildSnap(){const ents=[...localEnts(),...NET.remote.filter(r=>!r.dead)];
  const ms=[];for(const m of mons){let d=1e9;for(const e of ents)d=Math.min(d,Math.max(Math.abs(e.x-m.x),Math.abs(e.y-m.y)*1.25));if(d<700)ms.push([d,m])}ms.sort((a,b)=>a[0]-b[0]);
@@ -1371,7 +1374,7 @@ function buildSnap(){const ents=[...localEnts(),...NET.remote.filter(r=>!r.dead)
   e:eshots.slice(0,24).map(s=>[s.id,s.x|0,s.y|0,Math.round(s.dx*100),Math.round(s.dy*100),EKL.indexOf(s.k),Math.round(s.t*100),s.sp|0,s.d|0,s.el,s.R|0,Math.round(s.warn*100),Math.round(s.age*100),s.ml|0])};
  if(NET.ss%15===1)w.d=G.dead;return w}
 function applySnap(w){if(!w||typeof w!=="object")return;
- if((w.p|0)>=1&&G.phase<1)setPhase(1);G.ch=clamp(w.c|0,1,3);G.vname=String(w.v||"").slice(0,16);if(Array.isArray(w.u))G.vup=[0,1,2,3,4,5].map(i=>clamp(+w.u[i]||0,0,3));G.it=+w.it||0;G.ig=clamp(w.ig|0,0,INVS.length-1);G.inv=w.iv?1:0;G.ninv=w.ni|0;
+ if((w.p|0)>=1&&G.phase<1)setPhase(1);G.ch=clamp(w.c|0,1,3);G.vname=String(w.v||"").slice(0,16);if(Array.isArray(w.u)){const nv=[0,1,2,3,4,5].map(i=>clamp(+w.u[i]||0,0,3));nv.forEach((l,i)=>{if(!NET.first&&l>(G.vup[i]|0)){showBanner(CITY[i].n.toUpperCase()+" NÍVEL "+l);sfx("chest")}});G.vup=nv}G.it=+w.it||0;G.ig=clamp(w.ig|0,0,INVS.length-1);G.inv=w.iv?1:0;G.ninv=w.ni|0;
  G.cr=Math.max(0,w.cr|0);G.wave=clamp(w.wv|0,1,5);G.wact=w.wa?1:0;G.wt=+w.wt||0;G.vhp=+w.vh||0;G.mb=w.mb?1:0;G.ld=w.ld?1:0;
  const seenIds=new Set();
  if(Array.isArray(w.m))for(const e of w.m){if(!Array.isArray(e))continue;const id=e[0]|0,t=e[1]|0;if(t<1||t>=NF||t===DRG)continue;seenIds.add(id);let m=MIDX.get(id);const s=e[5]|0;
@@ -1509,7 +1512,7 @@ function village(){if(Math.abs(cpX-camx-VW/2)>VW+300||Math.abs(cpY-camy-VH/2)>VH
   if(R()<.6)burst(cpX+(R()-.5)*300,cpY-60-R()*80,pk(["#ff4aff","#5fcde4","#fbf236","#99e550"]),3,1.2,(R()-.5)*30,40)}
  for(let i=0;i<9;i++){const fh=6+Math.abs(Math.sin(time*9+i*1.7))*12;blk(cpX-9+i*2,cpY+4-fh,2,fh,i%3?"#ff8a1f":"#ffd84a")}
  if(R()<.3)burst(cpX+(R()-.5)*10,cpY-8,"#ffb040",2,.8,(R()-.5)*20,-50);
- if(G.vname){X.font="18px "+FT;const w=X.measureText(G.vname).width+16;blk(cpX-w/2,cpY-78,w,20,"#5a3a1e");blk(cpX-w/2+2,cpY-76,w-4,16,"#8a6a3a");blk(cpX-2,cpY-58,4,20,"#3a2412");txt(G.vname,cpX+ox,cpY+oy-63,"#ffe7a0",18,"center")}
+ if(G.ch>=2){const vn=cityName();X.font="18px "+FT;const w=X.measureText(vn).width+16;blk(cpX-w/2,cpY-78,w,20,"#5a3a1e");blk(cpX-w/2+2,cpY-76,w-4,16,"#8a6a3a");blk(cpX-2,cpY-58,4,20,"#3a2412");txt(vn,cpX+ox,cpY+oy-63,"#ffe7a0",18,"center")}
  LT.push([cpX,cpY,250,.8]);GL.push([cpX,cpY-6,70,"255,140,40",.3])}
 function fortress(){const fx=FTX*T+16,fy=FTY*T+16;if(Math.abs(fx-camx-VW/2)>VW+400||Math.abs(fy-camy-VH/2)>VH+400)return;
  for(const[a,b]of[[-16,-12],[16,-12],[-16,12],[16,12],[-16,-3],[-16,3]]){const x=(FTX+a)*T+16,y=(FTY+b)*T;blk(x-2,y-20,4,10,"#5a3a1e");blk(x-4,y-26-Math.abs(Math.sin(time*8+a))*4,8,8,"#ff8a1f");LT.push([x,y-22,110,.6]);GL.push([x,y-22,26,"255,140,40",.3])}
@@ -1680,7 +1683,7 @@ function hud(){const multi=PL.length>1,gl=goal();
  X.save();X.translate(fx0+16,23);X.rotate(a);X.fillStyle="#07050d";X.fillRect(-7,-3,14,6);X.fillStyle="#ffd84a";X.fillRect(-6,-2,8,4);X.fillRect(2,-4,2,8);X.fillRect(4,-3,2,6);X.fillRect(6,-1,2,2);X.restore();
  txt(gl.t,fx0+fw/2+10,29,"#ffe7a0",multi?16:18,"center");
  let ty=42;
- if(G.ch>=2&&ZONES[zoneOfPx(camx+VW/2,camy+VH/2)].village){frame(fx0,ty,fw,26);bar(fx0+8,ty+15,fw-16,6,G.vhp/vmax(),"#e8a23a","#ffe08a");txt((G.vname||"Vila")+" · Ouro "+G.cr,fx0+fw/2,ty+13,"#ffe7a0",15,"center");ty+=30}
+ if(G.ch>=2&&ZONES[zoneOfPx(camx+VW/2,camy+VH/2)].village){frame(fx0,ty,fw,26);bar(fx0+8,ty+15,fw-16,6,G.vhp/vmax(),"#e8a23a","#ffe08a");txt(cityName()+" · Ouro "+G.cr,fx0+fw/2,ty+13,"#ffe7a0",15,"center");ty+=30}
  /* invasões: contagem regressiva nos últimos 5 minutos e andamento da batalha (aparece em qualquer lugar do mapa) */
  if(G.ch>=2&&G.wave>=5){if(G.inv){const n=mons.filter(m=>m.inv).length+(G.spawnLeft|0);frame(fx0,ty,fw,24);txt("⚔ "+INVS[G.ig|0].n+" atacando! Restam "+n,fx0+fw/2,ty+16,Math.sin(time*6)>0?"#ff6a5a":"#ffb0a0",15,"center");ty+=28}
   else if((G.it||0)<=INV_WARN){frame(fx0,ty,fw,24);txt("⚔ "+INVS[G.ig|0].n+" chega em "+mmss(G.it),fx0+fw/2,ty+16,G.it<60&&Math.sin(time*8)>0?"#ff6a5a":"#ffd84a",16,"center");ty+=28}}
@@ -1751,7 +1754,7 @@ function titleMenu(mi){const items=titleItems(),n=items.length+3;
  if(tSel===1&&(mi.l||mi.r)&&padNow.some(Boolean)){const i=NAMES.indexOf(crName);crName=NAMES[((i<0?0:i+(mi.r?1:-1))+NAMES.length)%NAMES.length]}
  if(tSel===2&&(mi.l||mi.r))crCol=(crCol+(mi.r?1:-1)+NCOL)%NCOL;
  if(mi.ok){sfx("ok");if(tSel<3)tSel++;else items[tSel-3].act()}}
-function onlineScreen(){win(80,200,480,250,"Jogar online · até "+(SERVER_URL?NET.max>4?NET.max:8:4)+" jogadores");closeBtn(534,203,()=>{state="title";netMsg=""});txt("Sala: “"+ROOM+"” · "+(SERVER_URL?"servidor dedicado":"quem entra primeiro vira o servidor"),VW/2,256,"#d8c8a0",17,"center");
+function onlineScreen(){win(80,200,480,250,"Jogar online · até 10 jogadores");closeBtn(534,203,()=>{state="title";netMsg=""});txt("Sala: “"+ROOM+"” · "+(SERVER_URL?"servidor dedicado":"quem entra primeiro vira o servidor"),VW/2,256,"#d8c8a0",17,"center");
  txt("Para uma sala separada, abra o link com #nomedasala no final.",VW/2,278,"#a89878",16,"center");menuList(onlineItems(),VW/2,330,menuSel,300);if(netMsg)txt(netMsg,VW/2,420,"#ff9ab8",16,"center")}
 function controlsScreen(){win(30,124,580,350,"Controles");const CB=()=>closeBtn(584,127,()=>{state="title"});
  const L=[["Mover","WASD / setas","Analógico / direcional"],["Golpe e magia","automáticos","automáticos"],["Agir: interagir, quebrar parede","Espaço ou F","A"],["Dash · segure para correr","Shift","B"],["Magia de cura","H","Y"],["Trocar visual (e poder)","Q / E","LB / LT"],["Invocação 1 · Invocação 2","C · Z","RT · RB"],["Habilidades e visuais","K ou Tab","Select"],["Menu e salvar","Esc ou P","Start"],["Entrar como jogador 2 a 4","—","Start no controle novo"]];
@@ -1768,12 +1771,12 @@ function overlay(){if(state==="worldmap"){worldMap();return}X.fillStyle="rgba(8,
   const im=ELN.filter((_,e)=>hasRes(PL[0],e));txt("Resistências ("+Math.round(Math.min(.75,.25+.1*S(PL[0],"def6"))*100)+"%): "+(im.length?im.join(", "):"nenhuma ainda"),VW/2,384,"#a8ffb8",15,"center");
   let n=0;for(let k=0;k<secrets.length;k++)if(PL[0].sec&(1<<k))n++;txt("Segredos "+n+"/"+secrets.length+" · Visuais "+(cosList(PL[0]).length-1)+"/"+NSKIN,VW/2,406,"#a89878",15,"center")}
  if(state==="tree")treeScreen();
- if(state==="upgrade"){win(70,60,500,380,"Slime Ancião · Construções");closeBtn(544,63,()=>{state="play"});txt("“O ouro dos monstros constrói "+G.vname+".” Ouro: "+G.cr,VW/2,106,"#ffd84a",17,"center");
+ if(state==="upgrade"){win(70,60,500,380,"Slime Ancião · Construções");closeBtn(544,63,()=>{state="play"});txt("“O ouro dos monstros constrói "+cityName()+".” Ouro: "+G.cr,VW/2,106,"#ffd84a",17,"center");
   menuList(upgItems(),VW/2,146,menuSel,440);const u=CITY[menuSel];if(u){const l=G.vup[menuSel]|0;txt(l>=3?"Nível máximo: "+u.d[2]:"Próximo nível: "+u.d[l],VW/2,370,"#e8dcc0",16,"center");if(l)txt("Agora: "+u.d[l-1],VW/2,392,"#a89878",15,"center")}}
- if(state==="naming"){win(90,150,460,200,"Vila dos Slimes");txt("Os slimes te receberam como herói!",VW/2,194,"#ffe7a0",23,"center");txt("Que nome terá a vila?",VW/2,218,"#e8dcc0",19,"center");
+ if(state==="naming"){win(90,150,460,200,"Vila dos Slimes");txt(G.ch>=2?"Dê o seu nome à cidade":"Os slimes te receberam como herói!",VW/2,194,"#ffe7a0",23,"center");txt("Que nome terá a vila? (só você vê este nome)",VW/2,218,"#e8dcc0",19,"center");
   rr(160,232,320,34,4);X.fillStyle="rgba(232,220,192,.95)";X.fill();X.font="24px "+FT;X.fillStyle="#2a1e10";X.textAlign="center";X.fillText(nameBuf+(Math.sin(time*8)>0?"_":""),VW/2,256);X.textAlign="left";
   txt("Digite um nome ou use ◄ ► para sugestões",VW/2,292,"#d8c8a0",17,"center");txt("ENTER / A / clique aqui para confirmar",VW/2,320,"#ffe7a0",18,"center");HIT.push({x:160,y:300,w:320,h:30,fn:confirmVillage})}
- if(state==="chend"){win(70,120,500,250,"Capítulo 2 completo");closeBtn(544,123,()=>{state="play"});txt("O Lorde Orc foi devorado e "+(G.vname||"a vila")+" está a salva!",VW/2,190,"#e0f0d8",20,"center");
+ if(state==="chend"){win(70,120,500,250,"Capítulo 2 completo");closeBtn(544,123,()=>{state="play"});txt("O Lorde Orc foi devorado e "+cityName()+" está a salva!",VW/2,190,"#e0f0d8",20,"center");
   txt("Os slimes agora chamam você de guardião.",VW/2,214,"#e0f0d8",20,"center");PL.forEach((p,i)=>txt((p.nm?p.nm+" · ":"")+"Nível "+p.lv+" · Visuais "+(cosList(p).length-1)+"/"+NSKIN,VW/2,250+i*20,PCOL[p.col],19,"center"));
   txt("ENTER / A / clique para continuar explorando",VW/2,350,"#ffffff",19,"center");HIT.push({x:0,y:0,w:VW,h:VH,fn:()=>{state="play"}})}}
 /* aba Visual: os 24 visuais; os trancados aparecem como sombra */
@@ -1812,9 +1815,14 @@ function buySkill(p,i){if(!canBuy(p,i)){sfx("hurt");return}const h0=mhp(p);p.sk[
 const CONF=[{t:"Sim, começar do zero",act:()=>{applyIdentity();const pr=fixProf(SAVE.prof[0]),np=newProf();np.nm=pr.nm;np.col=pr.col;startGame(null,[np]);writeSave()}},{t:"Não, voltar",act:()=>{state="title"}}];
 function onlineItems(){return[{t:"Tentar de novo",act:()=>{NET.tries=0;goOnline()}},{t:"Voltar",act:()=>{state="title";netMsg=""}}]}
 function pauseItems(){return[{t:"Continuar",act:()=>{state="play"}},{t:"Mapa do mundo",act:()=>{state="worldmap"}},{t:"Salvar agora",act:()=>{writeSave();say("Jogo salvo.");state="play"}},{t:"Música: ◄ "+volTxt(AUD.mus)+" ►",act:()=>stepVol("mus",-1,1),adj:d=>stepVol("mus",d)},{t:"Efeitos: ◄ "+volTxt(AUD.sfx)+" ►",act:()=>stepVol("sfx",-1,1),adj:d=>stepVol("sfx",d)},{t:"Minimapa: "+(showMM?"ligado":"desligado"),act:()=>{showMM=showMM?0:1}},{t:"Gráficos: "+GFXN[GQ],act:toggleGfx},{t:"Jogar no: "+(MODE==="cel"?"Celular":"Computador"),act:toggleMode},{t:"Sair para o título",act:toTitle}]}
-function upgItems(){return[...CITY.map((u,i)=>{const l=G.vup[i]|0,c=u.c[l];return{t:u.n+" · Nv "+l+(l>=3?" · máximo":" → "+(l+1)+" · "+c+" ouro"),dim:l>=3||G.cr<c,act:()=>{if(l>=3||G.cr<c){sfx("hurt");return}G.cr-=c;G.vup[i]=l+1;if(u.k==="wall")G.vhp+=WALL_HP[l+1]-WALL_HP[l];sfx("chest");showBanner(u.n.toUpperCase()+" NÍVEL "+(l+1));saveDirty=1}}}),{t:"Fechar",act:()=>{state="play"}}]}
-function confirmVillage(){G.vname=nameBuf.trim().slice(0,16)||VNAMES[0];G.ch=2;G.wave=1;G.wt=25;G.wact=0;G.vhp=vmax();state="play";showBanner(G.vname.toUpperCase());sfx("lvl");
- say("Os slimes comemoram: bem-vindo a "+G.vname+"! Os orcs atacam em 25s. Fale com o Ancião para melhorar a vila.");saveDirty=1}
+/* (lista de construções movida para junto do nome da cidade) */
+/* o nome da cidade é de cada jogador (fica no personagem) e só ele vê */
+function confirmVillage(){const nm=nameBuf.trim().slice(0,16)||VNAMES[0];for(const p of PL)p.vn=nm;state="play";showBanner(nm.toUpperCase());sfx("lvl");saveDirty=1;
+ if(G.ch>=2){say("Agora a cidade se chama "+nm+" para você. Os outros jogadores veem o nome que eles mesmos escolheram.");return}
+ G.vname=nm;G.ch=2;G.wave=1;G.wt=25;G.wact=0;G.vhp=vmax();say("Os slimes comemoram: bem-vindo a "+nm+"! Os orcs atacam em 25s. Fale com o Ancião para melhorar a vila.")}
+function upgItems(){const items=CITY.map((u,i)=>{const l=G.vup[i]|0,c=u.c[l];return{t:u.n+" · Nv "+l+(l>=3?" · máximo":" → "+(l+1)+" · "+c+" ouro"),dim:l>=3||G.cr<c,act:()=>{if(l>=3||G.cr<c){sfx("hurt");return}
+  if(NET.mode==="client"){netHit(-2,i,98);sfx("ok");say("Pedido enviado: "+u.n+" nível "+(l+1)+". O ouro sai do tesouro da cidade.");return}cityUpgrade(i)}}});
+ return[...items,{t:"Renomear a cidade (só você vê)",act:()=>{state="naming";nameBuf=PL[0].vn||"";nameSel=0;sfx("ok")}},{t:"Fechar",act:()=>{state="play"}}]}
 /* ===== Fluxo ===== */
 function clearFx(){allyZ=[];shots=[];eshots=[];parts=[];clouds=[];torn=[];bolts=[];rings=[];nums=[];flashes=[];pillars=[]}
 function startGame(world,profs,keep){if(!keep)leaveNet();NET.foreign=0;resetWorld(world);clearFx();hints={};PL=[];lastZone=-1;
@@ -1829,6 +1837,8 @@ function play(dt){shake=Math.max(0,shake-dt*22);const ctl=state==="play";
  if(NET.mode!=="client"){monsterAI(dt);updVillage(dt);respawnTick()}else lerpMons(dt);
  contact(dt);updShots(dt);updEshots(dt);updFx(dt);updVillagers(dt);
  if(G.ch===1&&PL.some(p=>p.dead<=0&&ZONES[zoneOfPx(p.x,p.y)].village&&Math.hypot(p.x-cpX,p.y-cpY)<16*T)){if(NET.mode!=="client"){if(state==="play"){state="naming";nameBuf=VNAMES[0];nameSel=0;sfx("ok")}}else if(!hints.w){hints.w=1;say("O servidor está dando nome à vila…")}}
+ /* quem chega numa cidade já fundada (ou num save antigo) escolhe o próprio nome para ela */
+ if(G.ch>=2&&state==="play"&&PL[0]&&!PL[0].vn&&!hints.vn&&ZONES[zoneOfPx(PL[0].x,PL[0].y)].village&&Math.hypot(PL[0].x-cpX,PL[0].y-cpY)<14*T){hints.vn=1;if(G.vname&&!NET.foreign){PL[0].vn=G.vname;saveDirty=1}else{state="naming";nameBuf=VNAMES[0];nameSel=0;sfx("ok")}}
  if(G.ch===3&&!chShown){chShown=1;state="chend";sfx("lvl")}
  const z=zoneOfPx(PL[0].x,PL[0].y);if(z!==lastZone){lastZone=z;zoneName=ZONES[z].n;zoneT=3.5}
  updCam();saveT+=dt;if(saveT>=SAVE_EVERY)writeSave()}

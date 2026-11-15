@@ -10,7 +10,7 @@ Funciona no computador e no celular. Na tela inicial, escolha **Jogar no: Comput
 
 A tela inicial tem 3 vagas de personagem. Em cada uma você escolhe o nome e a cor do slime. Cada personagem tem o próprio progresso, e o botão **Excluir** apaga um personagem quando você quiser.
 
-## Jogar online com amigos (até 4)
+## Jogar online com amigos (até 10)
 
 1. Todos abrem o link e escolhem **Jogar online**.
 2. Quem entrar primeiro vira o servidor: o mundo dele é o mundo de todos.
@@ -19,7 +19,7 @@ A tela inicial tem 3 vagas de personagem. Em cada uma você escolhe o nome e a c
 
 Para um grupo separado, coloque `#nomedasala` no fim do link. A conexão é direta entre os navegadores (WebRTC, via [PeerJS](https://peerjs.com/)) e pode falhar em redes muito fechadas.
 
-## Servidor dedicado na Oracle Cloud (até 8 por sala)
+## Servidor dedicado na Oracle Cloud (até 10 por sala)
 
 Com o servidor dedicado, ninguém precisa "ser o servidor":
 - Todo mundo se conecta à mesma máquina, que fica ligada o tempo todo.
@@ -116,6 +116,12 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 ## Salvamento
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
+
+## Novidades da v2.6.0
+
+- **Todos os jogadores podem construir na cidade:** fale com o Ancião. O ouro sai do tesouro da cidade, que é o mesmo para todos, e todos veem a construção nova na hora.
+- **Até 10 jogadores** online na mesma sala, tanto na conexão direta quanto no servidor dedicado.
+- **Cada jogador dá o próprio nome à cidade**, e só ele vê esse nome. O nome fica salvo no personagem e pode ser trocado em "Renomear a cidade", no menu do Ancião.
 
 ## Novidades da v2.5.0 (cidade medieval)
 

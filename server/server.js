@@ -7,7 +7,7 @@ const http = require("http");
 const { WebSocketServer } = require("ws");
 
 const PORT = +process.env.PORT || 8080;
-const MAX_PLAYERS = +process.env.MAX_PLAYERS || 8;   // conexões por sala (cada uma pode ter jogadores locais)
+const MAX_PLAYERS = +process.env.MAX_PLAYERS || 10;   // conexões por sala (cada uma pode ter jogadores locais)
 const MAX_ROOMS = +process.env.MAX_ROOMS || 50;
 const MAX_MSG = 256 * 1024;                          // tamanho máximo de uma mensagem
 
