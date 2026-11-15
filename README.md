@@ -550,3 +550,10 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 - Novo mapa: cavernas de insetos, depois o Dragão do Vendaval, depois o mundo aberto com habitats.
 - Invocações com nível próprio, que desviam de obstáculos e se teletransportam se travarem.
 - Subir de nível agora leva 3 vezes mais tempo.
+
+## Novidades da v3.9.0 (cidade que evolui)
+- Todas as construções agora passam pelos mesmos 10 materiais da muralha: barro, madeira, toras, madeira reforçada, pedra, pedra talhada, ameias, granito, basalto e obsidiana (com runas verdes brilhando).
+- Cada nível acrescenta detalhes: floreiras, segundo andar, anexos, chaminés, bandeiras, mansardas, lampiões e telhados com borda dourada.
+- Cada construção tem seu tema: **Moradias** (casas), **Ferreiro** (forja, bigorna, armas expostas, segunda fornalha, roda de afiar e fogo mágico azul no máximo), **Guilda de Aventureiros** (antigo Quartel: espadas cruzadas, mural de missões, troféu de monstro, torres e brasão dourado), **Mercador** (barraca com toldo listrado que vira loja de dois andares com cúpula dourada) e **Templo** (tenda, capela, igreja com vitrais, torres, sino, cúpula dourada e aura sagrada).
+- A muralha ficou maior para caber a cidade nova (o fosso e as pontes acompanham).
+- Com **todas** as construções no nível 10, surge um pequeno **castelo de obsidiana** no norte da cidade.
