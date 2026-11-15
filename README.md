@@ -117,6 +117,17 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.4.0
+
+- **Animação de corpo inteiro:** cada criatura tem 10 poses (parada, 6 de caminhada e 3 de ataque).
+  - **Asas batendo:** morcegos, dragões e o Dragão do Vendaval.
+  - **Pernas em passo alternado:** lobos, orcs, ogros, minotauro, goblins, aranhas, lagarta, ankheg e basilisco.
+  - **Braços:** balançam ao andar.
+  - **Ataque:** o braço com a arma recua e golpeia (machado, clava, lança e cajado), e os bichos que mordem avançam a cabeça abrindo a boca.
+  - **Caudas:** balançam ao andar.
+  - Funciona para monstros, invocações e moradores da vila.
+- **Chefes renascem 5 minutos depois de derrotados**, no mesmo lugar: Rainha Aranha, Lorde Orc e Dragão Ancião.
+
 ## Novidades da v2.3.0 (visual estilo anime)
 
 - **Cel shading:** personagens, monstros, invocações e visuais têm sombra em faixas nítidas, como em anime, com cores mais vivas e contorno escuro mais marcado.
