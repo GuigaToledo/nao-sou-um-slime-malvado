@@ -117,6 +117,11 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v3.3.1
+
+- **Cavernas escuras de verdade:** o que ilumina são **os cristais e a luz do próprio slime** (cogumelos, baús e plantas não iluminam mais lá dentro).
+- **Defensores caídos numa onda só voltam quando a onda acaba**, antes do começo da próxima.
+
 ## Novidades da v3.3.0 (mundo reorganizado)
 
 - **Você nasce na cidade.** As ondas iniciais da vila saíram, e as **invasões só começam quando alguém chega ao nível 30**.

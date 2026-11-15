@@ -22,7 +22,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.3.0";
+const VERSION="v3.3.1";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VH=480,FT="'VT323',ui-monospace,monospace";
@@ -1591,7 +1591,7 @@ function cityTick(dt){if(G.ch<2)return;applyCityTiles();syncGuards();styleSlimes
  if(!G.inv){G.it=(G.it??INV_EVERY)-dt;if(G.it<=INV_WARN&&!G.warned){G.warned=1;G.ig=Math.floor(R()*INVS.length);showBanner("INVASÃO EM 1 MINUTO!");say("Batedores avistaram a "+INVS[G.ig].n+"! Ela chega em 1 minuto, por todos os lados. Prepare a defesa.");sfx("warn")}
   if(G.it<=0)startInvasion();return}
  if(G.spawnLeft>0){G.st-=dt;if(G.st<=0){G.st=.75;G.spawnLeft--;spawnTick()}}
- else if(!mons.some(m=>m.inv)){if(G.iw>=INV_WAVES)endInvasion();else if(!G.iwT){G.iwT=WAVE_GAP;const j=cl("house")>=5?Math.round(G.cr*.03):0;G.cr+=j;say("Onda "+G.iw+" vencida! A próxima chega em 10 segundos."+(j?" Juros: +"+j+" ouro.":""))}else{G.iwT-=dt;if(G.iwT<=0){G.iw++;startInvWave()}}}
+ else if(!mons.some(m=>m.inv)){if(G.iw>=INV_WAVES)endInvasion();else if(!G.iwT){G.iwT=WAVE_GAP;/* quem caiu na onda só volta agora, entre uma onda e outra */const kd=villagers.filter(v=>v.ko).length;reviveDefenders();if(kd)say(kd+" defensores caídos voltaram para a próxima onda.");const j=cl("house")>=5?Math.round(G.cr*.03):0;G.cr+=j;say("Onda "+G.iw+" vencida! A próxima chega em 10 segundos."+(j?" Juros: +"+j+" ouro.":""))}else{G.iwT-=dt;if(G.iwT<=0){G.iw++;startInvWave()}}}
  if(G.vhp<=0){const lost=Math.floor(G.cr*.25);G.cr-=lost;villageFall();G.inv=0;G.wact=0;G.iw=0;G.it=INV_EVERY;G.warned=0;reviveDefenders();say("O cristal foi destruído e a cidade perdeu "+lost+" de ouro… o cristal se refez, mas a muralha precisa de conserto. Próxima invasão em 15 minutos.")}}
 /* construir: quem hospeda aplica (pedidos dos outros jogadores chegam pela rede) */
 function cityUpgrade(i){if(i===99){startRepair();return}const u=CITY[i];if(!u)return;if(u.k==="moat"&&cl("wall")<10)return;const l=G.vup[i]|0,c=costOf(u,l);if(l>=LMAX||G.cr<c)return;G.cr-=c;G.vup[i]=l+1;if(u.k==="wall")G.vhp+=WALL_HP[l+1]-WALL_HP[l];sfx("chest");showBanner(u.n.toUpperCase()+" NÍVEL "+(l+1));saveDirty=1}
@@ -1781,13 +1781,13 @@ function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floo
   if(t===7){tile(LV[(an+h)%3],px,py);LT.push([px+16,py+16,70,.55]);GL.push([px+16,py+16,36,"255,110,30",.13]);if(R()<.006)burst(px+R()*32,py+R()*32,"#ffd060",3,.6,0,-24);continue}
   if(t===16){water(px,py,tx,ty);continue}
   tile((bt.fl||BT[0].fl)[h%3],px,py);paint(tx,ty,px,py);if(t===9)imgS(RBS,px,py);
-  if(t===11){imgS(CHS,px+5,py+12);LT.push([px+16,py+18,70,.5]);GL.push([px+16,py+18,26,"255,220,80",.25+.12*Math.sin(time*4)])}
+  if(t===11){imgS(CHS,px+5,py+12);if(z.out)LT.push([px+16,py+18,70,.5]);GL.push([px+16,py+18,26,"255,220,80",.25+.12*Math.sin(time*4)])}
   if(t===12)imgS(CHO,px+5,py+14);
   /* tochas espalhadas pelo mapa: sempre acesas, mas só fazem diferença à noite */
   if(z.out&&t===0&&!z.village&&h%113===7){shadow(px+16,py+26,10);blk(px+14,py+6,4,20,"#4a2e16");blk(px+12,py+4,8,4,"#6a4a2a");const fl3=Math.sin(time*9+tx)*1.5;blk(px+13,py-4+fl3,6,8,"#ff8a1f");blk(px+14,py-1+fl3,4,4,"#ffe08a");LT.push([px+16,py,150,.25+.7*NIGHT]);GL.push([px+16,py,22,"255,150,50",.25+.25*NIGHT])}
   if(!z.out){const up=map[ty-1]?.[tx];if(isWall(up))X.drawImage(SHD,Math.round(px+ox),Math.round(py+oy),T,14);
    if(isWall(map[ty]?.[tx-1])){X.fillStyle="rgba(0,0,0,.2)";X.fillRect(Math.round(px+ox),Math.round(py+oy),6,T)}
-   if(t===0){const d=h%17;if(d===0){imgS(CRY,px+6,py+14);const c=z.bio===4?"200,240,255":z.bio===9?"255,230,90":z.bio===3?"255,120,60":"90,200,255";LT.push([px+16,py+20,140,.75]);GL.push([px+16,py+20,34,c,.3+.06*Math.sin(time*2+tx)])}else if(d===1&&z.bio!==4&&z.bio!==3){imgS(MUSH,px+8,py+14);LT.push([px+16,py+18,60,.4]);GL.push([px+16,py+18,24,"60,220,190",.18])}}}}}
+   if(t===0){const d=h%17;if(d===0){imgS(CRY,px+6,py+14);const c=z.bio===4?"200,240,255":z.bio===9?"255,230,90":z.bio===3?"255,120,60":"90,200,255";LT.push([px+16,py+20,170,.8]);GL.push([px+16,py+20,34,c,.3+.06*Math.sin(time*2+tx)])}else if(d===1&&z.bio!==4&&z.bio!==3){imgS(MUSH,px+8,py+14);GL.push([px+16,py+18,14,"60,220,190",.12])}}}}}
 function barrier(){if(G.phase)return;for(let ty=Math.floor(camy/T);ty<=Math.floor((camy+VH)/T);ty++)for(let tx=Math.floor(camx/T);tx<=Math.floor((camx+VW)/T);tx++){if(map[ty]?.[tx]!==3)continue;const px=tx*T,py=ty*T;
  X.globalAlpha=.35+.15*Math.sin(time*3+tx);blk(px,py,T,T,"#7a4ad0");X.globalAlpha=.8;for(let i=0;i<3;i++)blk(px+4+i*10,py+((time*30+i*11+tx*7)%T),2,6,"#e0c8ff");X.globalAlpha=1;LT.push([px+16,py+16,60,.35])}}
 function seal(){return;const cx=vXp,cy=vYp+14;
@@ -2337,7 +2337,7 @@ function draw(){HIT=hitArr();X.setTransform(Q,0,0,Q,0,0);X.imageSmoothingEnabled
  if(!PL.length||["title","online","connecting","controls","confirmNew","confirmDel"].includes(state)){ox=oy=0;ui640(titleScreen,titleBg);return}
  LT=[];GL=[];ox=-Math.round(camx+(R()-.5)*shake);oy=-Math.round(camy+(R()-.5)*shake);
  ground();barrier();seal();village();fortress();
- for(const p of plants){if(Math.abs(p.x-camx-VW/2)>VW||Math.abs(p.y-camy-VH/2)>VH)continue;const sw=Math.sin(time*2+p.x)*.06;spr(HERB,p.x,p.y+8,0,1+sw,1);LT.push([p.x,p.y,50,.35]);GL.push([p.x,p.y,18,"120,255,120",.18+.08*Math.sin(time*3+p.x)])}
+ for(const p of plants){if(Math.abs(p.x-camx-VW/2)>VW||Math.abs(p.y-camy-VH/2)>VH)continue;const sw=Math.sin(time*2+p.x)*.06;spr(HERB,p.x,p.y+8,0,1+sw,1);if(ZONES[zoneOfPx(p.x,p.y)].out)LT.push([p.x,p.y,50,.35]);GL.push([p.x,p.y,18,"120,255,120",.18+.08*Math.sin(time*3+p.x)])}
  const vis=o=>Math.abs(o.x-camx-VW/2)<VW/2+100&&Math.abs(o.y-camy-VH/2)<VH/2+120,ents=[];
  for(const m of mons)if(vis(m))ents.push([m.y,0,m]);
  for(const p of PL){ents.push([p.y,1,{x:p.x,y:p.y,f:0,fl:p.fl,c:p.col,mv:p.mv,eat:p.eatT,hit:p.hit,inv:p.inv,cast:p.cast,af:p.af,fx:p.fx,fy:p.fy,vw:viewOf(p.fx,p.fy),ivs:p.invis>0,hs:p.haste>0,shd:p.shield>0,rt:p.root>0,dead:p.dead>0,tag:p.nm||"J"+(p.slot+1),h:p.hp,mh:mhp(p),skin:p.skin}]);if(p.su&&p.su.dead<=0)ents.push([p.su.y,2,p.su,p.col]);if(p.su2&&p.su2.dead<=0)ents.push([p.su2.y,2,p.su2,p.col])}
@@ -2350,7 +2350,7 @@ function draw(){HIT=hitArr();X.setTransform(Q,0,0,Q,0,0);X.imageSmoothingEnabled
  const x0=Math.floor(camx/T)-1,y0=Math.floor(camy/T),x1=x0+Math.ceil(VW/T)+2,y1=y0+Math.ceil(VH/T)+2;for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=map[ty]?.[tx];if(t!==5&&t!==1)continue;const z=ZONES[BZ[ty*MW+tx]];if(!z.out)continue;
   const cx=tx*T+16,cy=ty*T-8,under=PL.some(p=>Math.abs(p.x-cx)<30&&p.y<cy+30&&p.y>cy-34);X.globalAlpha=under?.45:1;imgS(CAN[BIO[z.bio].can][hs(tx,ty)%2],tx*T-8,ty*T-36);X.globalAlpha=1}
  /* dia e noite: lá fora escurece quase por completo; nas cavernas só os cristais, as tochas e a luz do slime iluminam */
- const cz=ZONES[zoneOfPx(camx+VW/2,camy+VH/2)],target=cz.out?.08+.88*NIGHT:cz.day?.2+.72*NIGHT:cz.seal?.5:.8;ambCur+=(target-ambCur)*.04;
+ const cz=ZONES[zoneOfPx(camx+VW/2,camy+VH/2)],target=cz.out?.08+.88*NIGHT:cz.day?.2+.72*NIGHT:.94;ambCur+=(target-ambCur)*.04;
  for(const p of PL)if(p.dead<=0)LT.push([p.x,p.y-6,210,.95]);for(const r of NET.remote)if(!r.dead)LT.push([r.x,r.y-6,170,.85]);
  for(const s of shots)LT.push([s.x,s.y,60,.5]);for(const s of eshots)LT.push([s.x,s.y,50,.4]);for(const b of bolts)LT.push([b.pts[Math.min(5,b.pts.length-1)][0],b.pts[Math.min(5,b.pts.length-1)][1],160,.8]);
  for(const f of flashes){LT.push([f.x,f.y,f.r,.9*f.t/f.m]);GL.push([f.x,f.y,f.r*.5,f.c,.35*f.t/f.m])}
