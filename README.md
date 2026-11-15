@@ -598,3 +598,12 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 ## v3.14.0
 
 - **Monstros em movimento constante:** quando não estão caçando, os monstros do mapa fazem uma ronda sem parar, de um ponto a outro, **perto de onde nasceram** (até 6 blocos). Se travam numa pedra ou árvore, escolhem outro caminho na hora. Chefes andam mais devagar.
+
+## v3.15.0 (habilidades novas)
+
+- **Aba de habilidades redesenhada:** 4 trilhas, cada uma com um slime desenhado e o contador de níveis (ex.: **12/50**):
+  - **Ataque** (slime com espada), **Defesa** (slime com escudo), **Invocação** (slime com uma bola de energia em cada mão) e **Cura** (o antigo grupo "Magia", com chapéu de mágico e livro de magia).
+  - Clique (ou ENTER/A) para evoluir a trilha escolhida: cada nível libera o próximo efeito, e o efeito do próximo nível aparece embaixo.
+- **Ordem da Cura:** 1º **regeneração por segundo**; 2º **Cura Compartilhada** (suas invocações recebem 25% de toda cura que você recebe, até 100%). Depois vêm cura maior, recarga menor, Cura Potente (+2% em toda cura recebida), absorção, cura em área, bênção, XP e renascer.
+- **Efeitos novos que completam as trilhas:** Força Gosmenta (+1,5% de dano), Gosma Robusta (+1,5% de vida), Elo do Bando (+2% de vida e dano das invocações).
+- Saves antigos: os pontos que você tinha em cada grupo viram níveis na trilha correspondente.
