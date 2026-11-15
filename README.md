@@ -564,3 +564,7 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 - A antiga Drum and Bass foi refeita como **Drum and Breaks (UK)**: bateria quebrada com swing no estilo UK breakbeat, baixo reese ondulando, acordes curtos na parte B e a rabeca medieval por cima.
 - Música de chefe começa assim que o chefe aparece na tela; quando ele morre ou fica bem longe, volta a música que estava tocando antes, do ponto em que ela parou.
 - A troca automática de estilo enquanto você explora espera a música atual terminar.
+
+## Novidades da v3.11.0 (nova música de chefe)
+- A Drum and Breaks foi substituída por uma música nova, **Jungle Drum and Bass** (172 BPM, 61 s de loop): quebras picotadas no estilo Amen, sub grave rolando, reese na parte B, pads de clima, harpa e sino, e uma melodia nova de flauta doce.
+- O Minimal Techno não foi alterado.
