@@ -630,12 +630,12 @@ const NEWSK=[
  [23,"Escamas de Rocha",{b:[["spikesB","#6a6a74"],["tailB","#5a5a64","#9badb7"]],f:[["horns","#9badb7",1.2],["scales","#3a3a44"]]},"sp_thorns",{sm:1}],
  [24,"Manto Ancestral",{b:[["dragonB",{w:"#6a1a0a",d:"#ffd84a",hn:"#fff4c8"}]],f:[["crown","#fbf236","#d95763"],["flames","#ff8a1f","#fff4c8"]]},"sp_ancient",{fl:1,sm:1}],
  [25,"Elmo de Ossos",{f:[["skull"],["eyes","#9ae8ff"]]},"sp_bones",{}],
- [26,"Bandagens de Zumbi",{f:[["bandage","#d8d0b0"],["eyes","#9aff5a"]]},"sp_bite",{regen:1}],
+ [26,"Bandagens de Zumbi",{f:[["bandage","#d8d0b0"],["eyes","#9aff5a"]]},"sp_bite",{}],
  [27,"Elmo do Cavaleiro Negro",{b:[["capeB","#1a1420","#5a2a6a"]],f:[["helm","#2a2430","#5a2a6a"],["visor","#2a2430"]]},"sp_darkcharge",{sm:1}],
  [28,"Capuz do Mago Sombrio",{b:[["capeB","#2a1a40","#b48aff"]],f:[["hat","#3a2a5a","#b48aff"],["eyes","#b48aff"]]},"sp_void",{}],
  [29,"Chifres de Demônio",{b:[["tailB","#5a1414","#ff4a2a"],["wingsB","bat","#3a0a0a"]],f:[["horns","#2a1414",1.3],["eyes","#ff4a2a"]]},"sp_pillar",{fl:1}],
  [30,"Elmo de Gelo",{f:[["helm","#9ac8e8","#dff6ff"],["iceCrown","#dff6ff"],["shoulders","#bfe8ff"]]},"sp_icelances",{}],
- [31,"Coroa de Musgo",{f:[["moss","#4a7a3a","#ff9ad8"],["eyes","#c8ff8a"]]},"sp_briar",{regen:2,sm:1}],
+ [31,"Coroa de Musgo",{f:[["moss","#4a7a3a","#ff9ad8"],["eyes","#c8ff8a"]]},"sp_briar",{regen:1,sm:1}],
  [32,"Galhada do Druida",{b:[["capeB","#2a3a20","#7a5aff"]],f:[["antlers","#5a4030"],["mask","#3a4a2a","#9a7aff"]]},"sp_vines",{}],
  [33,"Asas de Gárgula",{b:[["dragonB",{w:"#6a6a74",d:"#cfd8e8",hn:"#cfd8e8"}]],f:[["horns","#8a8a94",.9],["eyes","#ff4a2a"]]},"sp_dive",{fl:1,sm:1}],
  [34,"Elmo de Magma",{f:[["helm","#3a2020","#ff6a1a"],["cracks","#ff8a1f"],["flames","#ff6a1a","#ffd84a"]]},"sp_eruption",{sm:1}]];
@@ -657,7 +657,7 @@ const SPELL={
  sp_axes:{n:"Redemoinho de Machados",sh:"blades",R:95,n:4,m:.55,el:-1,c:"#cfd8e8",snd:"spin",kd:[90,3.4]},
  sp_totem:{n:"Totem de Fogo",sh:"rain",n:4,R:55,r:44,m:1.1,el:EF,c:"#ff6a1a",snd:"fire",kd:[220,3.6]},
  sp_blades:{n:"Lâminas Sombrias",sh:"blades",R:115,n:4,m:.6,el:ES,c:"#7a5aff",snd:"blink",kd:[110,3.6]},
- sp_warcry:{n:"Grito de Guerra",sh:"nova",R:170,m:1,el:ET,buff:"shield",c:"#e8c25a",snd:"rally",kd:[160,5]},
+ sp_warcry:{n:"Grito de Guerra",sh:"nova",R:170,m:1,el:ET,buff:"shield",c:"#e8c25a",snd:"rally",kd:[160,6.5]},
  sp_eye:{n:"Olho da Tempestade",sh:"pull",R:230,m:1.3,el:ER,c:"#9ae8ff",snd:"storm",kd:[220,4.4]},
  sp_swamp:{n:"Pântano Tóxico",sh:"blades",R:150,n:4,m:.55,el:EV,ef:3,c:"#8bd06a",snd:"cloud",kd:[140,4.2]},
  sp_meteor:{n:"Chuva de Meteoros",sh:"rain",n:6,R:90,r:44,m:1.1,el:EF,c:"#ff8a1f",snd:"bomb",kd:[240,4.2]},
@@ -666,12 +666,12 @@ const SPELL={
  sp_thorns:{n:"Muralha de Espinhos",sh:"cone",R:150,m:1.3,el:ET,ef:4,c:"#9badb7",snd:"roots",kd:[140,3.2]},
  sp_ancient:{n:"Sopro Ancestral",sh:"cone",R:230,m:1.5,el:EF,wide:1,c:"#ffd84a",snd:"fire",kd:[220,4]},
  sp_bones:{n:"Lanças de Ossos",sh:"volley",n:3,kd2:"spear",sp:.3,m:1.1,el:-1,c:"#e8e2d0",snd:"missiles",kd:[230,2.4]},
- sp_bite:{n:"Mordida Contagiosa",sh:"drain",m:1.6,el:EV,ef:3,heal:.5,c:"#9aff5a",snd:"vbite",kd:[70,2.6]},
+ sp_bite:{n:"Mordida Contagiosa",sh:"drain",m:1.6,el:EV,ef:3,heal:.1,c:"#9aff5a",snd:"vbite",kd:[70,2.6]},
  sp_darkcharge:{n:"Investida Sombria",sh:"leap",R:110,m:1.5,el:ES,c:"#5a2a6a",snd:"blink",kd:[230,3.6]},
  sp_void:{n:"Orbes do Vazio",sh:"volley",n:5,kd2:"dark",sp:.7,m:.8,el:ES,c:"#b48aff",snd:"dark",kd:[230,3]},
  sp_pillar:{n:"Pilar Infernal",sh:"beam",L:250,w:34,m:1.4,el:EF,c:"#ff4a2a",snd:"fire",kd:[240,3.6]},
  sp_icelances:{n:"Lanças de Gelo",sh:"volley",n:4,kd2:"ice",sp:.5,m:.9,el:EG,ef:2,c:"#bff4ff",snd:"frost",kd:[230,2.8]},
- sp_briar:{n:"Espinheiro",sh:"nova",R:140,m:.9,el:ET,ef:1,heal:.15,c:"#7ad85a",snd:"garden",kd:[130,4]},
+ sp_briar:{n:"Espinheiro",sh:"nova",R:140,m:.9,el:ET,ef:4,heal:.02,c:"#7ad85a",snd:"garden",kd:[130,4]},
  sp_vines:{n:"Cipós Sombrios",sh:"chain",n:5,R:200,m:.9,el:ES,ef:4,c:"#9a7aff",snd:"roots",kd:[200,3.2]},
  sp_dive:{n:"Mergulho de Pedra",sh:"leap",R:120,m:1.5,el:ET,c:"#cfd8e8",snd:"stomp",kd:[230,3.6]},
  sp_eruption:{n:"Erupção",sh:"echo",R:135,m:1.1,el:EF,c:"#ff6a1a",snd:"bomb",kd:[120,4]}};
@@ -687,7 +687,7 @@ function spellCast(s,S,d,tg,src,cr){const el=S.el>=0?S.el:null,H=(m,dd)=>{if(!m.
  const tx=tg?tg.x:s.x+s.fx*120,ty=tg?tg.y:s.y+s.fy*120;
  switch(S.sh){
   case"nova":nova(s.x,s.y,S.R,S.m);if(S.drain&&s.hp!==undefined){const mx=s.mhp||mhp(s);s.hp=Math.min(mx,s.hp+d*S.drain*monsIn(s.x,s.y,S.R).length)}
-   if(S.heal&&s.hp!==undefined){const mx=s.mhp||mhp(s);s.hp=Math.min(mx,s.hp+mx*S.heal)}if(S.buff&&s.slot!==undefined){s.shield=4}break;
+   if(S.heal&&s.hp!==undefined){const mx=s.mhp||mhp(s);s.hp=Math.min(mx,s.hp+mx*S.heal)}if(S.buff&&s.slot!==undefined){s.shield=2}break;
   case"echo":nova(s.x,s.y,S.R,S.m);later(.45,()=>nova(s.x,s.y,S.R*1.25,S.m*.8));break;
   case"cone":{const RR=S.R,cs=S.wide?.35:.6;spray(s,[col,"#ffffff",col],RR*1.6,24);flashes.push({x:s.x+s.fx*RR*.5,y:s.y+s.fy*RR*.5,r:RR,c:cc,t:.3,m:.3});
    for(const q of monsIn(s.x,s.y,RR)){const ex=q.x-s.x,ey=q.y-s.y,dd=Math.hypot(ex,ey)||1;if((ex*s.fx+ey*s.fy)/dd>cs)H(q,d*S.m)}break}
@@ -714,12 +714,12 @@ const COS=[
  {n:"Chifres do Dragão de Pedra",t:23,a:"Chifres do Dragão de Pedra",k:["stomp","arc"],kd:12,sm:1},{n:"Coroa Dracônica",t:24,a:"Coroa Dracônica",k:["fire","storm","tornado"],fl:1,sm:1},
  {n:"Chapéu de Festa",chest:1,a:"Chapéu de Festa",k:"confetti",sk:"Explosão de confete ao redor"},{n:"Fones de DJ",chest:1,a:"Fones de DJ",k:"beat",dance:1,sk:"Batida (na vila, todo mundo dança!)"},
  {n:"Asas de Anjo",chest:1,a:"Asas de Anjo",k:"holy",fl:1,aura:1,sk:"Aura que cura todos os aliados na tela"},{n:"Auréola",chest:1,a:"Auréola",k:"smite",regen:2,sk:"Raio de luz sagrada (e cura você)"},
- {n:"Laço Rosa",chest:1,a:"Laço Rosa",k:"charm",sk:"Encanto: inimigos em volta ficam paralisados"},{n:"Cartola",chest:1,a:"Cartola",k:"invis",sk:"Invisível por 5s (recarga 5s)"},
+ {n:"Laço Rosa",chest:1,a:"Laço Rosa",k:"charm",sk:"Encanto: inimigos em volta ficam paralisados"},{n:"Cartola",chest:1,a:"Cartola",k:"invis",sk:"Invisível por 3s (recarga 10s)"},
  {n:"Orelhas de Gato",chest:1,a:"Orelhas de Gato",k:"fury",spd:1.35,sk:"Fúria felina: 3 arranhões rápidos"},{n:"Brotinho",chest:1,a:"Brotinho",k:"roots",regen:3,sk:"Raízes que prendem e ferem"},
  {n:"Óculos de Nerd",chest:1,a:"Óculos de Nerd",k:"missiles",xp:1.3,sk:"Mísseis arcanos teleguiados"},{n:"Bigode",chest:1,a:"Bigode",k:"gust",fd:2.4,sk:"Espirro que arremessa os inimigos"},
  {n:"Pirata",chest:1,a:"Pirata",k:"bomb",sk:"Canhonaço que explode em área"},{n:"Asas de Fada",chest:1,a:"Asas de Fada",k:"haste",fl:1,spd:1.15,sk:"Pó de fada: você e as invocações ficam rápidos"},
  {n:"Antenas de Abelha",chest:1,a:"Antenas de Abelha",k:"bees",sk:"Enxame de abelhas"},{n:"Cachecol",chest:1,a:"Cachecol",k:"iceshield",sk:"Escudo de gelo que congela em volta"},
- {n:"Tiara de Flores",chest:1,a:"Tiara de Flores",k:"garden",regen:2,sk:"Jardim que cura quem estiver dentro"},{n:"Boné",chest:1,a:"Boné",k:"boomerang",sk:"Bumerangue que vai e volta"},
+ {n:"Tiara de Flores",chest:1,a:"Tiara de Flores",k:"garden",regen:1,sk:"Jardim que cura quem estiver dentro"},{n:"Boné",chest:1,a:"Boné",k:"boomerang",sk:"Bumerangue que vai e volta"},
  {n:"Máscara de Herói",chest:1,a:"Máscara de Herói",k:"rally",sk:"Grito heroico: +40% de dano"},{n:"Gorro de Natal",chest:1,a:"Gorro de Natal",k:"gift",regen:1,sk:"Presente que explode"},
  {n:"Chapéu do Mago Louco",chest:1,a:"Mago Louco",k:"chain5",sk:"Corrente de relâmpagos (até 5 inimigos)"}];
 {const SH={nova:"explosão em volta",echo:"dois tremores em volta",cone:"sopro em leque",beam:"raio em linha reta",rain:"chuva sobre o alvo",volley:"leque de projéteis",chain:"salta de inimigo em inimigo",drain:"rouba vida",leap:"salta no alvo e explode",pull:"puxa os inimigos e eletrocuta",blades:"gira em volta várias vezes"};
@@ -1164,7 +1164,7 @@ const mdmg=p=>(4+p.lv*1.6)*cosOf(p).fd*(1+.05*S(p,"atk1"))*formBonus(p)*(p.rally
 const critC=p=>.04*(S(p,"atk3")+S(p,"atk6"));
 /* invocação no nível dela: a vida cresce como o dano dos monstros e o dano cresce como a vida deles */
 /* v3.7: força de cada invocação e de cada skin, calibrada por simulação para todas serem boas escolhas */
-const SUMF={1:1.414,2:1.513,3:1.11,4:0.979,5:0.862,6:1.575,7:1.782,8:1.491,9:0.932,10:1.06,11:0.965,12:0.772,13:0.599,14:0.748,15:0.881,16:1.118,17:0.59,18:0.572,19:0.769,20:0.823,21:0.808,22:0.785,23:0.657,24:0.686,25:0.945,26:0.979,27:0.793,28:1.158,29:0.973,30:0.868,31:0.754,32:0.981,33:0.913,34:0.745},SKPW={0:0.531,1:1.441,2:0.701,3:1.603,4:0.927,5:1.089,6:1.389,7:0.955,8:1.46,9:0.762,10:0.653,11:1.079,12:0.709,13:0.788,14:0.852,15:1.288,16:0.589,17:0.758,18:0.798,19:0.733,20:0.836,21:0.681,22:0.801,23:0.736,24:1.38,25:0.936,26:0.623,27:0.664,28:0.731,29:0.511,30:1.89,31:0.548,32:1.705,33:0.622,34:1.32,35:0.708,36:1.043,37:0.675,38:0.528,39:1.168,40:1.07,41:1.465,42:2.118,43:1.792,44:1.422,45:0.675,46:1.312,47:1.095,48:1.827,49:1.463,50:1.295,51:1.31,52:0.895,53:1.82,54:1.188,55:0.789,56:1.037,57:1.18,58:1.132,59:0.498,60:0.9,61:0.82,62:1.083,63:0.699,64:0.641,65:0.973,66:0.757,67:1.055,68:0.489,69:0.726,70:1.1,71:1.104,72:0.782,73:0.485,74:1.081,75:0.763,76:0.905};
+const SUMF={1:1.414,2:1.513,3:1.11,4:0.979,5:0.862,6:1.575,7:1.782,8:1.491,9:0.932,10:1.06,11:0.965,12:0.772,13:0.599,14:0.748,15:0.881,16:1.118,17:0.59,18:0.572,19:0.769,20:0.823,21:0.808,22:0.785,23:0.657,24:0.686,25:0.945,26:0.979,27:0.793,28:1.158,29:0.973,30:0.868,31:0.754,32:0.981,33:0.913,34:0.745},SKPW={0:0.422,1:1.441,2:0.701,3:1.603,4:0.927,5:1.089,6:1.389,7:0.955,8:1.46,9:0.762,10:0.653,11:1.079,12:0.709,13:0.788,14:0.852,15:1.288,16:0.474,17:0.758,18:0.798,19:0.733,20:0.836,21:0.681,22:0.801,23:0.736,24:1.38,25:0.936,26:0.5,27:0.664,28:0.731,29:0.7,31:0.443,32:1.705,33:0.622,34:1.32,35:0.708,36:1.043,37:0.675,38:0.7,39:1.168,40:1.07,41:1.465,42:2.118,43:1.792,44:2.8,45:0.675,46:1.312,47:1.095,48:2.8,49:1.463,50:1.295,51:1.31,52:0.895,53:1.82,54:1.188,55:0.789,56:1.037,57:1.18,58:1.132,59:0.7,60:0.9,61:0.82,62:1.083,63:0.699,64:0.641,65:0.973,66:0.757,67:1.055,68:0.7,69:0.726,70:1.1,71:1.104,72:0.782,73:0.7,74:1.081,75:0.763,76:0.905};
 const sumHP=(p,t)=>{const l=p.slv[t];return Math.round(MT[t].hp*1.2*gL(l)/gL(LOLD(t))*(1+.15*S(p,"sum1")+.2*S(p,"sum5"))*Math.sqrt(SUMF[t]||1))};
 const sumDM=(p,t)=>{const l=p.slv[t];return(SUMF[t]||1)*MT[t].dm*1.1*fL(l)/fL(LOLD(t))*(1+.1*S(p,"sum2")+.14*S(p,"sum6"))*(1+.25*S(p,"sum8"))*(p.rally>0?1.4:1)};
 const healCD=p=>12*(1-.1*S(p,"mag2"));
@@ -1269,11 +1269,11 @@ function cast0(s,k,d,tg,src,cr){if(SPELL[k])return spellCast(s,SPELL[k],d,tg,src
  else if(k==="spin"){rings.push({x:s.x,y:s.y,r0:10,r1:72,t:.3,m:.3,c:"#e0e6ee"});sfx("swing");for(let i=0;i<14;i++){const a=i/14*6.283;burst(s.x+Math.cos(a)*40,s.y-6+Math.sin(a)*26,"#e0e6ee",4,.25,Math.cos(a)*120,Math.sin(a)*80)}
   for(const m of monsIn(s.x,s.y,72)){const ex=m.x-s.x,ey=m.y-s.y,r=Math.hypot(ex,ey)||1;knock(m,ex/r*18,ey/r*18);H(m,d*1.3,0)}}
  /* ---- poderes novos dos visuais ---- */
- else if(k==="invis"){s.invis=5;for(let i=0;i<18;i++)burst(s.x,s.y-8,pk(["#e8e0f0","#9a8ab8"]),4,.6,(R()-.5)*120,(R()-.5)*120);sfx("web");num(s.x,s.y-44,"Invisível!","#d8c8ff")}
+ else if(k==="invis"){s.invis=3;for(let i=0;i<18;i++)burst(s.x,s.y-8,pk(["#e8e0f0","#9a8ab8"]),4,.6,(R()-.5)*120,(R()-.5)*120);sfx("web");num(s.x,s.y-44,"Invisível!","#d8c8ff")}
  else if(k==="smite"){const px=-s.fy,py=s.fx,pts=[[s.x,s.y-8]];for(let i=1;i<=9;i++)pts.push([s.x+s.fx*i*28+px*(R()-.5)*6,s.y-8+s.fy*i*28+py*(R()-.5)*6]);bolts.push({pts,t:.25,m:.25,c:"#fff4b0"});sfx("heal");
   for(const m of monsIn(s.x,s.y,250)){const ex=m.x-s.x,ey=m.y-s.y,a=ex*s.fx+ey*s.fy,b=Math.abs(ex*s.fy-ey*s.fx);if(a>0&&a<250&&b<26)H(m,d*1.4,0)}if(s.slot!==undefined)s.hp=Math.min(mhp(s),s.hp+mhp(s)*.05)}
  else if(k==="charm"){rings.push({x:s.x,y:s.y,r0:8,r1:110,t:.4,m:.4,c:"#ff8ac8"});sfx("web");for(const m of monsIn(s.x,s.y,110)){applyEff(m,1);for(let i=0;i<3;i++)burst(m.x,m.y-20,"#ff6aa8",3,.8,(R()-.5)*30,-40)}}
- else if(k==="fury"&&tg){for(let i=0;i<3;i++){const dl=i*.09;setTimeout(()=>{if(!tg.gone){H(tg,d*.6,0);for(let j=0;j<5;j++)burst(tg.x,tg.y-10,"#ffffff",3,.2,(R()-.5)*140,(R()-.5)*140);sfx("swing")}},dl*1000)}}
+ else if(k==="fury"&&tg){for(let i=0;i<3;i++){const dl=i*.09;later(dl,()=>{if(!tg.gone){H(tg,d*.6,0);for(let j=0;j<5;j++)burst(tg.x,tg.y-10,"#ffffff",3,.2,(R()-.5)*140,(R()-.5)*140);sfx("swing")}})}}
  else if(k==="roots"){rings.push({x:s.x,y:s.y,r0:6,r1:100,t:.4,m:.4,c:"#5a9a34"});for(const m of monsIn(s.x,s.y,100)){H(m,d*.7,0);applyEff(m,1);for(let i=0;i<5;i++)burst(m.x+(R()-.5)*16,m.y,pk(["#5a9a34","#8a6a3a"]),3,.8,0,-20)}sfx("stomp")}
  else if(k==="missiles"){const ts=monsIn(s.x,s.y,240).sort((a,b)=>Math.hypot(a.x-s.x,a.y-s.y)-Math.hypot(b.x-s.x,b.y-s.y)).slice(0,3);for(const m of ts){const ex=m.x-s.x,ey=m.y-s.y,r=Math.hypot(ex,ey)||1;shots.push({x:s.x,y:s.y-8,dx:ex/r,dy:ey/r,t:1.2,d:d*.7,kd:"dark",el:ES,src,cr,home:m})}sfx("shoot")}
  else if(k==="gust"){spray(s,["#e8f4ff","#ffffff"],360,26);sfx("frost");for(const m of monsIn(s.x,s.y,130))if(inCone(s,m,130)){knock(m,s.fx*60,s.fy*60);H(m,d*.8,0)}}
