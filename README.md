@@ -117,6 +117,31 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v3.0.0 (parte 1: visuais)
+
+- **Cartola:** deixa você **invisível por 5 segundos** (os monstros não te veem nem te acertam) e depois tem 5 segundos de recarga.
+- **Asas de Anjo:** curam todo mundo na tela e têm uma **aura dourada brilhante** em volta do slime.
+- **Visual novo: Chapéu do Mago Louco**, com **corrente de relâmpagos** que pula em até 5 monstros (sai dos baús).
+- **Sem poderes repetidos** nos visuais de baú. Os repetidos ganharam poderes novos:
+
+  | Visual | Poder novo |
+  |---|---|
+  | Chapéu de Festa | explosão de confete ao redor |
+  | Auréola | raio de luz sagrada que também cura você |
+  | Laço Rosa | encanto que paralisa os inimigos em volta |
+  | Orelhas de Gato | fúria felina (3 arranhões rápidos) |
+  | Brotinho | raízes que prendem e ferem |
+  | Óculos de Nerd | mísseis arcanos teleguiados |
+  | Bigode | espirro que arremessa os inimigos |
+  | Pirata | canhonaço que explode em área |
+  | Asas de Fada | pó de fada que acelera você e as invocações |
+  | Antenas de Abelha | enxame de abelhas teleguiadas |
+  | Cachecol | escudo de gelo que congela em volta |
+  | Tiara de Flores | jardim que cura quem fica dentro |
+  | Boné | bumerangue que vai e volta |
+  | Máscara de Herói | grito heroico (+40% de dano) |
+  | Gorro de Natal | presente que explode |
+
 ## Novidades da v2.9.6
 
 - **Moradores passeiam pelo mapa em volta da cidade** (saem e voltam pela ponte), e os guardas fazem ronda por dentro da muralha. Quando chega o alerta de invasão, todos correm para dentro e ocupam **postos de defesa em anéis ao redor do cristal**, de onde atacam os invasores que entram na cidade ou chegam perto. Quem fica preso numa árvore ou pedra contorna o obstáculo.
