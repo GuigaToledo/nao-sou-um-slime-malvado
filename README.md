@@ -117,6 +117,25 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.9.5
+
+- Saiu o aviso "CORRENDO", que aparecia no painel durante o dash e bagunçava a tela.
+- **Dragão do Vendaval com 10 magias do tema dele:**
+  - Mordida do Trovão (dreno de vida);
+  - Arranhão (cone curto);
+  - **Golpe de Cauda** (acerta tudo ao redor dele, uns 8 quadrados em volta);
+  - Raio (linha);
+  - Corrente de Relâmpagos (pula em até 5 inimigos);
+  - Rajada de Vento (onda ao redor que empurra e deixa lento);
+  - Tornado;
+  - Chuva Torrencial (área grande que deixa lento);
+  - Chuva de Raios;
+  - Tempestade do Vendaval (onda enorme ao redor dele).
+  - A cura automática continua.
+- **Corrigido: entrar e sair da cidade.**
+  - Os invasores que andam contornam o fosso por fora até a ponte e entram pelo portão oeste, venham de qualquer lado.
+  - Os defensores saem pelo portão para lutar com invasores do lado de fora e, quando a invasão acaba, voltam para dentro pela ponte.
+
 ## Novidades da v2.9.4
 
 - **Corrigido:** o topo das árvores só aparecia perto do personagem em telas largas. Agora as copas cobrem a tela inteira, de qualquer largura.
@@ -234,7 +253,7 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
   - As árvores ganharam copa com mais folhas, luz do sol, frutinhas e tronco com casca e raízes.
 - **Seu slime vira para todos os lados:** de frente quando desce, de costas quando sobe e de perfil para a esquerda ou a direita. Os slimes da vila e os amigos online também.
 - **Monstros, invocações e moradores** giram ao trocar de lado e inclinam o corpo quando sobem ou descem.
-- **Dragão do Vendaval com 10 habilidades:** Raio, Corrente de Relâmpagos, Tempestade, Vendaval, Vento a Favor, Sopro do Trovão, Tornado, Escudo de Vento, Fúria da Tempestade e Julgamento Celestial.
+- **Dragão do Vendaval com 10 habilidades** (refeitas na v2.9.5).
   - Ele libera 2 a cada 10 níveis, nunca tendo menos de 4.
   - Ele se cura sozinho: regenera o tempo todo e, com pouca vida, solta uma cura forte (a cada 20 s).
 - **Volume no menu (Start ou Esc):** música e efeitos separados, de 0% (mudo) a 100%. Use as setas para ajustar ou aperte o item para ir descendo.

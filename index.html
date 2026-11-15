@@ -22,7 +22,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v2.9.4";
+const VERSION="v2.9.5";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VH=480,FT="'VT323',ui-monospace,monospace";
@@ -1060,7 +1060,7 @@ function syncResidents(){const have=new Set(villagers.filter(v=>v.t).map(v=>v.t)
  const x=cpX+Math.cos(a)*r,y=cpY+Math.sin(a)*r*.8;villagers.push({t,x,y,hx:x,hy:y,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6,fly:!!MT[t].fl})}}
 function updVillagers(dt){if((time*2|0)!==((time-dt)*2|0)){syncResidents();if(G.ch>=2)syncGuards()}if(G.ch>=2)applyCityTiles();updCoins(dt);
  const dj=e=>{const c=COS[e];return c&&c.dance};party=[...PL.filter(p=>p.dead<=0).map(p=>[p.x,p.y,p.skin]),...NET.remote.filter(r=>!r.dead).map(r=>[r.x,r.y,r.w])].some(([x,y,s])=>dj(s)&&Math.hypot(x-cpX,y-cpY)<16*T)?1:0;
- for(const v of villagers){if(G.wact&&defend(v,dt))continue;if(party){v.ph+=dt*9;continue}v.wt-=dt;if(v.wt<=0){v.wt=1.5+R()*2.5;const a=R()*6.28,s=R()<.4?0:.5;v.wx=Math.cos(a)*s;v.wy=Math.sin(a)*s}
+ for(const v of villagers){if(G.wact&&defend(v,dt))continue;if(!G.wact&&G.ch>=2&&!v.ko&&(cl("wall")||cl("moat"))&&wallD(v.x,v.y)>1.02){walkTo(v,v.hx,v.hy,(v.g?80:65)*dt);continue}if(party){v.ph+=dt*9;continue}v.wt-=dt;if(v.wt<=0){v.wt=1.5+R()*2.5;const a=R()*6.28,s=R()<.4?0:.5;v.wx=Math.cos(a)*s;v.wy=Math.sin(a)*s}
  const sp=30*dt;let dx=v.wx*sp,dy=v.wy*sp;if(Math.hypot(v.x+dx-v.hx,v.y+dy-v.hy)>110){dx=(v.hx-v.x)*.02;dy=(v.hy-v.y)*.02}const ox=v.x;mv(v,dx,dy);if(Math.abs(v.x-ox)>.05)v.fl=v.x<ox}}
 /* ===== Vila: ondas de orcs (um tipo por onda) e o Lorde na fortaleza ===== */
 const WAVES=[null,{t:14,n:7},{t:16,n:9},{t:15,n:9},{t:14,n:11,el:1}];
@@ -1152,8 +1152,8 @@ const AB={
  16:[AK("Passo Sombrio","blink",ES,{r:200,cd:4,m:1.2}),AK("Mordida Drenante","drain",ES,{r:70,cd:4,m:1.3}),AK("Uivo do Terror","nova",ES,{r:110,R:110,cd:7,m:.6,slow:1}),AK("Garras das Sombras","cone",ES,{r:100,cd:4,m:1.2}),AK("Trevas","area",ES,{r:220,R:75,cd:8,m:1.4})],
  17:[AK("Investida","dash",-1,{r:200,cd:4}),AK("Terremoto","nova",ET,{r:140,R:130,cd:5,m:1.1}),AK("Grito de Guerra","haste",-1,{cd:10}),AK("Golpe Giratório","nova",-1,{r:80,R:85,cd:3.5,m:1.1}),AK("Berserk","frenzy",-1,{cd:12})],
  /* Dragão do Vendaval: 10 habilidades (2 a cada 10 níveis, nunca menos de 4) e cura automática */
- 18:[AK("Raio","line",ER,{r:220,cd:2.5,m:1.3}),AK("Corrente de Relâmpagos","chain",ER,{r:220,nn:4,cd:4}),AK("Tempestade","area",ER,{r:240,R:80,cd:6,m:1.5}),AK("Vendaval","nova",-1,{r:110,R:110,cd:6,m:1,slow:1}),AK("Vento a Favor","haste",-1,{cd:12}),
-  AK("Sopro do Trovão","cone",ER,{r:170,cd:4,m:1.4}),AK("Tornado","area",-1,{r:220,R:70,dur:3,cd:8,m:.8,slow:1}),AK("Escudo de Vento","shield",-1,{cd:12}),AK("Fúria da Tempestade","frenzy",-1,{cd:14}),AK("Julgamento Celestial","area",ER,{r:260,R:130,cd:12,m:2.2})],
+ 18:[AK("Mordida do Trovão","drain",ER,{r:75,cd:3,m:1.6}),AK("Arranhão","cone",-1,{r:85,cd:2.5,m:1.3}),AK("Golpe de Cauda","nova",-1,{r:75,R:70,cd:4,m:1.5}),AK("Raio","line",ER,{r:230,cd:3,m:1.4}),AK("Corrente de Relâmpagos","chain",ER,{r:230,nn:5,cd:4.5}),
+  AK("Rajada de Vento","nova",-1,{r:120,R:130,cd:6,m:.9,slow:1}),AK("Tornado","area",-1,{r:220,R:75,dur:3,cd:8,m:.8,slow:1}),AK("Chuva Torrencial","area",EG,{r:240,R:110,dur:4,cd:9,m:.45,slow:1}),AK("Chuva de Raios","area",ER,{r:240,R:115,dur:3,cd:10,m:.7}),AK("Tempestade do Vendaval","nova",ER,{r:200,R:260,cd:14,m:2.2})],
  19:[AK("Sopro Venenoso","cone",EV,{r:165,cd:3.5,m:1.25}),AK("Nuvem Ácida","area",EA,{r:220,R:80,dur:4,cd:7,m:.5}),AK("Rajada Venenosa","multi",EV,{pk:"poison",nn:3,r:220,cd:4,m:.7}),AK("Rugido","nova",-1,{r:140,R:140,cd:8,m:.5,slow:1}),AK("Regeneração Dracônica","heal",-1,{cd:10})],
  20:[AK("Sopro de Fogo","cone",EF,{r:165,cd:3.5,m:1.25}),AK("Bolas de Fogo","multi",EF,{pk:"fireball",nn:3,r:230,cd:4,m:.7}),AK("Chuva de Meteoros","area",EF,{r:260,R:80,cd:7,m:1.5}),AK("Rugido","nova",-1,{r:140,R:140,cd:8,m:.5,slow:1}),AK("Asas Flamejantes","nova",EF,{r:100,R:110,cd:6,m:1.1})],
  21:[AK("Sopro Gélido","cone",EG,{r:165,cd:3.5,m:1.2,slow:1}),AK("Lanças de Gelo","multi",EG,{pk:"ice",nn:3,r:230,cd:4,m:.7}),AK("Nevasca","area",EG,{r:240,R:90,dur:3,cd:8,m:.5,slow:1}),AK("Armadura de Gelo","shield",-1,{cd:12}),AK("Rugido","nova",-1,{r:140,R:140,cd:8,m:.5,slow:1})],
@@ -1284,9 +1284,20 @@ function applyCityTiles(){if(!map||!cpX)return;const want=(cl("wall")?1:0)|(cl("
 /* portões: ponto de fora (depois do fosso) e de dentro */
 const CGATES=()=>[{ox:cpX-WALL_RX*1.6*T,oy:cpY,ix:cpX-(WALL_RX-2.5)*T,iy:cpY}];
 /* quem anda (não voa) e está do outro lado da muralha passa pelo portão mais perto */
-function invRoute(m,gx,gy){if(m.fly||!cl("wall"))return[gx,gy];const ins=wallD(m.x,m.y)<1,tin=wallD(gx,gy)<1;if(ins===tin)return[gx,gy];
- let g=null,bd=1e9;for(const q of CGATES()){const d=Math.hypot(m.x-(ins?q.ix:q.ox),m.y-(ins?q.iy:q.oy));if(d<bd){bd=d;g=q}}
- if(bd>34)return ins?[g.ix,g.iy]:[g.ox,g.oy];if(!ins&&cl("moat")>=3)m.slow=.5;return ins?[g.ox,g.oy]:[g.ix,g.iy]}
+/* rota em volta da muralha (para quem anda): de dentro sai pelo portão oeste; de fora contorna o fosso até a ponte e entra;
+   fora com o caminho reto cortando a muralha, dá a volta pelo lado de fora */
+const ringAng=(x,y)=>Math.atan2((y-cpY)/WALL_RY,(x-cpX)/WALL_RX);
+function ringRoute(o,gx,gy){if(o.fly||!(cl("wall")||cl("moat")))return[gx,gy];const g=CGATES()[0],oi=wallD(o.x,o.y)<1.05,ti=wallD(gx,gy)<1;
+ if(oi&&ti)return[gx,gy];
+ if(oi)return o.x>g.ix+12?[g.ix,g.iy]:[g.ox-10,g.oy];
+ if(wallD(o.x,o.y)<1.6&&o.x<cpX&&Math.abs(o.y-cpY)<GATE_H+24)return ti?[g.ix,g.iy]:[g.ox-14,g.oy];
+ let cut=false;for(let k=1;k<10;k++){const x=o.x+(gx-o.x)*k/10,y=o.y+(gy-o.y)*k/10;if(wallD(x,y)<1.45){cut=true;break}}
+ if(!ti&&!cut)return[gx,gy];
+ const a=ringAng(o.x,o.y),ta=ti?Math.PI:ringAng(gx,gy),da=Math.atan2(Math.sin(ta-a),Math.cos(ta-a));
+ if(Math.abs(da)>.28){const na=a+Math.sign(da)*.4;return[cpX+Math.cos(na)*1.78*WALL_RX*T,cpY+Math.sin(na)*1.78*WALL_RY*T]}
+ if(!ti)return[gx,gy];
+ return o.x<g.ox-6&&Math.abs(o.y-g.oy)>20?[g.ox,g.oy]:[g.ix,g.iy]}
+function invRoute(m,gx,gy){if(cl("moat")>=3&&isGate(m.x,m.y)&&wallD(m.x,m.y)>1.05)m.slow=.5;return ringRoute(m,gx,gy)}
 /* ---- defensores: moradores, slimes e guardas, com vida e nível pelas invocações dos jogadores ---- */
 function syncGuards(){const want=[0,4,8,12][cl("bar")],have=villagers.filter(v=>v.g).length;for(let i=have;i<want;i++){const a=i/12*6.283+.2,x=cpX+Math.cos(a)*7.5*T,y=cpY+Math.sin(a)*7.5*T*.75;villagers.push({g:1,col:6,cs:COS.findIndex(c=>c.n==="Capacete Viking"),x,y,hx:x,hy:y,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6})}}
 const sumTop=()=>Math.max(1,...PL.map(p=>Math.max(p.sum>0?p.slv[p.sum]:0,p.sum2>0?p.slv[p.sum2]:0,Math.round(p.lv*.8))));
@@ -1295,11 +1306,16 @@ const defHP=v=>Math.round((60+defLv(v)*14)*(v.g?(cl("bar")>=3?2:1.5):1));
 const defDmg=v=>(6+defLv(v)*1.6)*(v.g?(cl("bar")>=3?2:1.4):v.t?1.2:.8)*SMITH_M[cl("smith")];
 const defAlive=()=>villagers.some(v=>!v.ko);
 function reviveDefenders(){for(const v of villagers){v.ko=0;v.mhp=defHP(v);v.hp=v.mhp}}
+/* anda até (gx,gy) usando a rota da muralha */
+function walkTo(v,gx,gy,sp){const r=ringRoute(v,gx,gy),ex=r[0]-v.x,ey=r[1]-v.y,d=Math.hypot(ex,ey)||1;mv(v,ex/d*Math.min(sp,d),ey/d*Math.min(sp,d));v.wx=ex/d;v.wy=ey/d;if(Math.abs(ex)>1)v.fl=ex<0}
 function defend(v,dt){if(v.ko)return true;if(!v.mhp||v.hp===undefined){v.mhp=defHP(v);v.hp=v.mhp}
- let b=null,bd=300;for(const m of mons){if(!m.inv)continue;const dx=m.x-v.x;if(dx>bd||dx<-bd)continue;const d=Math.hypot(dx,m.y-v.y);if(d<bd){bd=d;b=m}}
- v.cd=(v.cd||0)-dt;v.atkT=(v.atkT||0)-dt;if(!b)return false;const ex=b.x-v.x,ey=b.y-v.y,d=bd||1;v.fl=ex<0;
- if(d>26){const sp=(v.g?80:65)*dt;mv(v,ex/d*sp,ey/d*sp);v.wx=ex/d;v.wy=ey/d}else{v.wx=v.wy=0;if(v.cd<=0){v.cd=.8;v.atkT=.25;if(NET.mode!=="client")hurt(b,defDmg(v)*(.85+R()*.3),0,null,null);for(let i=0;i<3;i++)burst(b.x,b.y-8,"#ffffff",3,.2,(R()-.5)*100,(R()-.5)*100)}}
- if(wallD(v.x,v.y)>.95){v.x+=(cpX-v.x)*.05;v.y+=(cpY-v.y)*.05}return true}
+ /* defensores saem pelo portão para pegar invasores até um pouco além do fosso */
+ let b=null,bd=1e9;for(const m of mons){if(!m.inv||wallD(m.x,m.y)>2.4)continue;const d=Math.hypot(m.x-v.x,m.y-v.y);if(d<bd){bd=d;b=m}}
+ v.cd=(v.cd||0)-dt;v.atkT=(v.atkT||0)-dt;const sp=(v.g?80:65)*dt;
+ if(!b){if(wallD(v.x,v.y)>1.02){walkTo(v,v.hx,v.hy,sp);return true}return false}
+ const ex=b.x-v.x,ey=b.y-v.y,d=bd||1;v.fl=ex<0;
+ if(d>26){walkTo(v,b.x,b.y,sp)}else{v.wx=v.wy=0;if(v.cd<=0){v.cd=.8;v.atkT=.25;if(NET.mode!=="client")hurt(b,defDmg(v)*(.85+R()*.3),0,null,null);for(let i=0;i<3;i++)burst(b.x,b.y-8,"#ffffff",3,.2,(R()-.5)*100,(R()-.5)*100)}}
+ return true}
 /* invasor ataca primeiro os defensores; o cristal só depois que todos caírem */
 function invTarget(m){let b=null,bd=1e9;for(const v of villagers){if(v.ko)continue;const d=Math.abs(v.x-m.x)+Math.abs(v.y-m.y);if(d<bd){bd=d;b=v}}return b}
 function invHitDefender(m,v){if(m.ccd>0)return;m.ccd=.85;m.atkT=.25;v.hp-=m.dm*(m.boss2?1.5:1);num(v.x,v.y-30,Math.round(m.dm),"#ffb08a");
@@ -1771,7 +1787,7 @@ function panel(p,x,y){curSkin=p.skin;frame(x,y,212,60);rr(x+6,y+6,48,48,5);X.fil
  if(p.dead>0){txt("reformando… "+Math.ceil(p.dead)+"s",x+60,y+38,"#ff9a9a",17);return}
  const pz=p.pz>0;bar(x+60,y+25,144,10,p.hp/mhp(p),pz?"#6ac83a":"#3ac85a",pz?"#b0ff80":"#a8ffb8");txt(Math.max(0,Math.ceil(p.hp))+"/"+mhp(p),x+202,y+35,"#fff",14,"right");
  bar(x+60,y+40,144,5,p.xp/need(p),"#3a8ae8","#9ad0ff");
- let ix=x+60;const st=[];if(p.sp>0)st.push([p.sp+" pt ["+(p.src.pad>=0?"Select":"K")+"]","#ffe14a"]);if(p.run)st.push(["CORRENDO","#bff0ff"]);if(pz)st.push(["VENENO","#9aff5a"]);
+ let ix=x+60;const st=[];if(p.sp>0)st.push([p.sp+" pt ["+(p.src.pad>=0?"Select":"K")+"]","#ffe14a"]);if(pz)st.push(["VENENO","#9aff5a"]);
  for(const[s,c]of st){txt(s,ix,y+56,c,14);ix+=s.length*6.5+7}
  for(let e=0;e<ELN.length;e++)if(hasRes(p,e)&&ix<x+200){X.fillStyle="#07050d";X.fillRect(ix,y+48,9,9);X.fillStyle=ELC[e];X.fillRect(ix+1,y+49,7,7);ix+=11}}
 function goal(){if(G.ch===1&&PL.length&&zoneOfPx(PL[0].x,PL[0].y)<4)return{x:vXp,y:vYp,t:"Santuário do Vendaval"};
