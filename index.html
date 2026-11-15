@@ -18,7 +18,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v2.9.1";
+const VERSION="v2.9.2";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VH=480,FT="'VT323',ui-monospace,monospace";
@@ -1263,6 +1263,8 @@ function updCoins(dt){for(const c of coins){c.t+=dt;if(c.t<.45){c.vy+=420*dt;c.x
   if(d<10){c.t=-1;if(c.v){num(c.tg.x,c.tg.y-40,"+"+c.v+" ouro","#ffd84a");sfx("coin")}}}coins=coins.filter(c=>c.t>=0&&c.t<4)}
 /* ---- muralha fechada e fosso: viram parte do mapa (só quem voa atravessa); portões no sul e no oeste ---- */
 const WALL_RX=11,WALL_RY=8.25;
+/* só existe a entrada do oeste: a abertura da muralha e do fosso tem a largura da ponte */
+const GATE_H=1.6*T,isGate=(x,y)=>x<cpX&&Math.abs(y-cpY)<GATE_H;
 const gateAng=a=>{const n=Math.atan2(Math.sin(a),Math.cos(a));return Math.abs(n-Math.PI/2)<.24||Math.abs(Math.abs(n)-Math.PI)<.24};
 const wallD=(x,y)=>Math.hypot((x-cpX)/(WALL_RX*T),(y-cpY)/(WALL_RY*T));
 let cityTiles=null,ctKey=-1;
@@ -1270,10 +1272,10 @@ function applyCityTiles(){if(!map||!cpX)return;const want=(cl("wall")?1:0)|(cl("
  if(cityTiles)for(const[i,v]of cityTiles){map[(i/MW)|0][i%MW]=v;mmTile(i%MW,(i/MW)|0)}cityTiles=[];
  const cx=cpX/T,cy=cpY/T;for(let ty=Math.floor(cy-15);ty<=cy+15;ty++)for(let tx=Math.floor(cx-19);tx<=cx+19;tx++){const r=map[ty];if(!r)continue;const t=r[tx];if(t!==0&&t!==4&&t!==6&&t!==12)continue;
   const dx=tx+.5-cx,dy=ty+.5-cy,d=Math.hypot(dx/WALL_RX,dy/WALL_RY),a=Math.atan2(dy/WALL_RY,dx/WALL_RX);let nt=-1;
-  if(want&1&&Math.abs(d-1)<.09&&!gateAng(a))nt=15;else if(want&2&&d>1.2&&d<1.38&&!gateAng(a))nt=16;
+  const gt=isGate((tx+.5)*T,(ty+.5)*T);if(want&1&&Math.abs(d-1)<.09&&!gt)nt=15;else if(want&2&&d>1.2&&d<1.38&&!gt)nt=16;
   if(nt>=0){cityTiles.push([ty*MW+tx,t]);r[tx]=nt;mmTile(tx,ty)}}}
 /* portões: ponto de fora (depois do fosso) e de dentro */
-const CGATES=()=>[{ox:cpX,oy:cpY+WALL_RY*1.62*T,ix:cpX,iy:cpY+(WALL_RY-2.5)*T},{ox:cpX-WALL_RX*1.55*T,oy:cpY,ix:cpX-(WALL_RX-2.5)*T,iy:cpY}];
+const CGATES=()=>[{ox:cpX-WALL_RX*1.6*T,oy:cpY,ix:cpX-(WALL_RX-2.5)*T,iy:cpY}];
 /* quem anda (não voa) e está do outro lado da muralha passa pelo portão mais perto */
 function invRoute(m,gx,gy){if(m.fly||!cl("wall"))return[gx,gy];const ins=wallD(m.x,m.y)<1,tin=wallD(gx,gy)<1;if(ins===tin)return[gx,gy];
  let g=null,bd=1e9;for(const q of CGATES()){const d=Math.hypot(m.x-(ins?q.ix:q.ox),m.y-(ins?q.iy:q.oy));if(d<bd){bd=d;g=q}}
@@ -1505,7 +1507,7 @@ function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floo
  for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=map[ty]?.[tx];if(t===undefined)continue;const px=tx*T,py=ty*T,h=hs(tx,ty),z=ZONES[BZ[ty*MW+tx]],bt=BT[z.bio];
   if(isWall(t)||t===14){if(z.out&&t!==14){tile(bt.fl[h%3],px,py);paint(tx,ty,px,py);imgS(TRKS,px,py);continue}const W2=t===14?BT[5]:bt.wf?bt:BT[0],b=map[ty+1]?.[tx],face=b!==undefined&&!isWall(b)&&b!==14;
    tile(face?W2.wf[h%2]:W2.wt[h%2],px,py);if(t===10)imgS(CRKS,px,py);if(!face){if(!isWall(map[ty][tx-1])&&map[ty][tx-1]!==14)blk(px,py,2,T,"#05060a");if(!isWall(map[ty][tx+1])&&map[ty][tx+1]!==14)blk(px+T-2,py,2,T,"#05060a")}continue}
-  if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&Math.abs(tx-VCX)<40));tile(vill?DIRT:bt.fl[h%3],px,py);paint(tx,ty,px,py);if(t===5)imgS(TRKS,px,py);continue}
+  if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&tx<VCX&&VCX-tx<40));tile(vill?DIRT:bt.fl[h%3],px,py);paint(tx,ty,px,py);if(t===5)imgS(TRKS,px,py);continue}
   if(t===2){tile(CHT,px,py);if(map[ty-1]?.[tx]!==2)X.drawImage(SHD,Math.round(px+ox),Math.round(py+oy),T,12);continue}
   if(t===6){tile(SW[(an+h)%3],px,py);if(R()<.004)burst(px+R()*32,py+R()*32,"#8fd08a",3,.7,0,-14);continue}
   if(t===7){tile(LV[(an+h)%3],px,py);LT.push([px+16,py+16,70,.55]);GL.push([px+16,py+16,36,"255,110,30",.13]);if(R()<.006)burst(px+R()*32,py+R()*32,"#ffd060",3,.6,0,-24);continue}
@@ -1542,18 +1544,34 @@ function house(x,y,lv,i){if(lv<=0){tent(x,y,i%2?"#6a4a2a":"#7a5a34",i%2?"#8b6b3d
 function water(px,py,tx,ty){blk(px,py,T,T,"#245a8a");const s=(time*14+tx*7+ty*11)%T;blk(px,py+s,T,2,"rgba(170,215,255,.35)");blk(px+((tx*13)%T),py+((s+12)%T),8,1,"rgba(255,255,255,.4)");
  if(map[ty-1]?.[tx]!==16)blk(px,py,T,4,"rgba(20,40,30,.55)");if(cl("moat")>=3)GL.push([px+16,py+16,10,"120,180,255",.12])}
 /* muralha contínua e fechada (só os portões abertos), com ameias; half 0 = metade de trás, 1 = metade da frente (+ torres e pontes) */
+/* ponte de verdade sobre o fosso (lado oeste): pilares de pedra, tábuas, corrimão dos dois lados e sombra na água */
+function bridgeDraw(){const ml=cl("moat"),wood=ml<2,x0=cpX-WALL_RX*1.44*T,x1=cpX-WALL_RX*1.1*T,y0=cpY-GATE_H,y1=cpY+GATE_H,w=x1-x0,h=y1-y0;
+ const deck=wood?"#8a5a2e":"#9a9aa4",line=wood?"rgba(40,20,8,.45)":"rgba(40,40,50,.35)",rail=wood?"#5a3a1e":"#6a6e78";
+ blk(x0+4,y1,w-8,8,"rgba(0,0,0,.35)");for(const k of[.28,.72]){blk(x0+w*k-5,y1-2,10,14,"#5e626c");blk(x0+w*k-5,y1+8,10,3,"rgba(255,255,255,.25)")}
+ blk(x0,y0,w,h,deck);for(let x=x0+3;x<x1;x+=7){blk(x,y0,1,h,line);blk(x+1,y0,1,h,"rgba(255,255,255,.08)")}
+ if(!wood)for(let y=y0+8;y<y1;y+=10)blk(x0,y,w,1,line);
+ if(ml>=3)for(let x=x0+10;x<x1-6;x+=18){blk(x,cpY-2,4,4,"#9ad8ff");GL.push([x+2,cpY,9,"120,200,255",.35])}
+ blk(x0-10,y0-6,12,h+12,"#6a6e78");blk(x0-10,y0-6,12,3,"#9aa0aa");blk(x1-2,y0-6,12,h+12,"#6a6e78");blk(x1-2,y0-6,12,3,"#9aa0aa");
+ for(const ry of[y0,y1]){for(let x=x0+2;x<x1;x+=14)blk(x,ry-14,4,16,rail);blk(x0,ry-14,w,3,rail);blk(x0,ry-8,w,2,rail)}}
+/* portão oeste: duas torres, arco com passarela por cima, portas de madeira abertas e bandeira */
+function gateDraw(H,c,top){const gx=cpX-WALL_RX*T,y0=cpY-GATE_H,y1=cpY+GATE_H,wl=cl("wall");
+ blk(gx-12,y0,24,y1-y0,"rgba(20,14,8,.35)");
+ if(wl===1){for(const py of[y0-6,y1+6]){blk(gx-5,py-H-14,10,H+14,"#5a3a1e");blk(gx-6,py-H-18,12,4,"#a07d4d")}blk(gx-6,y0-H-16,12,y1-y0+12,"#7a5228");return}
+ for(const py of[y0-14,y1+14]){shadow(gx,py+2,16);blk(gx-15,py-H-24,30,H+24,c);blk(gx+9,py-H-24,6,H+24,"rgba(0,0,0,.2)");blk(gx-15,py-H-24,30,3,top);for(let k=0;k<4;k++)blk(gx-15+k*8,py-H-31,6,7,c);blk(gx-3,py-H-6,6,9,"#1a1a20")}
+ blk(gx-13,y0-H-14,26,y1-y0+4,c);blk(gx-13,y0-H-14,26,3,top);for(let y=y0;y<y1;y+=12)blk(gx-12,y-H-17,6,4,c);
+ /* folhas da porta, abertas para fora, com tábuas, faixas de ferro e argola */
+ for(const[py,dir]of[[y0+2,1],[y1-2,-1]]){const lx=gx-46,ly=py-(dir>0?0:30);blk(lx,ly,34,30,"#7a4a22");for(let k=4;k<34;k+=6)blk(lx+k,ly,1,30,"rgba(40,20,8,.5)");
+  blk(lx,ly+6,34,3,"#4a4a52");blk(lx,ly+21,34,3,"#4a4a52");blk(lx,ly,34,2,"#a07040");X.strokeStyle="#c8a050";X.lineWidth=1.5;X.beginPath();X.arc(Math.round(lx+6+ox),Math.round(ly+15+oy),3,0,6.283);X.stroke()}
+ blk(gx-11,y0,4,22,"#6a4020");blk(gx-11,y1-22,4,22,"#6a4020");
+ if(wl>=3){blk(gx-1,y0-H-40,2,26,"#3a2412");X.fillStyle="#c83a3a";X.fillRect(Math.round(gx+1+ox),Math.round(y0-H-40+oy),16,10+Math.sin(time*5)*2);for(const py of[y0-14,y1+14]){GL.push([gx,py-H-30,10,"255,160,60",.5]);LT.push([gx,py-H-28,80,.5])}}}
 function cityWalls(half){const wl=cl("wall");
- if(half===1&&cl("moat")){const ml=cl("moat"),wood=ml<2,c=wood?"#7a5228":"#8a8e98",c2=wood?"#5a3a1e":"#6a6e78";
-  for(const[bx,by,vert]of[[cpX,cpY+WALL_RY*1.29*T,1],[cpX-WALL_RX*1.29*T,cpY,0]]){if(vert){blk(bx-90,by-34,180,68,c);for(let k=-90;k<90;k+=12)blk(bx+k,by-34,2,68,c2);blk(bx-96,by-34,6,68,c2);blk(bx+90,by-34,6,68,c2)}
-   else{blk(bx-34,by-60,68,120,c);for(let k=-60;k<60;k+=12)blk(bx-34,by+k,68,2,c2);blk(bx-34,by-66,68,6,c2);blk(bx-34,by+60,68,6,c2)}if(ml>=3)GL.push([bx,by,40,"120,180,255",.18])}}
+ if(half===1&&cl("moat"))bridgeDraw();
  if(wl){const H=[0,26,32,42][wl],c=["","#7a5228","#7d8290","#5f6470"][wl],top=["","#a07d4d","#a3a8b4","#8a90a0"][wl],sg=[];
-  for(let a=-Math.PI,i=0;a<Math.PI;a+=.03,i++){if(gateAng(a))continue;const s=Math.sin(a);if((s>=0)!==(half===1))continue;sg.push([cpX+Math.cos(a)*WALL_RX*T,cpY+s*WALL_RY*T,i])}
+  for(let a=-Math.PI,i=0;a<Math.PI;a+=.03,i++){if(isGate(cpX+Math.cos(a)*WALL_RX*T,cpY+Math.sin(a)*WALL_RY*T))continue;const s=Math.sin(a);if((s>=0)!==(half===1))continue;sg.push([cpX+Math.cos(a)*WALL_RX*T,cpY+s*WALL_RY*T,i])}
   sg.sort((p,q)=>p[1]-q[1]);for(const[x,y,i]of sg){shadow(x,y+2,10);blk(x-8,y-H,16,H,c);blk(x-8,y-H,16,3,top);
    if(wl===1){blk(x-8,y-H,2,H,"#5a3a1e");if(i%2)blk(x-6,y-H-4,4,4,"#7a5228")}else{for(let k=6;k<H;k+=7)blk(x-8,y-H+k,16,1,"rgba(0,0,0,.2)");if(i%3===0)blk(x-7,y-H-6,7,6,c)}
    if(wl>=3&&i%17===0){blk(x-1,y-H-12,2,8,"#3a2412");GL.push([x,y-H-12,8,"255,160,60",.5]);LT.push([x,y-H-10,70,.45])}}
-  if(half===1&&wl>=2)for(const g of CGATES()){const gx=(g.ix+g.ox)/2,gy=(g.iy+g.oy)/2,vx=g.ox===cpX;const cx=vx?cpX:cpX-WALL_RX*T,cy=vx?cpY+WALL_RY*T:cpY;
-   for(const sd of[-1,1]){const px=cx+(vx?sd*92:0),py=cy+(vx?0:sd*70);blk(px-12,py-H-20,24,H+20,c);blk(px-12,py-H-20,24,3,top);blk(px-11,py-H-27,7,7,c);blk(px+4,py-H-27,7,7,c)}
-   if(wl>=3){const px=cx+(vx?0:0),py=cy;blk(px-2,py-H-46,2,26,"#3a2412");X.fillStyle="#c83a3a";X.fillRect(Math.round(px+ox),Math.round(py-H-46+oy),14,9+Math.sin(time*5)*2)}}}
+  if(half===1)gateDraw(H,c,top)}
  /* torres na muralha; no alto, um atirador (morador que ataca à distância) */
  if(half===1){const st=cl("tow")>=3;towers().forEach((t,i)=>{const x=t.x,y=t.y,h=st?78:62,c=st?"#6a6e7a":"#7a5430";shadow(x,y+3,22);blk(x-15,y-h,30,h,c);blk(x+9,y-h,6,h,"rgba(0,0,0,.2)");
   for(let k=0;k<4;k++)blk(x-15+k*8,y-h-7,6,7,c);blk(x-3,y-h+20,6,10,"#1a1a20");if(!st)for(let k=8;k<h;k+=10)blk(x-15,y-h+k,30,1,"#5a3a1e");

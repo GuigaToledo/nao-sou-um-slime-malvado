@@ -117,13 +117,20 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.9.2
+
+- **Entrada só pelo lado esquerdo (oeste):** o portão do sul foi fechado, com muralha e fosso inteiros, e o caminho de terra que saía pela direita da cidade foi apagado.
+- **Ponte de verdade sobre o fosso:** tábuas (ou pedra), corrimão dos dois lados, pilares de pedra na água, cabeceiras e sombra. No nível 3 do fosso, a ponte tem runas que brilham.
+- **Portão do oeste:** duas torres, passarela por cima da passagem, portas de madeira abertas com faixas de ferro e argolas, e bandeira e tochas na muralha de castelo.
+- A abertura da muralha e do fosso tem a largura exata da ponte: quem anda só entra ou sai atravessando a ponte, e quem voa continua passando por cima.
+
 ## Novidades da v2.9.1
 
 - No modo celular, as rodas de visual e de invocação ficaram maiores: cada quadrado tem o tamanho do botão DASH. Em telas estreitas, elas diminuem só o necessário para não encostar no joystick nem nos botões.
 
 ## Novidades da v2.9.0
 
-- **Fosso de água com pontes** em volta da cidade (construção nova, 3 níveis): pontes de madeira, pontes de pedra e, no nível 3, água encantada que deixa os invasores lentos na ponte. Bichos voadores passam voando direto. Os que andam têm que entrar pelas pontes e pelos portões (sul e oeste).
+- **Fosso de água com pontes** em volta da cidade (construção nova, 3 níveis): pontes de madeira, pontes de pedra e, no nível 3, água encantada que deixa os invasores lentos na ponte. Bichos voadores passam voando direto. Os que andam têm que entrar pela ponte e pelo portão do oeste.
 - **Muralha fechada e imponente:** contínua, alta, com ameias, tochas e portões com torres. Ninguém atravessa a pé, só voando.
 - **Quem voa passa por cima das árvores**, da muralha e do fosso (mas não pelas paredes das cavernas).
 - **Torres fazem parte da muralha** (2, 4 ou 6). Em cima delas ficam só atiradores: moradores que atacam à distância (Orc Xamã, Gigante, Goblin, Ankheg, Lagarta, Aranha) ou slimes arqueiros.
