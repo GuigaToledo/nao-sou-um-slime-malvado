@@ -18,7 +18,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v2.9.2";
+const VERSION="v2.9.3";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VH=480,FT="'VT323',ui-monospace,monospace";
@@ -710,13 +710,16 @@ if(!CHARS.some(Boolean)){const old=readJ(SAVE_KEY);if(old){CHARS[0]=old;try{loca
 for(const c of CHARS)if(c&&c.world&&!c.world.v6)c.world=null;
 try{curChar=clamp(parseInt(localStorage.getItem("nsm-last"))||0,0,2)}catch(e){}
 SAVE=CHARS[curChar];
-function deleteChar(i){CHARS[i]=null;try{localStorage.removeItem(CKEY(i))}catch(e){}if(i===curChar)SAVE=null}
+function deleteChar(i){CHARS[i]=null;try{localStorage.removeItem(CKEY(i));localStorage.removeItem("nsm-seen-"+i)}catch(e){}if(i===curChar)SAVE=null}
+/* mapa já descoberto: guardado por personagem (1 bit por bloco, ~30 KB) e recarregado ao entrar no jogo */
+function saveSeen(){try{const n=MW*MH,b=new Uint8Array(Math.ceil(n/8));for(let i=0;i<n;i++)if(seen[i])b[i>>3]|=1<<(i&7);let s="";for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));localStorage.setItem("nsm-seen-"+curChar,btoa(s))}catch(e){}}
+function loadSeen(){try{const s=localStorage.getItem("nsm-seen-"+curChar);if(!s)return;const r=atob(s),n=MW*MH;for(let i=0;i<n;i++){if(r.charCodeAt(i>>3)>>(i&7)&1){seen[i]=1;mmTile(i%MW,(i/MW)|0)}}}catch(e){}}
 addEventListener("pagehide",()=>{if(PL.length)writeSave()});
 addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&PL.length)writeSave()});
 function storeSave(){CHARS[curChar]=SAVE;try{localStorage.setItem(CKEY(curChar),JSON.stringify(SAVE));localStorage.setItem("nsm-last",String(curChar));savedT=2.5}catch(e){}}
 function writeSave(){if(!PL.length)return;const keep=(SAVE&&SAVE.prof)||[],out=[];for(let i=0;i<4;i++){const p=PL.find(q=>q.slot===i);out[i]=p?profOf(p):keep[i]||null}
  const world=NET.foreign?((SAVE&&SAVE.world)||null):{v6:1,phase:G.phase,ch:G.ch,vname:G.vname,vup:G.vup.slice(),cr:G.cr,wave:G.wave,mb:G.mb,ld:G.ld,it:Math.round(G.it||600),ninv:G.ninv|0};
- SAVE={v:1,t:Date.now(),world,prof:out};storeSave();saveDirty=0;saveT=0}
+ SAVE={v:1,t:Date.now(),world,prof:out};storeSave();saveSeen();saveDirty=0;saveT=0}
 /* ===== Estado ===== */
 let PL=[],shots=[],eshots=[],parts=[],clouds=[],torn=[],bolts=[],rings=[],nums=[],flashes=[],pillars=[];
 let state="title",time=0,msg="",mt=0,shake=0,bannerT="",bt=0,zoneT=0,zoneName="",lastZone=-1,seen=new Uint8Array(MW*MH),mmDirty=1,showMM=1,ESID=0,camx=0,camy=0;
@@ -1744,15 +1747,15 @@ function wheel(cx,cy,sc,items,idx,anim,label,kl,kr,col,sub,lvOf,onTap,cosW){cons
  for(const o of slots){const j=((idx+o)%n+n)%n,pos=o+anim,ap=Math.min(1.4,Math.abs(pos)),sz=(38-12*Math.min(1,ap))*sc,x=cx+pos*40*sc,y=cy+ap*5*sc,al=o===0?1:clamp(1-ap*.45,.25,1);
   X.globalAlpha=al;rr(Math.round(x-sz/2),Math.round(y-sz/2),Math.round(sz),Math.round(sz),5);X.fillStyle=o===0?"rgba(96,74,40,.95)":"rgba(30,24,18,.9)";X.fill();X.strokeStyle=o===0?"#ffe14a":"#7a6a50";X.lineWidth=o===0?2:1;X.stroke();X.globalAlpha=1;
   const it=items[j];if(cosW)icon(0,x,y,sz-6*sc,al,col,it);else if(it<0)txt("—",x,y+6*sc,"#8a7a5a",Math.round(20*sc),"center");else{icon(it,x,y,sz-6*sc,al,col);if(lvOf&&sc>.7){X.globalAlpha=al;txt(String(lvOf(it)),x+sz/2-3,y+sz/2-2,"#ffe14a",Math.round(13*sc),"right");X.globalAlpha=1}}}
- if(n>1){if(kl)keyTag(kl,cx-66*sc,cy,sc);if(kr)keyTag(kr,cx+66*sc,cy,sc);if(onTap){HIT.push({x:cx-82*sc,y:cy-14*sc,w:34*sc,h:28*sc,fn:()=>onTap(-1)});HIT.push({x:cx+48*sc,y:cy-14*sc,w:34*sc,h:28*sc,fn:()=>onTap(1)})}}
+ if(n>1){if(kl)keyTag(kl,cx-66*sc,cy,sc);if(kr)keyTag(kr,cx+66*sc,cy,sc);/* tocar no quadrado vizinho (esquerda ou direita) gira a roda para aquele lado */if(onTap){HIT.push({x:cx-59*sc,y:cy-19*sc,w:38*sc,h:38*sc,fn:()=>onTap(-1)});HIT.push({x:cx+21*sc,y:cy-19*sc,w:38*sc,h:38*sc,fn:()=>onTap(1)})}}
  const it=items[((idx%n)+n)%n];txt(cosW?(it<0?"Slime":COS[it].n):it<0?"Nenhuma":MT[it].n+(lvOf?" · Nv "+lvOf(it):""),cx,cy+33*sc,"#ffffff",Math.round(16*sc),"center");if(sub)sub(cx,cy+40*sc)}
 function wheels(p,cx,cy,sc){curSkin=p.skin;const pad=p.src.pad>=0,cl=cosList(p),sl=sumList(p),cel=MODE==="cel"&&p.src.kb,D=170*sc,T13=Math.round(13*sc);
- wheel(cx-D,cy,sc,cl,Math.max(0,cl.indexOf(p.skin)),p.wf,"VISUAL",cel?"◄":pad?"LB":"Q",cel?"►":pad?"LT":"E",p.col,(x,y)=>{const f=cosOf(p);
+ wheel(cx-D,cy,sc,cl,Math.max(0,cl.indexOf(p.skin)),p.wf,"VISUAL",cel?null:pad?"LB":"Q",cel?null:pad?"LT":"E",p.col,(x,y)=>{const f=cosOf(p);
   /* recarga da magia: barra logo abaixo do quadro do visual e o tempo embaixo do nome */
   const has=f.k||p.own.some((v,i)=>i&&v&&MT[i].k);if(!has){txt("sem poder ainda",x,y+6*sc,"#d0b8ff",T13,"center");return}
   const fr=p.scd>0?clamp(1-p.scd/(p.scdM||1),0,1):1;bar(x-15*sc,y-28*sc,30*sc,3,fr,p.scd>0?"#7a6ae0":"#ffd84a",p.scd>0?"#b8a8ff":"#fff4b0");
   if(p.scd>0)txt("magia em "+p.scd.toFixed(1)+"s",x,y+6*sc,"#d8c8a0",T13,"center");else txt((f.k?f.sk:"magia aleatória")+" pronta",x,y+6*sc,"#ffe14a",T13,"center")},null,cel?d=>cycleCos(p,d):null,1);
- const sw2=(K,E,lab,key,anim,slot)=>{const l=sl.filter(t=>t<0||t!==(slot===2?p.sum:p.sum2));wheel(cx+(slot===2?D:0),cy,sc,l,Math.max(0,l.indexOf(p[K])),anim,lab,cel?"◄":"",cel?"►":key,p.col,(x,y)=>{const s=p[E];if(!s||p[K]<1)return;
+ const sw2=(K,E,lab,key,anim,slot)=>{const l=sl.filter(t=>t<0||t!==(slot===2?p.sum:p.sum2));wheel(cx+(slot===2?D:0),cy,sc,l,Math.max(0,l.indexOf(p[K])),anim,lab,cel?null:"",cel?null:key,p.col,(x,y)=>{const s=p[E];if(!s||p[K]<1)return;
   if(s.dead>0)txt("volta em "+Math.ceil(s.dead)+"s",x,y+6*sc,"#ff9a9a",T13,"center");else{bar(x-26*sc,y,52*sc,3,s.hp/s.mhp,"#b48aff","#e0d0ff");const t=s.t,lv=p.slv[t];if(sc>.7)bar(x-26*sc,y+5,52*sc,2,lv>=p.lv?1:p.sxp[t]/needLv(lv),"#e8c25a","#fff4b0")}},
   t=>t<0?"":p.slv[t],cel?()=>cycleSum(p,slot):null)};
  sw2("sum","su","INVOCAÇÃO 1",pad?"RT":"C",p.ws,1);sw2("sum2","su2","INVOCAÇÃO 2",pad?"RB":"Z",p.ws2,2)}
@@ -1773,7 +1776,7 @@ function goal(){if(G.ch===1&&PL.length&&zoneOfPx(PL[0].x,PL[0].y)<4)return{x:vXp
  return{x:cpX,y:cpY,t:"Explore e fique mais forte"}}
 function flushMM(){if(mmDirty){mg.putImageData(MMI,0,0);mmDirty=0}}
 /* minimapa redondo, com o norte marcado; objetivo e, na invasão, a cidade aparecem como setas na borda quando estão fora do círculo */
-function minimap(x,y,cxp,cyp){flushMM();const cx=x+85,cy=y+48,Rr=44,span=110,k=Rr*2/span,sx=cxp/T-span/2,sy=cyp/T-span/2,P=(wx,wy)=>[cx+(wx/T-cxp/T)*k,cy+(wy/T-cyp/T)*k];
+function minimap(x,y,cxp,cyp){flushMM();const cx=x+85,cy=y+58,Rr=51,span=110,k=Rr*2/span,sx=cxp/T-span/2,sy=cyp/T-span/2,P=(wx,wy)=>[cx+(wx/T-cxp/T)*k,cy+(wy/T-cyp/T)*k];
  X.save();X.beginPath();X.arc(cx,cy,Rr+5,0,6.283);X.fillStyle="#2a2018";X.fill();X.lineWidth=3;X.strokeStyle="#c8a050";X.stroke();X.beginPath();X.arc(cx,cy,Rr,0,6.283);X.fillStyle="#07050d";X.fill();X.clip();
  X.imageSmoothingEnabled=SMOOTH;X.drawImage(MM,sx,sy,span,span,cx-Rr,cy-Rr,Rr*2,Rr*2);
  for(const r of NET.remote){const[a,b]=P(r.x,r.y);X.fillStyle=PCOL[r.c];X.fillRect(a-1,b-1,3,3)}
@@ -1802,7 +1805,7 @@ function hud(){const multi=PL.length>1,gl=goal();
  if(boss){const t=MT[boss.t],bw=multi?188:280,bx=VW/2-bw/2;frame(bx,ty,bw,28);txt("Nv "+(boss.lv||1)+" "+(boss.boss2?"Chefe ":"")+t.n+(boss.rage?" · FÚRIA":""),VW/2,ty+14,PL[0]?TIER_COL[lvTier((boss.lv||1)-PL[0].lv)]:"#ff9ab8",17,"center");bar(bx+8,ty+18,bw-16,5,boss.hp/boss.mhp,"#ff3a7a","#ffb0c8");ty+=32}
  if(zoneT>0){X.globalAlpha=clamp(zoneT,0,1);txt("— "+zoneName+" —",VW/2,ty+20,"#ffffff",20,"center");X.globalAlpha=1;ty+=30}
  const msgY=ty+10;
- if(!multi){panel(PL[0],8,8);if(showMM)minimap(VW-178,8,PL[0].x,PL[0].y);if(MODE==="cel"){/* no celular, cada quadrado fica do tamanho do botão DASH (se couber entre o joystick e os botões) */const s=clamp((VW/2-175)/229,.62,1.42);wheels(PL[0],VW/2,VH-28-48*s,s)}else wheels(PL[0],VW/2,VH-54,1);msgBox(0,msgY,Math.min(VW-120,560))}
+ if(!multi){panel(PL[0],8,8);if(showMM)minimap(VW-178,8,PL[0].x,PL[0].y);if(MODE==="cel"){/* no celular, cada quadrado fica do tamanho do botão DASH (se couber entre o joystick e os botões) */const s=clamp((VW/2-190)/229,.62,1.42);wheels(PL[0],VW/2,VH-28-48*s,s)}else wheels(PL[0],VW/2,VH-54,1);msgBox(0,msgY,Math.min(VW-120,560))}
  else{PL.forEach(p=>{const right=p.slot%2===1,bottom=p.slot>=2,x=right?VW-220:8;if(!bottom){panel(p,x,8);wheels(p,x+106,8+60+30,.5)}else{panel(p,x,VH-68);wheels(p,x+106,VH-68-34,.5)}});
   if(showMM)minimap(VW/2-85,ty+(zoneT>0?28:0),camx+VW/2,camy+VH/2);msgBox(64,Math.max(ty+(showMM?100:8),170),VW-128)}
  if(savedT>0){X.globalAlpha=clamp(savedT,0,1);txt("Jogo salvo",VW-8,VH-8,"#a8ffb8",16,"right");X.globalAlpha=1}
@@ -1940,7 +1943,7 @@ function upgItems(){const items=CITY.map((u,i)=>{const l=G.vup[i]|0,c=u.c[l];ret
 /* ===== Fluxo ===== */
 function clearFx(){allyZ=[];shots=[];eshots=[];parts=[];clouds=[];torn=[];bolts=[];rings=[];nums=[];flashes=[];pillars=[]}
 function startGame(world,profs,keep){if(!keep)leaveNet();NET.foreign=0;resetWorld(world);clearFx();hints={};PL=[];lastZone=-1;
- const p=mkPlayer(0,profs&&profs[0],{kb:true,pad:p1pad});PL.push(p);applySecrets(p.sec);chShown=G.ch>=3?1:0;state="play";updCam();
+ const p=mkPlayer(0,profs&&profs[0],{kb:true,pad:p1pad});PL.push(p);applySecrets(p.sec);loadSeen();chShown=G.ch>=3?1:0;state="play";updCam();
  say(G.ch>=2?"Bem-vindo de volta a "+(G.vname||"sua vila")+"!":G.phase?"De volta ao Santuário. Siga a seta até a Vila dos Slimes.":"Sábio: você renasceu como um slime… mas não é um slime malvado! Siga a seta até o Santuário da Tempestade.");sfx("ok")}
 function toTitle(){writeSave();leaveNet();NET.foreign=0;PL=[];state="title";menuSel=0;tSel=3;selectChar(curChar)}
 function updCam(){const al=PL.filter(p=>p.dead<=0),s=al.length?al:PL;if(!s.length)return;let x=0,y=0;for(const p of s){x+=p.x;y+=p.y}x/=s.length;y/=s.length;camx=clamp(x-VW/2,0,MW*T-VW);camy=clamp(y-VH/2,0,MH*T-VH)}
@@ -2013,18 +2016,18 @@ function draw(){HIT=hitArr();X.setTransform(Q,0,0,Q,0,0);X.imageSmoothingEnabled
  for(const n of nums){X.globalAlpha=Math.min(1,n.t*2);const sz=typeof n.v==="string"&&isNaN(parseInt(n.v))?17:n.big?30:24;X.font=sz+"px "+FT;X.textAlign="center";X.lineWidth=4;X.strokeStyle="#000";X.strokeText(String(n.v),n.x+ox,n.y+oy);X.fillStyle=n.c;X.fillText(String(n.v),n.x+ox,n.y+oy);X.textAlign="left";X.globalAlpha=1}
  nameAt();X.drawImage(VG,0,0);hud();
  /* nome da música que começou a tocar */
- if(state==="play"&&musLbl&&performance.now()<musLblT){const a=Math.min(1,(musLblT-performance.now())/800);X.globalAlpha=a;txt("♪ "+musLbl,VW-12,PL.length>1?VH-10:(showMM?114:24),"#d0b8ff",15,"right");X.globalAlpha=1}if(MODE==="cel"&&state==="play")touchUI();if(OVER.includes(state))ui640(overlay)}
+ if(state==="play"&&musLbl&&performance.now()<musLblT){const a=Math.min(1,(musLblT-performance.now())/800);X.globalAlpha=a;txt("♪ "+musLbl,VW-12,PL.length>1?VH-10:(showMM?136:24),"#d0b8ff",15,"right");X.globalAlpha=1}if(MODE==="cel"&&state==="play")touchUI();if(OVER.includes(state))ui640(overlay)}
 /* ===== Celular: joystick à esquerda, botões à direita ===== */
 /* ao mudar o tamanho da janela (ou girar o celular), o jogo se ajusta */
 addEventListener("resize",()=>{const w0=VW;fitView();if(VW!==w0){rebuildView();const q=Q;Q=0;setQ(q);try{TB.forEach(b=>{if(b.dx===undefined)b.dx=w0-b.x;b.x=VW-b.dx})}catch(e){}}});
-const TJ={id:null,cx:86,cy:VH-96,x:0,y:0},TB=[{k:"act",l:"AGIR",x:VW-74,y:VH-92,r:36,c:"#ffe14a"},{k:"dash",l:"DASH",x:VW-150,y:VH-56,r:27,c:"#7fe0ff"},{k:"heal",l:"CURA",x:VW-150,y:VH-130,r:25,c:"#7aff7a"},
+const TJ={id:null,cx:100,cy:VH-110,x:0,y:0},TB=[{k:"act",l:"AGIR",x:VW-74,y:VH-92,r:36,c:"#ffe14a"},{k:"dash",l:"DASH",x:VW-150,y:VH-56,r:27,c:"#7fe0ff"},{k:"heal",l:"CURA",x:VW-150,y:VH-130,r:25,c:"#7aff7a"},
  {k:"tree",l:"ÁRVORE",x:VW-46,y:VH-176,r:20,c:"#d0b8ff"},{k:"pause",l:"MENU",x:VW-104,y:VH-196,r:20,c:"#d8c8a0"}];
 const TP=new Map();
-function touchUI(){X.globalAlpha=.5;X.fillStyle="#000";X.beginPath();X.arc(TJ.cx,TJ.cy,54,0,6.283);X.fill();X.strokeStyle="#d8c8a0";X.lineWidth=2;X.stroke();
- X.globalAlpha=.8;X.fillStyle="#e8dcc0";X.beginPath();X.arc(TJ.cx+TOUCH.mx*40,TJ.cy+TOUCH.my*40,22,0,6.283);X.fill();
+function touchUI(){X.globalAlpha=.5;X.fillStyle="#000";X.beginPath();X.arc(TJ.cx,TJ.cy,65,0,6.283);X.fill();X.strokeStyle="#d8c8a0";X.lineWidth=2;X.stroke();
+ X.globalAlpha=.8;X.fillStyle="#e8dcc0";X.beginPath();X.arc(TJ.cx+TOUCH.mx*48,TJ.cy+TOUCH.my*48,26,0,6.283);X.fill();
  for(const b of TB){const on=[...TP.values()].some(v=>v===b.k);X.globalAlpha=on?.85:.55;X.fillStyle="#120e0c";X.beginPath();X.arc(b.x,b.y,b.r,0,6.283);X.fill();X.strokeStyle=b.c;X.lineWidth=2;X.stroke();X.globalAlpha=.95;txt(b.l,b.x,b.y+5,b.c,b.r>30?20:15,"center")}X.globalAlpha=1}
-function touchAt(x,y){if(Math.hypot(x-TJ.cx,y-TJ.cy)<90&&x<VW/2)return"joy";for(const b of TB)if(Math.hypot(x-b.x,y-b.y)<b.r+8)return b.k;return null}
-function joyMove(x,y){let dx=(x-TJ.cx)/44,dy=(y-TJ.cy)/44;const l=Math.hypot(dx,dy);if(l>1){dx/=l;dy/=l}TOUCH.mx=dx;TOUCH.my=dy;TOUCH.run=l>1.6?1:TOUCH.run}
+function touchAt(x,y){if(Math.hypot(x-TJ.cx,y-TJ.cy)<108&&x<VW/2)return"joy";for(const b of TB)if(Math.hypot(x-b.x,y-b.y)<b.r+8)return b.k;return null}
+function joyMove(x,y){let dx=(x-TJ.cx)/53,dy=(y-TJ.cy)/53;const l=Math.hypot(dx,dy);if(l>1){dx/=l;dy/=l}TOUCH.mx=dx;TOUCH.my=dy;TOUCH.run=l>1.6?1:TOUCH.run}
 C.addEventListener("pointerdown",e=>{if(MODE!=="cel"||state!=="play")return;const[x,y]=cpos(e),k=touchAt(x,y);if(!k)return;e.stopImmediatePropagation();e.preventDefault();try{C.setPointerCapture(e.pointerId)}catch(q){}
  TP.set(e.pointerId,k);if(k==="joy"){joyMove(x,y)}else{TOUCH[k]=1;if(k==="act")TOUCH.atk=1;if(k==="dash")TOUCH.run=1}},{capture:true});
 C.addEventListener("pointermove",e=>{if(TP.get(e.pointerId)==="joy"){const[x,y]=cpos(e);joyMove(x,y)}});

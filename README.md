@@ -117,6 +117,13 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.9.3
+
+- **Celular:** as setas das rodas de visual e de invocação saíram. Para girar a roda, toque no quadrado vizinho da esquerda ou da direita.
+- **Celular:** o joystick de movimento ficou 20% maior.
+- **Minimapa** 15% maior.
+- **O mapa já descoberto fica salvo** com o seu personagem: ao voltar ao jogo, o minimapa e o mapa do mundo mostram tudo o que você já explorou. Excluir o personagem apaga esse mapa junto.
+
 ## Novidades da v2.9.2
 
 - **Entrada só pelo lado esquerdo (oeste):** o portão do sul foi fechado, com muralha e fosso inteiros, e o caminho de terra que saía pela direita da cidade foi apagado.
