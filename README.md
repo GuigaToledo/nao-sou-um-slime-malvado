@@ -117,6 +117,12 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v3.8.0 (reconstrução e batida eletrônica)
+
+- **Reconstrução automática:** quando a invasão acaba (ou a cidade cai), os **guardas pegam martelos** e reconstroem sozinhos a muralha e as torres, **de graça**. Cada um martela o pedaço mais estragado que ninguém está consertando, com faíscas, som de martelo e uma barra de progresso. Sem quartel, dois slimes da cidade fazem o serviço. A velocidade se ajusta ao estrago para **sempre terminar antes da próxima invasão** (no pior caso, cerca de 7,5 minutos; com o quartel no 10, uns 2 minutos).
+- O menu do cristal mostra o andamento da reconstrução no lugar do antigo conserto pago.
+- **Música com base eletrônica de novo:** bumbo, chimbal, palmas, caixa e baixo de sintetizador em cada estilo, pad sintetizado, subidas de ruído nas viradas e o efeito "sidechain" (a música respira junto com o bumbo). Os instrumentos medievais continuam por cima, com as melodias.
+
 ## Novidades da v3.7.0 (som medieval, skins novas e rebalanceamento)
 
 - **Música nova:** os mesmos estilos eletrônicos (Minimal, Dub, House, Tech House, Acid, Techno, Drum and Bass, Jungle, Breakbeat…) agora tocados **como se fossem feitos na Idade Média**: alaúde, harpa, flauta doce, charamela, rabeca, sanfona de roda, sinos, tabor e pandeiro, com melodias em modos medievais, reverberação de salão e compressor para um som mais cheio.

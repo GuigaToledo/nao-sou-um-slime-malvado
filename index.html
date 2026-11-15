@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.7.0";
+const VERSION="v3.8.0";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -225,29 +225,55 @@ const TH={
  party:{n:"Festa do DJ",bpm:124,root:48,mode:"ion",prog:[0,5,3,4],k:"x...x...x...x...",s:"....x.......x...",cl:1,j:"..X...X...X...X.",bass:"0 . _ . 0 . 4 _ 0 . _ . 0 . 4 _",strum:"..x...x...x...x.",lead:"rec",bells:1,
   A:["0 . 2 . 4 . 7 . 6 . 4 . 5 . 2 .","3 . 5 . 4 . 2 . 1 . . . . . . .","0 . 2 . 4 . 7 . 9 . 7 . 8 . 6 .","7 . 4 . 2 . 1 . 0 . . . . . . ."],
   B:["4 . 4 . 5 . 4 . 3 . 3 . 4 . 3 .","2 . 2 . 3 . 2 . 1 . . . 0 . . .","4 . 5 . 6 . 7 . 8 . 7 . 6 . 5 .","4 . 2 . 1 . . . 0 . . . . . . ."]}};
-for(const k in TH){const t=TH[k];t.Ae=melParse(t.A);t.Be=melParse(t.B);t.K=pat(t.k);t.S=pat(t.s||"");t.J=pat(t.j||"");t.ST=pat(t.strum||"");t.BE=t.bass?melParse([t.bass])[0]:[]}
+for(const k in TH){const t=TH[k];t.key=k;t.Ae=melParse(t.A);t.Be=melParse(t.B);t.K=pat(t.k);t.S=pat(t.s||"");t.J=pat(t.j||"");t.ST=pat(t.strum||"");t.BE=t.bass?melParse([t.bass])[0]:[]}
 const scN=(t,d)=>{const S=SC[t.mode],o=Math.floor(d/7),i=((d%7)+7)%7;return t.root+S[i]+12*o};
 const ACIDSQ=[0,0,7,0,2,0,0,4,0,7,0,6,0,2,3,4],ACIDAC=[1,0,1,0,0,1,0,0,1,0,1,0,0,1,0,1];
-/* um passo de 1/16 de qualquer tema; a cada 4 compassos muda a parte: introdução, A, B, A com tudo */
-function thStep(t,s,at){const st=60/t.bpm/4,b=s%16,bar=s>>4,sec=(bar>>2)%4,cr=t.prog[bar%4],sw=b%2&&t.swing?t.swing:0;at+=sw;
- const chordN=k=>scN(t,cr+k),full=sec>=1;
- if(t.K[b])tabor(at,t.K[b]>1?.36:.3);
- if(t.S[b]&&(full||bar%2))(t.cl&&b%8===4?clap:drumS)(at,b===4||b===12?.12:.06);
- if(t.J[b])jingle(at,t.J[b]>1?.03:.014,t.J[b]>1);
- if(b===0&&t.drone)INS.drone(chordN(0)-12,at,st*16+.1,full?.9:.7);
- /* baixo */
+/* ---------- base eletrônica (v3.8): bumbo, chimbal, palmas, baixo de sintetizador, pad e "sidechain" (o resto da música respira junto com o bumbo) ---------- */
+let PUMP=null;
+function pumpBus(){if(PUMP||!AC)return PUMP;try{PUMP=AC.createGain();PUMP.gain.value=1;PUMP.connect(MUSG||MG)}catch(e){PUMP=null}return PUMP}
+const DRUMS=fn=>{const b=BUS;BUS=MUSG;try{fn()}finally{BUS=b}};
+const ekick=(at,v=.42,rumble)=>DRUMS(()=>{osc({f:165,f2:46,fd:.12,at,d:.36,a:.001,v});osc({f:2400,f2:200,fd:.02,at,d:.025,a:.001,v:v*.12,w:"triangle"});if(rumble)osc({f:52,at:at+.08,d:.32,a:.02,v:v*.22,w:"sawtooth",lp:140});
+ if(PUMP){const g=PUMP.gain;g.cancelScheduledValues(at);g.setValueAtTime(.42,at);g.linearRampToValueAtTime(1,at+.2)}});
+const ehat=(at,v=.03,open)=>DRUMS(()=>{nz({f:9000,ft:"highpass",at,d:open?.2:.035,a:.001,v});nz({f:12000,q:3,at,d:open?.15:.025,v:v*.5})});
+const eclap=(at,v=.1)=>DRUMS(()=>{for(let i=0;i<3;i++)nz({f:1400,q:1.4,at:at+i*.008,d:.09,a:.001,v:v*.9});nz({f:1600,q:1,at:at+.024,d:.18,v:v*.6,rv:.3})});
+const esnare=(at,v=.12)=>DRUMS(()=>{nz({f:2400,q:.7,at,d:.16,a:.001,v});osc({f:220,f2:160,at,d:.08,a:.001,v:v*.7,w:"triangle"})});
+const erim=(at,v=.05)=>DRUMS(()=>osc({f:1750,f2:900,at,d:.03,a:.001,v,w:"square",lp:4000}));
+/* baixo de sintetizador: dente de serra com filtro que abre e fecha */
+const sbass=(n,at,d,v,cut=700)=>{osc({f:mf(n),at,d,a:.004,s:d*.4,v:v*.48,w:"sawtooth",lp:cut*2.2,lp2:cut*.5,q:4});osc({f:mf(n-12),at,d,a:.004,s:d*.4,v:v*.42})};
+/* pad de cordas sintetizadas (acorde longo, bem baixinho) */
+const pad=(ns,at,d,v)=>{for(const n of ns)for(const dt of[-8,8])osc({f:mf(n),at,d,a:.4,s:.5,v:v*.03,w:"sawtooth",det:dt,lp:1400,rv:.4})};
+/* subida de ruído antes da virada de parte */
+const riser=(at,d,v=.04)=>DRUMS(()=>nz({f:400,f2:7000,ft:"bandpass",q:1.6,at,d,a:d*.9,v}));
+/* estilo de cada gênero: padrão do bumbo, das caixas, do chimbal, do baixo e se usa pad */
+const EKIT={minimal:{bp:"0 _ 0 _ _ _ 0 _ 0 _ 0 _ _ _ 0 _",cut:600,rim:1},dubtechno:{bp:"_ _ 0 . _ _ _ _ _ _ 0 . _ _ _ _",cut:400,pad:1},house:{bp:"_ _ 0 _ _ _ 0 _ _ _ 0 _ _ _ 0 7",cut:900,pad:1},
+ techhouse:{bp:"_ _ 0 0 _ 0 _ 0 _ _ 0 0 _ 0 4 _",cut:700},acidhouse:{bp:"",cut:0},techno:{bp:"_ _ 0 _ _ _ 0 _ _ _ 0 _ _ _ 0 _",cut:500,rumble:1},
+ waves:{bp:"0 _ 0 _ 0 _ 0 _ 0 _ 0 _ 0 _ 1 _",cut:800,rumble:1},dnb:{bp:"",cut:0,pad:1},jungle:{bp:"",cut:0,pad:1},breakbeat:{bp:"0 _ _ 0 _ _ 3 _ _ _ 0 4 _ _ 6 _",cut:1000},party:{bp:"_ _ 0 _ _ _ 0 _ _ _ 0 _ _ _ 0 7",cut:1000,pad:1}};
+for(const k in EKIT)EKIT[k].BP=EKIT[k].bp?melParse([EKIT[k].bp])[0]:[];
+/* um passo de 1/16 de qualquer tema: parte eletrônica embaixo, instrumentos medievais por cima; a cada 4 compassos muda a parte */
+function thStep(t,s,at){pumpBus();const prevBus=BUS;if(PUMP)BUS=PUMP;try{
+ const st=60/t.bpm/4,b=s%16,bar=s>>4,sec=(bar>>2)%4,cr=t.prog[bar%4],sw=b%2&&t.swing?t.swing:0;at+=sw;
+ const E=EKIT[t.key]||EKIT.minimal,chordN=k=>scN(t,cr+k),full=sec>=1,intro=sec===0&&bar%4<2;
+ /* bateria eletrônica */
+ if(t.K[b]&&!(intro&&b>0&&t.K[b]<2&&bar%4===0))ekick(at,t.K[b]>1?.95:.85,E.rumble&&full);
+ if(t.S[b]&&(full||bar%2))(t.cl?eclap:esnare)(at,b===4||b===12?.18:.08);
+ if(t.J[b])ehat(at,t.J[b]>1?.06:.035,t.J[b]>1);else if(full&&b%2===1&&!LOWFX)ehat(at,.014);
+ if(E.rim&&(b===3||b===11||(b===14&&bar%2)))erim(at,.04);
+ /* toque medieval por cima da batida: tabor no tempo 1 e pandeiro na contramão */
+ if(b===0&&full)tabor(at,.12);if(b===8&&sec===3)jingle(at,.02,1);
+ if(bar%4===3&&b===8&&!LOWFX)riser(at,st*8,.035);
+ /* baixo de sintetizador (com o alaúde dobrando uma oitava acima) */
  if(t.viol){if(b===0)INS.viol(chordN(0)-24,at,st*14,1);if(b===10&&bar%2)INS.viol(chordN(0)-24,at,st*5,.7)}
- else if(t.sub){if(b===0)osc({f:mf(chordN(0)-24),at,d:st*15,a:.01,s:.1,v:.16})}
- else if(t.acid){const n=ACIDSQ[b];if(!(sec===0&&bar%4<2)&&(b%2===0||ACIDAC[b]))INS.acid(chordN(n)-12,at,st*.9,ACIDAC[b]?1.1:.8,0,320+1700*(.5+.5*Math.sin(s/44))+ACIDAC[b]*600)}
- else for(const[i,d]of t.BE)if(i===b)INS.lute(chordN(d)-24,at,st*1.6,.9,0);
- /* acordes de alaúde (com eco no dub) e arpejo de harpa */
- if(t.ST[b]&&full){const ns=[0,2,4].map(k=>chordN(k)-12);ns.forEach((n,i)=>{if(t.echo)etone(mf(n),.4,"triangle",.016,at+i*.012,1400);INS.lute(n,at+i*.014,st*3,.42,(i-1)*.3)})}
- if(t.arp&&full&&b%2===0){const a=[0,2,4,7,4,2,0,2][(b>>1)%8];INS.harp(chordN(a),at,st*2,.28,(b%4?.35:-.35))}
- if(t.bells&&b===0&&sec===3)INS.bell(chordN(7),at,1.4,.5,.4);
- /* melodia */
- if(sec>=1){const M=(sec===2?t.Be:t.Ae)[bar%4];for(const[i,d,len]of M)if(i===b)INS[t.lead](scN(t,d)+12*(t.lead==="rec"?1:0),at,len*st,sec===3?.95:.8,-.15);
-  /* segunda voz uma terça abaixo na última parte */
-  if(sec===3&&!LOWFX)for(const[i,d,len]of t.Ae[bar%4])if(i===b)INS.fiddle(scN(t,d-2),at,len*st,.35,.3)}}
+ else if(t.sub){if(b===0)osc({f:mf(chordN(0)-24),at,d:st*15,a:.01,s:.1,v:.18})}
+ else if(t.acid){const n=ACIDSQ[b];if(!(sec===0&&bar%4<2)&&(b%2===0||ACIDAC[b]))INS.acid(chordN(n)-12,at,st*.9,ACIDAC[b]?1.2:.85,0,320+1700*(.5+.5*Math.sin(s/44))+ACIDAC[b]*600)}
+ else for(const[i,d,len]of E.BP)if(i===b){sbass(chordN(d)-24,at,Math.max(st*.9,len*st*.9),1,E.cut*(1+.4*Math.sin(s/37)));if(full&&i%4===2)INS.lute(chordN(d)-12,at,st*1.4,.35,0)}
+ /* pad sintetizado e acordes de alaúde (com eco no dub) */
+ if(E.pad&&b===0&&full&&bar%2===0)pad([0,2,4].map(k=>chordN(k)-12),at,st*32,1);
+ if(t.ST[b]&&full){const ns=[0,2,4].map(k=>chordN(k)-12);ns.forEach((n,i)=>{if(t.echo)etone(mf(n),.4,"sawtooth",.012,at+i*.012,1200);INS.lute(n,at+i*.014,st*3,.28,(i-1)*.3)})}
+ if(t.arp&&full&&b%2===0){const a=[0,2,4,7,4,2,0,2][(b>>1)%8];INS.harp(chordN(a),at,st*2,.26,(b%4?.35:-.35))}
+ if(t.bells&&b===0&&sec===3)INS.bell(chordN(7),at,1.4,.45,.4);
+ /* melodia medieval */
+ if(sec>=1){const M=(sec===2?t.Be:t.Ae)[bar%4];for(const[i,d,len]of M)if(i===b)INS[t.lead](scN(t,d)+12*(t.lead==="rec"?1:0),at,len*st,sec===3?.7:.58,-.15);
+  if(sec===3&&!LOWFX)for(const[i,d,len]of t.Ae[bar%4])if(i===b)INS.fiddle(scN(t,d-2),at,len*st,.3,.3)}}finally{BUS=prevBus}}
 /* eco (delay com retorno) para os acordes de dub */
 let DLIN=null,DLY=null;
 function echoBus(){if(DLIN||!AC)return;try{DLIN=AC.createGain();DLIN.gain.value=1;DLY=AC.createDelay(1.5);DLY.delayTime.value=.375;const fb=AC.createGain();fb.gain.value=.45;const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=1600;const out=AC.createGain();out.gain.value=.8;
@@ -324,6 +350,8 @@ function voice(t,ev,x,y){if(!AC||!SND)return;const P=sp3(x,y);if(!P||P.v<.04)ret
   case"demon":growl(70*k,48*k,.6*d,v*.24,[[300,4,1],[700,5,.6]],p,7);growl(72.5*k,49*k,.6*d,v*.12,[[1200,6,.5]],p,0);break;
   case"stone":nz({f:260,ft:"lowpass",d:.5*d,a:.04,v:v*.14,pan:p});osc({f:70,f2:45,d:.3,v:v*.1,pan:p});break;
   default:osc({f:300*k,f2:150*k,d:.18,v:v*.06,w:"triangle",pan:p,vib:.05,vr:14})}}
+/* batida de martelo (reconstrução) */
+function hamSnd(x,y){if(!AC||!SND)return;const P=sp3(x,y);if(!P||P.v<.05||!okT("ham",120))return;const c=AC.currentTime,v=P.v;osc({f:1850,at:c,d:.12,a:.001,v:v*.05,pan:P.p,rv:.2});osc({f:2730,at:c,d:.08,a:.001,v:v*.025,pan:P.p});osc({f:150,f2:80,at:c,d:.1,v:v*.08,pan:P.p});nz({f:3200,q:2,at:c,d:.05,v:v*.05,pan:P.p})}
 /* golpe com som de lugar (invocações e defensores) */
 function swingAt(x,y,t){const P=sp3(x,y);if(!P||!okT("sw",70))return;nz({f:1600,f2:4200,q:1.4,d:.1,v:P.v*.04,pan:P.p,a:.015});if(t&&R()<.25)voice(t,"atk",x,y)}
 /* ---------- magias: um som para cada poder (do jogador, das invocações e dos monstros) ---------- */
@@ -1520,8 +1548,8 @@ function updVillagers(dt){if((time*2|0)!==((time-dt)*2|0)){syncResidents();if(G.
  const dj=e=>{const c=COS[e];return c&&c.dance};party=[...PL.filter(p=>p.dead<=0).map(p=>[p.x,p.y,p.skin]),...NET.remote.filter(r=>!r.dead).map(r=>[r.x,r.y,r.w])].some(([x,y,s])=>dj(s)&&Math.hypot(x-cpX,y-cpY)<16*T)?1:0;
  /* cidade: moradores passeiam em volta; com alerta de invasão correm para os postos ao redor do cristal e defendem; na festa, dançam perto do cristal */
  const alert=G.ch>=2&&G.wave>=5&&(G.inv||(G.it||0)<=INV_WARN);
- const rw=G.ch>=2&&G.rep>0&&!G.inv&&!G.wact?repWorker():null;
- for(const v of villagers){if(v===rw){repWork(v,dt);continue}if(G.ch>=2&&!v.ko){
+ const RB=G.ch>=2&&G.rbOn&&!G.inv&&!G.wact?rbWorkers():[];
+ for(const v of villagers){if(RB.includes(v)){repWork2(v,dt);continue}v.ham=0;if(G.ch>=2&&!v.ko){
    if(alert||party){if(alert&&G.wact&&defend(v,dt))continue;const ps=postOf(v);if(Math.hypot(v.x-ps[0],v.y-ps[1])>10){walkTo(v,ps[0],ps[1],(v.g?95:85)*dt);continue}v.wx=v.wy=0;if(!party){v.fl=cpX<v.x;continue}}
    else{roam(v,dt);continue}}if(party){v.ph+=dt*9;continue}v.wt-=dt;if(v.wt<=0){v.wt=1.5+R()*2.5;const a=R()*6.28,s=R()<.4?0:.5;v.wx=Math.cos(a)*s;v.wy=Math.sin(a)*s}
  const sp=30*dt;let dx=v.wx*sp,dy=v.wy*sp;if(Math.hypot(v.x+dx-v.hx,v.y+dy-v.hy)>110){dx=(v.hx-v.x)*.02;dy=(v.hy-v.y)*.02}const ox=v.x;mv(v,dx,dy);if(Math.abs(v.x-ox)>.05)v.fl=v.x<ox}}
@@ -1869,6 +1897,21 @@ function invTarget(m){const out=wallD(m.x,m.y)>1.05;
   if(s)return s.str?s:{str:"w",i:s.i,x:s.ox,y:s.oy}}
  return b}
 /* o guarda que conserta: vai até o pedaço mais danificado (por dentro) e martela */
+/* v3.8: depois de cada invasão os guardas (ou, sem quartel, dois slimes) reconstroem sozinhos a muralha e as torres, de graça,
+   e sempre terminam antes da próxima invasão; cada um martela o pedaço mais estragado que ninguém está consertando */
+const rbWorkers=()=>{const g=villagers.filter(v=>v.g&&!v.ko);return g.length?g:villagers.filter(v=>!v.t&&!v.g&&!v.ko).slice(0,2)};
+function rbTargets(){const a=[];if(cl("wall"))for(const q of segs()){if(q.gate)continue;const f=wsOf(q.i);if(f<1)a.push({k:"w"+q.i,i:q.i,w:1,f,x:q.ix,y:q.iy})}
+ if(cl("tow"))towers().forEach(t=>{const f=G.th[t.i];if(f<1)a.push({k:"t"+t.i,i:t.i,w:0,f,x:cpX+(t.x-cpX)*.84,y:cpY+(t.y-cpY)*.84})});return a}
+function rebuildTick(dt){if(G.inv||G.wact){G.rbOn=0;return}const L=rbTargets();
+ if(!L.length){if(G.rbOn){G.rbOn=0;showBanner("CIDADE RECONSTRUÍDA");sfx("lvl");say("Os guardas terminaram de reconstruir a muralha e as torres!");saveDirty=1}return}
+ if(!G.rbOn){G.rbOn=1;const D=L.reduce((a,q)=>a+(1-q.f)*(q.w?1:2),0),N=Math.max(1,rbWorkers().length);G.rbRate=Math.max(1/30,D/(N*420));say("Os guardas pegaram os martelos e começaram a reconstruir a cidade.")}}
+function repWork2(v,dt){const L=rbTargets();if(!L.length){v.ham=0;return}
+ let q=v.rbK&&L.find(o=>o.k===v.rbK);if(!q){const taken=new Set(villagers.filter(o=>o!==v&&o.rbK).map(o=>o.rbK));q=L.filter(o=>!taken.has(o.k)).sort((a,b)=>a.f-b.f)[0]||L.sort((a,b)=>a.f-b.f)[0];v.rbK=q.k}
+ if(Math.hypot(v.x-q.x,v.y-q.y)>16){v.ham=1;walkTo(v,q.x,q.y,75*dt);return}
+ v.ham=2;v.wx=v.wy=0;v.fl=q.x>cpX?0:1;v.hamT=(v.hamT||0)+dt;
+ if(v.hamT>.5){v.hamT=0;const sx=v.x+(v.fl?-20:20),sy=v.y-6;for(let i=0;i<5;i++)burst(sx,sy,pk(["#ffd84a","#ffffff","#c8a050","#8a7a60"]),3,.35,(R()-.5)*90,-30-R()*60);hamSnd(sx,sy)}
+ if(NET.mode==="client")return;const r=(G.rbRate||1/30)*dt;if(q.w)G.ws[q.i]=Math.min(1,G.ws[q.i]+r);else G.th[q.i]=Math.min(1,G.th[q.i]+r/2);
+ if((q.w?G.ws[q.i]:G.th[q.i])>=1){v.rbK=null;ctKey=-1;saveDirty=1}}
 function repWork(v,dt){let s=null,w=2;for(const q of segs()){if(q.gate)continue;const f=wsOf(q.i);if(f<w){w=f;s=q}}const tw=towers().find(t=>G.th[t.i]<1);
  const tx=s&&w<1?s.ix:tw?cpX+(tw.x-cpX)*.8:cpX-60,ty=s&&w<1?s.iy:tw?cpY+(tw.y-cpY)*.8:cpY;
  if(Math.hypot(v.x-tx,v.y-ty)>14){walkTo(v,tx,ty,80*dt);return}v.wx=v.wy=0;v.fl=tx>cpX?0:1;v.atkT=(v.atkT||0)-dt;if(v.atkT<=-.3){v.atkT=.25;burst(v.x+(v.fl?-14:14),v.y-14,pk(["#ffd84a","#ffffff","#c8a050"]),3,.3,(R()-.5)*80,-60);if(R()<.5)sfx("swing")}}
@@ -1937,7 +1980,7 @@ const repCost=()=>{const f=dmgFrac();return f<.02?0:Math.max(10,Math.round(f*(10
 const repWorker=()=>villagers.find(v=>v.g&&!v.ko)||villagers.find(v=>!v.ko);
 function startRepair(){if(G.inv||G.wact||G.rep>0)return;const c=repCost();if(!c||G.cr<c)return;G.cr-=c;G.rep=20;sfx("chest");say("Um guarda começou a reconstruir a muralha e as torres (20 segundos).");saveDirty=1}
 function repairTick(dt){if(!(G.rep>0))return;if(G.inv||G.wact)return;G.rep-=dt;if(G.rep<=0){G.rep=0;G.ws=Array(NS).fill(1);G.th=[1,1,1,1,1,1];ctKey=-1;showBanner("MURALHA RECONSTRUÍDA");sfx("lvl");saveDirty=1}}
-function cityTick(dt){if(G.ch<2)return;applyCityTiles();syncGuards();styleSlimes();if(cl("tow"))updTowers(dt);repairTick(dt);
+function cityTick(dt){if(G.ch<2)return;applyCityTiles();syncGuards();styleSlimes();if(cl("tow"))updTowers(dt);rebuildTick(dt);
  if(cl("heal")>=3&&!G.wact)G.vhp=Math.min(vmax(),G.vhp+5*dt);if(G.inv)cityEffects(dt);
  if(G.wave<5)return;/* a missão das 4 ondas ainda não acabou */
  if(!INVS[G.ig|0])G.ig=0;
@@ -1950,7 +1993,7 @@ function cityTick(dt){if(G.ch<2)return;applyCityTiles();syncGuards();styleSlimes
  else if(!mons.some(m=>m.inv)){if(G.iw>=INV_WAVES)endInvasion();else if(!G.iwT){G.iwT=WAVE_GAP;/* quem caiu na onda só volta agora, entre uma onda e outra */const kd=villagers.filter(v=>v.ko).length;reviveDefenders();if(kd)say(kd+" defensores caídos voltaram para a próxima onda.");const j=cl("house")>=5?Math.round(G.cr*.03):0;G.cr+=j;say("Onda "+G.iw+" vencida! A próxima chega em 10 segundos."+(j?" Juros: +"+j+" ouro.":""))}else{G.iwT-=dt;if(G.iwT<=0){G.iw++;startInvWave()}}}
  if(G.vhp<=0){const lost=Math.floor(G.cr*.25);G.cr-=lost;villageFall();G.inv=0;G.wact=0;G.iw=0;G.it=INV_EVERY;G.warned=0;reviveDefenders();say("O cristal foi destruído e a cidade perdeu "+lost+" de ouro… o cristal se refez, mas a muralha precisa de conserto. Próxima invasão em 15 minutos.")}}
 /* construir: quem hospeda aplica (pedidos dos outros jogadores chegam pela rede) */
-function cityUpgrade(i){if(i===99){startRepair();return}const u=CITY[i];if(!u)return;if(u.k==="moat"&&cl("wall")<10)return;const l=G.vup[i]|0,c=costOf(u,l);if(l>=LMAX||G.cr<c)return;G.cr-=c;G.vup[i]=l+1;if(u.k==="wall")G.vhp+=WALL_HP[l+1]-WALL_HP[l];sfx("chest");showBanner(u.n.toUpperCase()+" NÍVEL "+(l+1));saveDirty=1}
+function cityUpgrade(i){if(i===99)return;const u=CITY[i];if(!u)return;if(u.k==="moat"&&cl("wall")<10)return;const l=G.vup[i]|0,c=costOf(u,l);if(l>=LMAX||G.cr<c)return;G.cr-=c;G.vup[i]=l+1;if(u.k==="wall")G.vhp+=WALL_HP[l+1]-WALL_HP[l];sfx("chest");showBanner(u.n.toUpperCase()+" NÍVEL "+(l+1));saveDirty=1}
 const cityName=()=>(PL[0]&&PL[0].vn)||(!NET.foreign&&G.vname)||"Vila dos Slimes";
 const mmss=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
 /* ===== Multijogador online (PeerJS): quem entra primeiro vira o servidor ===== */
@@ -2244,7 +2287,7 @@ function cityWalls(half){const wl=cl("wall");
   for(const q of segs()){if(q.gate)continue;const f=wsOf(q.i);if(f<1&&f>0&&(Math.sin(q.a)>=0)===(half===1)&&Math.abs(q.x-camx-VW/2)<VW/2+40)hpBar(q.x,q.y-M.H-14,26,f,"#e8c25a")}
   if(half===1){gateDraw(M.H,M,-1);gateDraw(M.H,M,1)}}
  /* torres na muralha (com vida; caídas viram escombros); no alto, um atirador */
- if(half===1&&G.rep>0){const w=repWorker();if(w)hpBar(w.x,w.y-46,40,1-G.rep/20,G.inv||G.wact?"#888888":"#7aff7a")}
+ if(half===1&&G.rbOn&&!G.inv)for(const q of rbTargets())if(villagers.some(v=>v.rbK===q.k&&v.ham===2))hpBar(q.x,q.y-40,40,q.f,"#7aff7a")
  if(half===1){const st=cl("tow")>=3,M=MATS[Math.max(1,wl)],c=wl>=5?M.c:st?"#6a6e7a":"#7a5430",tp=wl>=5?M.top:st?"#959aa8":"#a07d4d";towers().forEach((t,i)=>{const x=t.x,y=t.y,h=st?78:62;
   if(t.dead){shadow(x,y+3,22);blk(x-16,y-10,32,10,"#4a4640");blk(x-10,y-18,14,8,c);blk(x+2,y-14,10,6,tp);if(R()<.1)burst(x+(R()-.5)*20,y-16,"#5a5a5a",3,1,0,-20);return}
   shadow(x,y+3,22);blk(x-15,y-h,30,h,c);blk(x+9,y-h,6,h,"rgba(0,0,0,.2)");blk(x-15,y-h,30,3,tp);
@@ -2350,7 +2393,12 @@ function drawVillager2(v){const pt=party?Math.abs(Math.sin(v.ph)):0,walk=v.wx||v
  if(v.t){const sp=SPR[v.t],b=MT[v.t],sc=b.drg||b.boss?.5:.85,lift=b.fl?6+Math.sin(time*5+v.ph)*2:0;shadow(v.x,v.y+12,Math.max(8,sw(sp)*.25*sc));
   spr(frameOf(sp,party||v.wx||v.wy||b.fl?1+Math.floor(time*(party?14:8)+v.ph)%6:0),v.x,v.y+12-lift-pt*8-walk,party?Math.sin(v.ph*.5)>0:v.fl,sc*(1+(pt<.2?(.2-pt)*.6:0)),sc*(1-(pt<.2?(.2-pt)*.6:0)));if(!party&&Math.sin(time*2+v.ph)>.97)txt("♥",v.x+ox,v.y+oy-sh(sp)*sc-4,"#ff7ab8",14,"center");return}
  if(v.atkT>0){const k=Math.sin((1-v.atkT/.25)*Math.PI)*8;v.x+=v.fl?-k:k;shadow(v.x,v.y+12,10);const vw=v.wx||v.wy?viewOf(v.wx,v.wy):1;slimeDraw(v.col,v.cs,v.x,v.y+12,v.fl,.9*(1+k*.015),.9*(1-k*.01),0,1,vw);v.x-=v.fl?-k:k;return}
- shadow(v.x,v.y+12,10);const q=party?(pt<.25?(.25-pt)*.7:-pt*.06):Math.sin(time*3+v.ph)*.04;slimeDraw(v.col,v.cs,v.x,v.y+12-pt*9-walk,party?Math.sin(v.ph*.5)>0:v.fl,.9*(1+q),.9*(1-q),0,1,party||!(v.wx||v.wy)?0:viewOf(v.wx,v.wy))}
+ shadow(v.x,v.y+12,10);const q=party?(pt<.25?(.25-pt)*.7:-pt*.06):Math.sin(time*3+v.ph)*.04,sq=v.ham===2?Math.max(0,Math.sin((v.hamT||0)/.5*6.283))*.06:0;slimeDraw(v.col,v.cs,v.x,v.y+12-pt*9-walk,party?Math.sin(v.ph*.5)>0:v.fl,.9*(1+q+sq),.9*(1-q-sq),0,1,party||!(v.wx||v.wy)?0:viewOf(v.wx,v.wy));if(v.ham)hammer(v)}
+/* martelo: carregado no ombro andando; trabalhando, sobe devagar e desce com força a cada batida */
+function hammer(v){const dir=v.fl?-1:1;let a=-.5;if(v.ham===2){const k=((v.hamT||0)/.5)%1;a=k<.75?-.4-k/.75*1.5:-1.9+(k-.75)/.25*2.3}
+ X.save();X.translate(Math.round(v.x+dir*11+ox),Math.round(v.y+4+oy));X.scale(dir,1);X.rotate(a+1.57);
+ X.fillStyle="#3a2412";X.fillRect(-2,-19,4,20);X.fillStyle="#7a4e28";X.fillRect(-1.2,-19,2.4,19);
+ X.fillStyle="#2a2c34";X.fillRect(-7,-25,14,8);X.fillStyle="#8a8e98";X.fillRect(-6,-24,12,6);X.fillStyle="#d8dce6";X.fillRect(-6,-24,12,2);X.restore()}
 function drawElder(){const pt=party?Math.abs(Math.sin(time*8)):0;shadow(elder.x,elder.y+12,14);slimeDraw(6,COS.findIndex(c=>c.n==="Bigode"),elder.x,elder.y+12-pt*7,0,1.35,1.35,0,1);
  txt("Ancião",elder.x+ox,elder.y+oy+28,"#ffffff",14,"center");const p0=PL[0];if(G.ch>=2&&p0&&p0.vn&&p0.qi<NQ&&p0.qa!==1&&Math.sin(time*5)>-.4)txt(p0.qa===2?"?":"!",elder.x+ox,elder.y+oy-42,p0.qa===2?"#7aff7a":"#ffe14a",26,"center")}
 function magicCircle(x,y,c,k){X.save();X.translate(Math.round(x+ox),Math.round(y+oy));X.scale(1,.42);X.rotate(time*3);X.globalAlpha=.75*clamp(k,0,1);X.strokeStyle=c;X.lineWidth=2;
@@ -2685,8 +2733,7 @@ function confirmVillage(){if(NMI)NMI.blur();const nm=nameBuf.trim().slice(0,16)|
  G.vname=nm;G.ch=2;G.wave=1;G.wt=25;G.wact=0;G.vhp=vmax();say("Os slimes comemoram: bem-vindo a "+nm+"! Os orcs atacam em 25s. Use o cristal central para melhorar a vila.")}
 function upgItems(){const items=CITY.map((u,i)=>{const l=G.vup[i]|0,c=costOf(u,l),lock=u.k==="moat"&&cl("wall")<10;return{t:u.n+" · Nv "+l+(lock?" · precisa da muralha nível 10":l>=LMAX?" · máximo":" → "+(l+1)+" · "+c+" ouro"),dim:lock||l>=LMAX||G.cr<c,act:()=>{if(lock||l>=LMAX||G.cr<c){sfx("hurt");return}
   if(NET.mode==="client"){netHit(-2,i,98);sfx("ok");say("Pedido enviado: "+u.n+" nível "+(l+1)+". O ouro sai do tesouro da cidade.");return}cityUpgrade(i)}}});
- const rc=repCost(),busy=G.inv||G.wact;if(G.rep>0)items.push({t:"Consertando a muralha… "+Math.ceil(G.rep)+"s"+(busy?" (pausado na batalha)":""),dim:1,act:()=>sfx("hurt")});
- else if(rc)items.push({t:"Consertar muralha e torres · "+rc+" ouro · 20s"+(busy?" (só fora de batalha)":""),dim:busy||G.cr<rc,act:()=>{if(busy||G.cr<rc){sfx("hurt");return}if(NET.mode==="client"){netHit(-2,99,98);sfx("ok");say("Pedido de conserto enviado.");return}startRepair()}});
+ {const L=rbTargets();if(L.length){const f=L.reduce((a,q)=>a+q.f*(q.w?1:2),0),n=L.reduce((a,q)=>a+(q.w?1:2),0);items.push({t:(G.inv||G.wact?"Reconstrução: começa quando a invasão acabar":"Guardas reconstruindo a cidade… "+Math.round(100*f/n)+"%"),dim:1,act:()=>sfx("ui")})}}
  return[...items,{t:"Renomear a cidade (só você vê)",act:()=>{state="naming";nameBuf=PL[0].vn||"";nameSel=0;sfx("ok")}},{t:"Fechar",act:()=>{state="play"}}]}
 /* ===== Fluxo ===== */
 function clearFx(){allyZ=[];shots=[];eshots=[];parts=[];clouds=[];torn=[];bolts=[];rings=[];nums=[];flashes=[];pillars=[]}
