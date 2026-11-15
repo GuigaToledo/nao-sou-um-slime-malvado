@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.6.0";
+const VERSION="v3.7.0";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -892,7 +892,7 @@ const tileAt=(x,y)=>map[Math.floor(y/T)]?.[Math.floor(x/T)];
 /* quem voa passa por cima de árvores, da muralha da cidade e do fosso (mas não pelas paredes das cavernas) */
 const solid=(x,y,o)=>{const tx=Math.floor(x/T),ty=Math.floor(y/T),t=map[ty]?.[tx];if(t===undefined)return true;
  if(o.fly&&(t===5||t===15||t===16||(t===1&&ZONES[zoneAt(tx,ty)].out)))return false;
- if(o.inv&&(t===5||(t===1&&ZONES[zoneAt(tx,ty)].out)))return false;/* invasores atravessam a mata */return t===1||t===3||t===5||t===10||t===14||((t===2||t===15||t===16)&&!o.fly)||(t===9&&!o.sm)};
+ if(o.inv&&(t===5||(t===1&&ZONES[zoneAt(tx,ty)].out)))return false;/* invasores atravessam a mata */return t===1||t===3||t===5||t===10||t===14||((t===2||t===15||t===16)&&!o.fly)||(t===9&&!o.sm&&o.slot===undefined)};/* v3.7: o jogador passa por cima das pedras */
 function mv(o,dx,dy){const r=9,h=(x,y)=>solid(x-r,y-r,o)||solid(x+r,y-r,o)||solid(x-r,y+r,o)||solid(x+r,y+r,o);if(!h(o.x+dx,o.y))o.x+=dx;if(!h(o.x,o.y+dy))o.y+=dy}
 const u32=h=>{const[r,g,b]=hx3(h);return(0xff000000|(b<<16)|(g<<8)|r)>>>0};
 const MMC={15:u32("#9aa0aa"),16:u32("#3a7ac8"),wall:u32("#1a1e2a"),out:u32("#143018"),0:u32("#4a5068"),2:u32("#000000"),3:u32("#a35bff"),4:u32("#3a7a30"),5:u32("#1e4a22"),6:u32("#2f6a3a"),7:u32("#f06a20"),9:u32("#9aa0aa"),14:u32("#8a8a9a"),17:u32("#5aa8d8")};
@@ -1570,7 +1570,10 @@ const guardsN=()=>Math.min(10,cl("bar"));
 const defAlive=()=>villagers.some(v=>!v.ko);
 function reviveDefenders(){for(const v of villagers){v.ko=0;v.mhp=defHP(v);v.hp=v.mhp}}
 /* postos de defesa: anéis ao redor do cristal (8 perto, 12 no meio, o resto mais longe) */
-function postOf(v){let i=villagers.indexOf(v);let r=2.6,n=8;if(i>=8){i-=8;r=4.2;n=12;if(i>=12){i-=12;r=5.8;n=Math.max(1,villagers.length-20)}}const a=i/n*6.283+(r>3?.26:0);return[cpX+Math.cos(a)*r*T,cpY+20+Math.sin(a)*r*T*.75]}
+/* v3.7: só os slimes guerreiros (guardas) vão para perto do cristal; os moradores monstros cercam a muralha por fora; os outros slimes ficam em casa */
+function postOf(v){if(v.t){const L=villagers.filter(q=>q.t),i=L.indexOf(v),n=Math.max(1,L.length),a=i/n*6.283+.13,d=1.13;return[cpX+Math.cos(a)*d*WALL_RX*T,cpY+Math.sin(a)*d*WALL_RY*T]}
+ if(!v.g)return[v.hx,v.hy];
+ let i=villagers.filter(q=>q.g).indexOf(v),r=2.6,n=8;if(i>=8){i-=8;r=4.2;n=Math.max(1,guardsN()-8)}const a=i/n*6.283+(r>3?.26:0);return[cpX+Math.cos(a)*r*T,cpY+20+Math.sin(a)*r*T*.75]}
 /* passeio: guardas fazem a ronda por dentro da muralha; os outros passeiam pelo campo em volta da cidade (saem e voltam pelo portão) */
 function roam(v,dt){v.rt=(v.rt||0)-dt;const far=v.rx===undefined||Math.hypot(v.x-v.rx,v.y-v.ry)<12;
  if(v.rt<=0||far){v.rt=6+R()*8;for(let k=0;k<12;k++){const a=R()*6.283,d=v.g?.55+R()*.35:(cl("wall")?1.7+R()*1.2:.4+R()*1.6),x=cpX+Math.cos(a)*d*WALL_RX*T,y=cpY+Math.sin(a)*d*WALL_RY*T;if(!solid(x,y,v)){v.rx=x;v.ry=y;break}}}
@@ -1592,11 +1595,12 @@ function defend(v,dt){if(v.ko)return true;if(!v.mhp||v.hp===undefined){v.mhp=def
  /* defensores saem pelo portão para pegar invasores até um pouco além do fosso */
  /* defende o cristal: pega invasores dentro da muralha ou perto do seu posto */
  /* cada defensor age sozinho: só ataca quem entrar no seu alcance (perto dele ou do seu posto), e depois volta ao posto */
- const ps=postOf(v),RG=v.g?190:150;let b=null,bd=1e9;for(const m of mons){if(!m.inv)continue;const d=Math.hypot(m.x-v.x,m.y-v.y);if(d>RG&&Math.hypot(m.x-ps[0],m.y-ps[1])>RG*.8)continue;if(d<bd){bd=d;b=m}}
+ /* v3.7: procura alvo do mesmo jeito que as invocações: perto de si (240) ou perto do seu posto (360) */
+ const ps=postOf(v);let b=null,bd=1e9;for(const m of mons){if(!m.inv)continue;const d=Math.hypot(m.x-v.x,m.y-v.y);if(d>240&&Math.hypot(m.x-ps[0],m.y-ps[1])>360)continue;if(d<bd){bd=d;b=m}}
  v.cd=(v.cd||0)-dt;v.atkT=(v.atkT||0)-dt;const sp=(v.g?80:65)*dt;
  if(!b)return false;
  const ex=b.x-v.x,ey=b.y-v.y,d=bd||1;v.fl=ex<0;
- if(d>26){walkTo(v,b.x,b.y,sp)}else{v.wx=v.wy=0;if(v.cd<=0){v.cd=.8;v.atkT=.25;if(NET.mode!=="client")hurt(b,defDmg(v)*(.85+R()*.3),0,null,null);for(let i=0;i<3;i++)burst(b.x,b.y-8,"#ffffff",3,.2,(R()-.5)*100,(R()-.5)*100)}}
+ const AR=v.t?34:26;if(d>AR){walkTo(v,b.x,b.y,sp)}else{v.wx=v.wy=0;if(v.cd<=0){v.cd=.8;v.atkT=.25;if(NET.mode!=="client")hurt(b,defDmg(v)*(.85+R()*.3),0,null,null);for(let i=0;i<3;i++)burst(b.x,b.y-8,"#ffffff",3,.2,(R()-.5)*100,(R()-.5)*100)}}
  return true}
 /* alvos dos invasores: voadores vão primeiro nas torres; quem anda, do lado de fora, quebra a muralha (ou uma torre) no caminho,
    a não ser que um portão ou buraco esteja perto; lá dentro atacam os defensores e, só no fim, o cristal */
@@ -1896,7 +1900,7 @@ function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floo
    tile(face?W2.wf[h%2]:W2.wt[h%2],px,py);if(t===10)imgS(CRKS,px,py);if(!face){if(!isWall(map[ty][tx-1])&&map[ty][tx-1]!==14)blk(px,py,2,T,"#05060a");if(!isWall(map[ty][tx+1])&&map[ty][tx+1]!==14)blk(px+T-2,py,2,T,"#05060a")}continue}
   if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&Math.abs(VCX-tx)<40)||(Math.abs(tx-VCX)<=1&&Math.abs(VCY-ty)<40&&Math.abs(VCY-ty)>12));tile(vill?DIRT:bt.fl[h%3],px,py);paint(tx,ty,px,py);if(t===5)imgS(TRKS,px,py);
    /* v3.6: cristais e cogumelos brilhantes iluminam a noite (cristais em neve, deserto e pedra; cogumelos nas matas) */
-   else if(z.gl&&!vill){const d=h%(z.gl==="c"?61:47);if(d===0){if(z.gl==="c"){imgS(CRY,px+6,py+14);const c=GLC[z.bio]||"120,220,255";LT.push([px+16,py+20,170,.55+.35*NIGHT]);GL.push([px+16,py+20,34,c,.22+.12*NIGHT+.05*Math.sin(time*2+tx)])}
+   else if(z.gl&&!vill){const d=h%(z.gl==="c"?173:47);if(d===0){if(z.gl==="c"){imgS(CRY,px+6,py+14);const c=GLC[z.bio]||"120,220,255";LT.push([px+16,py+20,170,.55+.35*NIGHT]);GL.push([px+16,py+20,34,c,.22+.12*NIGHT+.05*Math.sin(time*2+tx)])}
     else{imgS(MUSH,px+8,py+14);const c=GLC[z.bio]||"60,220,190";LT.push([px+16,py+18,110,.4+.35*NIGHT]);GL.push([px+16,py+18,18,c,.14+.12*NIGHT])}}}continue}
   if(t===17){shallow(px,py,tx,ty);continue}
   if(t===2){tile(CHT,px,py);if(map[ty-1]?.[tx]!==2)X.drawImage(SHD,Math.round(px+ox),Math.round(py+oy),T,12);continue}
