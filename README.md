@@ -117,6 +117,17 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v3.7.0 (som medieval, skins novas e rebalanceamento)
+
+- **Música nova:** os mesmos estilos eletrônicos (Minimal, Dub, House, Tech House, Acid, Techno, Drum and Bass, Jungle, Breakbeat…) agora tocados **como se fossem feitos na Idade Média**: alaúde, harpa, flauta doce, charamela, rabeca, sanfona de roda, sinos, tabor e pandeiro, com melodias em modos medievais, reverberação de salão e compressor para um som mais cheio.
+- **Sons novos:** cada família de monstros tem voz própria (grunhido de orc, uivo de lobo, rugido de dragão, chocalho de esqueleto…) para atacar, se ferir e morrer, e **todo ataque e toda magia** (sua, das invocações e dos monstros) tem som, mais alto quando está perto e do lado em que acontece.
+- **34 skins novas**, uma para cada monstro, cada uma com uma **magia nova** (Eco Sônico, Chuva de Lanças, Casulo, Nevasca, Chuva de Meteoros, Olho da Tempestade, Erupção…). Saem ao devorar um **Elite** daquele monstro, o **chefe gigante** da região dele ou o próprio chefe. As skins antigas continuam. A tela de visuais agora rola.
+- **O slime passa por cima das pedras.**
+- **Defesa da cidade:** na invasão, os monstros moradores ficam **em volta da muralha, por fora**, e procuram alvos como as invocações. Só os **slimes guerreiros** vão para perto do cristal.
+- **Menos cristais** espalhados pelo mapa.
+- **Rebalanceamento por simulação** (pensando em 2 invocações + skin): monstros comuns mais resistentes, cada chefe calibrado para lutas de cerca de 45 s a 1 min, chefes com **tenacidade** (prender e paralisar dura menos neles), força de cada skin e de cada invocação ajustada e invasões recalibradas.
+- **Mais leve em celulares e PCs lentos:** se o jogo ficar lento, primeiro desliga efeitos e depois baixa a resolução aos poucos (até 60%); reverberação mais leve nesses aparelhos.
+
 ## Novidades da v3.6.0 (continente novo)
 
 - **Mapa novo, bem maior** (720 × 720 blocos, quase o dobro do anterior), no formato de um **continente cercado de mar**, com praias em volta.
