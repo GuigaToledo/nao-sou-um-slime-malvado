@@ -613,3 +613,10 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 - **Na base fica só 1 slime;** os outros moradores-slime são os **cavaleiros da Guilda** (1 por nível).
 - **Cada cavaleiro usa uma skin que você liberou, sem repetir**, da mais forte para a mais fraca, e **cada um tem uma cor diferente**. As **Asas de Anjo** têm prioridade: assim que você as libera, o primeiro cavaleiro já as equipa e **cura todos os cavaleiros, moradores e invocações da base** (20% da vida a cada 6 s, quando alguém está ferido). Os outros cavaleiros usam o poder da própria skin em combate.
 - **O Ancião agora é dourado e brilhante**, com uma **aura que sobe do chão**, como um guerreiro lendário.
+
+## v3.17.0 (mapa mais realista)
+
+- **Árvores de vários tipos, conforme o bioma:** carvalhos, **frutíferas** (maçã, laranja, limão e pêssego), **cerejeiras floridas**, bétulas, pinheiros (com neve no frio), palmeiras com cocos, cactos no deserto, árvores secas em terras áridas e queimadas, e **arbustos floridos** (rosa, amarelo, branco, roxo e vermelho).
+- **Pedras de 6 formatos** (pedregulho, monte, agulha, laje, rachada, com musgo/neve/brasas) em 6 tipos de rocha conforme o lugar (cinza, arenito, basalto com lava, neve, musgo e carmesim).
+- **Árvores e pedras bloqueiam quem anda; só quem voa passa por cima.** As pedras **só quebram com skins de força** (Capacete Viking, Chifres de Touro, Coroa de Rei, Chifres do Dragão de Pedra, Elmo de Pedra, Clava de Ogro, Elmo do Minotauro, Gorro de Gigante, Pirata, Elmo do Cavaleiro Negro, Escamas de Rocha, Elmo de Magma): é só andar contra a pedra. Todos os chefes, a fortaleza e as minas continuam alcançáveis a pé.
+- **Água nova:** ondas que andam, profundidade variada, brilho do sol e **espuma branca na beira**; no raso, reflexos de luz no fundo de areia. **A grama balança ao vento** (em gráficos altos).

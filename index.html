@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.16.0";
+const VERSION="v3.17.0";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -868,6 +868,100 @@ const CAN=CANP.map((P,pi)=>[0,1].map(()=>mkS(48,48,g=>{const bl=[];for(let i=0;i
  g.fillStyle="rgba(255,255,220,.16)";g.beginPath();g.ellipse(18,13,9,5,-.4,0,6.283);g.fill();
  if(pi===0)for(let i=0;i<4;i++)circ(g,12+rnd()*24,14+rnd()*16,.9,pick(["#e84a4a","#ffb03a"]))})));
 const RBS=mkS(32,32,g=>{ball(g,11,15,9.4,8.4,"#7d8797");ball(g,22,20,7.6,7,"#6a7484");ball(g,15,25,5.4,4.6,"#8a94a4")});
+/* ===== v3.17: mapa mais realista — vários tipos de árvore, frutíferas, arbustos floridos, pedras de formatos diferentes ===== */
+/* copa genérica (no estilo das copas antigas) com frutas ou flores opcionais */
+function mkCanopy(P,fruit,blossom){return mkS(48,48,g=>{const bl=[];for(let i=0;i<46;i++){const a=rnd()*6.283,r=Math.sqrt(rnd())*15.5;bl.push([24+Math.cos(a)*r,21+Math.sin(a)*r*.82,3.6+rnd()*3.8])}
+ g.fillStyle="rgba(4,14,8,.6)";g.beginPath();g.ellipse(24,23,21.5,18.5,0,0,6.283);g.fill();
+ for(const[x,y,s]of bl.sort((a,b)=>b[1]-a[1])){const k=clamp(Math.floor((40-y+(24-x)*.25)/9),0,3);ball(g,x,y,s,s*.9,P[k],0,0)}
+ for(let i=0;i<70;i++){const a=rnd()*6.283,r=Math.sqrt(rnd())*16,x=24+Math.cos(a)*r,y=21+Math.sin(a)*r*.8,up=y<21&&x<26;g.fillStyle=up?lit(P[3],.25):P[clamp(Math.floor((40-y)/10),0,2)];g.beginPath();g.ellipse(x,y,1.1,.6,rnd()*3,0,6.283);g.fill()}
+ g.fillStyle="rgba(255,255,220,.16)";g.beginPath();g.ellipse(18,13,9,5,-.4,0,6.283);g.fill();
+ if(blossom)for(let i=0;i<40;i++){const a=rnd()*6.283,r=Math.sqrt(rnd())*15,x=24+Math.cos(a)*r,y=21+Math.sin(a)*r*.8;circ(g,x,y,.9+rnd()*.6,pick(blossom))}
+ if(fruit)for(let i=0;i<11;i++){const a=rnd()*6.283,r=Math.sqrt(rnd())*13,x=24+Math.cos(a)*r,y=23+Math.sin(a)*r*.75;ball(g,x,y,1.7,1.8,fruit,0,1);circ(g,x-.5,y-.6,.45,"rgba(255,255,255,.7)")}})}
+const TRP={oak:["#2c7334","#43933e","#5cb04a","#7acc5a"],jungle:["#1a5a24","#2a8030","#4cae3a","#96d84a"],dark:["#16302a","#22463a","#2e5c48","#4a7a5a"],birch:["#5a8a2a","#7aaa3a","#9ac84a","#c8e86a"],
+ sav:["#5a6a1e","#7a8a2a","#9aa83a","#c8c860"],swamp:["#2a3a1e","#3e5228","#566e34","#7a8e48"],crim:["#5a1a1a","#8a2a24","#b04030","#e06a4a"],burnt:["#2a1e18","#3e2a20","#584030","#7a5a40"]};
+const TREE={};
+TREE.oak=[0,1].map(()=>mkCanopy(TRP.oak));TREE.jungle=[0,1].map(()=>mkCanopy(TRP.jungle));TREE.dark=[0,1].map(()=>mkCanopy(TRP.dark));TREE.sav=[0,1].map(()=>mkCanopy(TRP.sav));
+TREE.swamp=[0,1].map(()=>mkCanopy(TRP.swamp));TREE.crim=[0,1].map(()=>mkCanopy(TRP.crim));TREE.burnt=[mkCanopy(TRP.burnt)];TREE.birch=[0,1].map(()=>mkCanopy(TRP.birch));
+/* frutíferas: maçã, laranja, limão, pêssego; e cerejeira florida */
+TREE.fruit=["#e8303a","#ff8a1f","#f4e04a","#ffa088"].map(f=>mkCanopy(TRP.oak,f));TREE.blossom=[mkCanopy(["#c86a9a","#e88ab8","#f8b0d0","#ffe0f0"],null,["#ffffff","#ffd0e8"])];
+/* tronco claro da bétula */
+const BIRT=mkS(32,32,g=>{g.fillStyle="rgba(0,0,0,.3)";g.beginPath();g.ellipse(16,31,9,2.4,0,0,6.283);g.fill();g.fillStyle="#ece8dc";g.fillRect(13,6,6,26);g.fillStyle="#2a2420";for(const[y,w]of[[9,3],[14,2],[19,4],[24,2],[28,3]])g.fillRect(13+(y%2),y,w,1.2);g.fillStyle="rgba(0,0,0,.18)";g.fillRect(17,6,2,26)});
+/* pinheiro (normal e com neve): 48x72, desenhado inteiro na camada das copas */
+function mkPine(snow,P){return mkS(48,72,g=>{g.fillStyle="rgba(0,0,0,.3)";g.beginPath();g.ellipse(24,70,12,3,0,0,6.283);g.fill();g.fillStyle="#5a3a1e";g.fillRect(21,56,6,15);
+ for(let i=0;i<5;i++){const yt=4+i*11,w=7+i*4.2,yb=yt+17;poly(g,[24,yt,24+w,yb,24-w,yb],P[1+(i%2)],1);g.fillStyle=P[0];g.beginPath();g.moveTo(24,yt+2);g.lineTo(24+w,yb);g.lineTo(24+w*.2,yb);g.closePath();g.fill();
+  if(snow){g.fillStyle="#ffffff";g.beginPath();g.moveTo(24,yt);g.lineTo(24+w*.55,yt+9);g.quadraticCurveTo(24,yt+7,24-w*.55,yt+9);g.closePath();g.fill()}}})}
+TREE.pine=[mkPine(0,["#123a24","#1e5a30","#2a7038"]),mkPine(0,["#14402a","#225e34","#2e783e"])];TREE.snowpine=[mkPine(1,["#123a2e","#1e5a40","#2a704a"]),mkPine(1,["#16402e","#245e44","#307a50"])];
+/* palmeira com cocos */
+const PALM=[0,1].map(v=>mkS(56,72,g=>{g.fillStyle="rgba(0,0,0,.3)";g.beginPath();g.ellipse(26,70,10,2.6,0,0,6.283);g.fill();const bx=v?6:-4;
+ for(let i=0;i<10;i++){const t=i/10,x=26+bx*t*t,y=70-t*48;ball(g,x,y,3.4,3,i%2?"#8a6a3a":"#a07c48",0,0)}const tx=26+bx,ty=22;
+ for(let k=0;k<7;k++){const a=-Math.PI+k*Math.PI/6+(v?.1:-.1),L=20+rnd()*4;g.strokeStyle=k%2?"#2e8a2a":"#3aa83a";g.lineWidth=3;g.lineCap="round";g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx+Math.cos(a)*L*.6,ty+Math.sin(a)*L*.6-6,tx+Math.cos(a)*L,ty+Math.sin(a)*L*.7+6);g.stroke();
+  g.strokeStyle="#5ac84a";g.lineWidth=.8;g.stroke()}for(const[a,b]of[[-2,2],[2,3],[0,4.5]])ball(g,tx+a,ty+b,2.2,2.2,"#6a4420",0,1)}));
+/* cacto e árvore seca */
+const CACT=[0,1].map(v=>mkS(40,56,g=>{g.fillStyle="rgba(0,0,0,.3)";g.beginPath();g.ellipse(20,54,9,2.4,0,0,6.283);g.fill();const C="#3a8a3a";
+ limb(g,[20,54,20,8],C,9);limb(g,v?[20,34,11,34,11,20]:[20,30,29,30,29,16],C,6);limb(g,v?[20,24,28,24,28,14]:[20,40,12,40,12,28],C,5);
+ g.strokeStyle="rgba(20,60,20,.6)";g.lineWidth=.6;for(const x of[18,20,22]){g.beginPath();g.moveTo(x,10);g.lineTo(x,52);g.stroke()}if(v)circ(g,20,7,2.2,"#ff7ab8")}));
+const DEAD=[0,1].map(v=>mkS(48,64,g=>{g.fillStyle="rgba(0,0,0,.3)";g.beginPath();g.ellipse(24,62,10,2.6,0,0,6.283);g.fill();const C="#5a4a3e";
+ limb(g,[24,62,24,26,v?30:18,14],C,4.5);limb(g,[24,40,12,30,8,22],C,2.6);limb(g,[24,34,36,24,40,14],C,2.4);limb(g,[24,28,v?16:34,18],C,1.8);limb(g,[12,30,10,36],C,1.2)}));
+/* arbustos floridos (baixos): rosa, amarelo, branco, roxo e vermelho */
+const BUSH=["#ff7ab8","#ffd84a","#ffffff","#b48aff","#ff4a4a"].map(fc=>mkS(36,28,g=>{g.fillStyle="rgba(0,0,0,.3)";g.beginPath();g.ellipse(18,25,14,3,0,0,6.283);g.fill();
+ for(let i=0;i<14;i++){const a=rnd()*6.283,r=Math.sqrt(rnd())*9;ball(g,18+Math.cos(a)*r*1.3,15+Math.sin(a)*r*.7,4+rnd()*2,3.6+rnd()*2,pick(["#2c7334","#3a8a3e","#4caa48"]),0,0)}
+ for(let i=0;i<16;i++){const a=rnd()*6.283,r=Math.sqrt(rnd())*10;circ(g,18+Math.cos(a)*r*1.3,14+Math.sin(a)*r*.7,1.1,fc);circ(g,18+Math.cos(a)*r*1.3,14+Math.sin(a)*r*.7,.4,"#fff4b0")}}));
+/* qual árvore nasce em cada bioma (sempre a mesma para o mesmo bloco) */
+function treeKind(bn,h){const r=(h>>>3)%100;
+ switch(bn){case"grama":return r<40?"oak":r<58?"fruit":r<70?"blossom":r<82?"birch":"bush";
+  case"selva":return r<45?"jungle":r<70?"palm":r<82?"fruit":"bush";case"sombrio":return r<55?"dark":r<85?"pine":"dead";
+  case"taiga":return r<70?"pine":r<88?"birch":"bush";case"neve":return r<85?"snowpine":"dead";case"brejo":return r<60?"swamp":r<82?"dead":"bush";
+  case"savana":return r<45?"sav":r<62?"palm":r<82?"bush":"dead";case"deserto":return r<60?"cactus":r<85?"palm":"dead";case"praia":return r<82?"palm":"bush";
+  case"rochoso":case"montanha":return r<50?"pine":r<80?"oak":"dead";case"ermo":return r<50?"dead":r<75?"bush":"sav";case"vulcao":return r<80?"dead":"burnt";case"carmesim":return r<70?"crim":"dead";
+  default:return"oak"}}
+/* desenha a árvore do bloco (camada de cima, depois dos personagens) */
+function treeDraw(tx,ty,z,under){const h=hs(tx,ty)>>>0,k=treeKind(BIO[z.bio].n,h),x=tx*T,y=ty*T;X.globalAlpha=under?.45:1;
+ if(k==="pine"||k==="snowpine"){const L=TREE[k];imgS(L[h%L.length],x-8,y+32-72)}
+ else if(k==="palm")imgS(PALM[h%2],x-12,y+32-72);else if(k==="cactus")imgS(CACT[h%2],x-4,y+32-56);else if(k==="dead")imgS(DEAD[h%2],x-8,y+32-64);
+ else if(k==="bush")imgS(BUSH[h%BUSH.length],x-2,y+32-28);
+ else{const L=TREE[k]||TREE.oak;imgS(L[h%L.length],x-8,y-36)}X.globalAlpha=1}
+/* tronco no chão só para as árvores de copa */
+function trunkDraw(tx,ty,z,px,py){const k=treeKind(BIO[z.bio].n,hs(tx,ty)>>>0);if(k==="birch")imgS(BIRT,px,py);else if(k==="pine"||k==="snowpine"||k==="palm"||k==="cactus"||k==="dead"||k==="bush"){}else imgS(TRKS,px,py)}
+/* pedras: 6 formatos em 6 tipos de rocha (cinza, arenito, basalto, neve, musgo, carmesim) */
+const RPAL=[["#4a5260","#6a7484","#8a94a4","#9aa4b4"],["#8a6a3a","#b08a50","#d4b070","#e8d4a0"],["#1e1a1e","#34282a","#4a3a38","#ff8a1f"],["#6a7a8a","#8a9aaa","#b0c0d0","#ffffff"],["#3a4a3a","#56645a","#76847a","#4aa83a"],["#4a2420","#6a3428","#8a4a3a","#c86a4a"]];
+const ROCK=RPAL.map((P,pi)=>[0,1,2,3,4,5].map(s=>mkS(32,40,g=>{g.fillStyle="rgba(0,0,0,.32)";g.beginPath();g.ellipse(16,37,13,3,0,0,6.283);g.fill();
+ if(s===0){ball(g,16,26,12,11,P[1]);ball(g,12,22,5,3.6,P[2],-.3,0)}
+ else if(s===1){ball(g,10,28,8,7.4,P[1]);ball(g,21,30,7,6.4,P[0]);ball(g,15,22,6.4,5.6,P[2])}
+ else if(s===2){poly(g,[8,37,11,14,16,4,21,12,25,37],P[1]);poly(g,[16,4,21,12,25,37,18,37],P[0],0);g.fillStyle=P[2];g.fillRect(12,18,2,10)}
+ else if(s===3){ball(g,16,31,14,6.5,P[1]);g.fillStyle=P[2];g.beginPath();g.ellipse(15,28.5,11,3.4,0,0,6.283);g.fill()}
+ else if(s===4){ball(g,11,27,8,9.4,P[1]);ball(g,22,28,7.4,8.6,P[0]);g.strokeStyle="#120c1a";g.lineWidth=.8;g.beginPath();g.moveTo(16,18);g.lineTo(15,26);g.lineTo(17,34);g.stroke()}
+ else{ball(g,16,27,11.5,10,P[1]);for(let i=0;i<5;i++)ball(g,9+rnd()*14,20+rnd()*6,2.4,1.4,P[3],0,0)}
+ if(pi===2&&s!==3){g.strokeStyle="rgba(255,140,40,.9)";g.lineWidth=.8;g.beginPath();g.moveTo(12,26);g.lineTo(16,30);g.lineTo(20,27);g.stroke()}})));
+const rockPal=bn=>bn==="deserto"||bn==="savana"||bn==="praia"||bn==="ermo"?1:bn==="vulcao"?2:bn==="neve"||bn==="taiga"?3:bn==="selva"||bn==="brejo"||bn==="sombrio"||bn==="grama"?4:bn==="carmesim"?5:0;
+function rockDraw(tx,ty,z,px,py){const h=hs(tx,ty)>>>0;imgS(ROCK[rockPal(BIO[z.bio].n)][(h>>>2)%6],px,py-8)}
+/* pedras só quebram com skins de força (pisão, investida, terremoto, explosão…) */
+const BRK_K=new Set(["stomp","charge","sp_quake","sp_stampede","sp_avalanche","bomb","sp_eruption","sp_darkcharge","sp_thorns"]);
+const canBreakRock=p=>{const c=COS[p.skin];if(!c||!c.k)return false;if(/Pedra|Rocha|Ogro|Gigante/.test(c.n))return true;const ks=Array.isArray(c.k)?c.k:String(c.k).split(",");return ks.some(k=>BRK_K.has(k))};
+const RB=new Set();
+function breakRock(tx,ty,send){if(map[ty]?.[tx]!==9)return;map[ty][tx]=4;mmTile(tx,ty);const k=ty*MW+tx;RB.add(k);const z=ZONES[BZ[k]],P=RPAL[rockPal(BIO[z.bio].n)];
+ for(let i=0;i<20;i++)burst(tx*T+16,ty*T+16,pk(P),4,.8,(R()-.5)*180,-R()*160,null,300);shake=Math.max(shake,5);sfx("stomp");if(send&&NET.mode==="client")netHit(-1000-k,0,96)}
+let rockHint=0;
+function rockPush(p,dt){if(!p.mv||p.fly){p.brkT=0;return}const tx=Math.floor((p.x+p.fx*18)/T),ty=Math.floor((p.y+p.fy*18)/T);if(map[ty]?.[tx]!==9){p.brkT=0;return}
+ if(!canBreakRock(p)){if(time>rockHint){rockHint=time+20;say("Essa pedra só quebra com uma skin de força (Capacete Viking, Chifres de Touro, Clava de Ogro, Elmo do Minotauro, Pirata…) ou voando por cima.")}return}
+ p.brkT=(p.brkT||0)+dt;if(R()<.3)burst(tx*T+16,ty*T+20,"#a0a0a0",2,.3,(R()-.5)*80,-40);if(p.brkT>.35){p.brkT=0;breakRock(tx,ty,1)}}
+/* água mais bonita: profundidade, ondas que andam, brilho do sol e espuma na beira */
+const isWat=t=>t===16||t===17;
+function shoreFoam(px,py,tx,ty,deep){const a=.35+.25*Math.sin(time*2.5+tx*.7+ty*.5);for(const[dx,dy]of[[0,-1],[0,1],[-1,0],[1,0]]){const n=map[ty+dy]?.[tx+dx];if(n===undefined||isWat(n))continue;
+  X.fillStyle="rgba(255,255,255,"+a+")";if(dy<0)blk(px,py,T,3,X.fillStyle);if(dy>0)blk(px,py+T-3,T,3,X.fillStyle);if(dx<0)blk(px,py,3,T,X.fillStyle);if(dx>0)blk(px+T-3,py,3,T,X.fillStyle);
+  if(!LOWFX){X.fillStyle="rgba(120,220,230,.25)";if(dy<0)blk(px,py+3,T,6,X.fillStyle);if(dy>0)blk(px,py+T-9,T,6,X.fillStyle);if(dx<0)blk(px+3,py,6,T,X.fillStyle);if(dx>0)blk(px+T-9,py,6,T,X.fillStyle)}}}
+function water(px,py,tx,ty){const h=hs(tx,ty),v=(h%7)/7;blk(px,py,T,T,v<.5?"#1f5488":"#225a8e");
+ if(!LOWFX){const s=(time*12+tx*9+ty*13)%T,s2=(time*7+tx*5+ty*17+16)%T;X.fillStyle="rgba(150,205,255,.28)";blk(px+((tx*7)%12),py+s,14,1.6,X.fillStyle);blk(px+((ty*5)%14)+10,py+s2,12,1.4,"rgba(200,235,255,.22)");
+  if((h+Math.floor(time*1.5))%29===0&&NIGHT<.5){blk(px+12,py+10,4,1,"#ffffff");blk(px+13.5,py+8.5,1,4,"#ffffff")}}
+ else{const s=(time*14+tx*7+ty*11)%T;blk(px,py+s,T,2,"rgba(170,215,255,.35)")}
+ if(typeof mo==="function"&&mo()>=3&&Math.hypot(px-cpX,py-cpY)<WALL_RX*2*T)GL.push([px+16,py+16,10,"120,180,255",.12]);shoreFoam(px,py,tx,ty,1)}
+function shallow(px,py,tx,ty){blk(px,py,T,T,"#3f9ac0");blk(px,py,T,T,"rgba(230,210,150,.18)");
+ if(!LOWFX){for(let k=0;k<2;k++){const ph=time*1.6+tx*1.3+ty*.9+k*2.4,yy=py+8+k*14+Math.sin(ph)*3;X.strokeStyle="rgba(230,250,255,.35)";X.lineWidth=1;X.beginPath();X.moveTo(Math.round(px+ox+2),Math.round(yy+oy));X.quadraticCurveTo(Math.round(px+ox+16),Math.round(yy+oy+Math.sin(ph*1.3)*4),Math.round(px+ox+30),Math.round(yy+oy));X.stroke()}}
+ else{const s=(time*18+tx*5+ty*9)%T;blk(px,py+s,T,2,"rgba(200,235,255,.35)")}
+ shoreFoam(px,py,tx,ty,0)}
+/* grama que balança ao vento (gráficos altos) */
+const SWAY=new Set(["grama","selva","savana","brejo","sombrio","taiga"]);
+function grassSway(tx,ty,px,py,bn,h){if(LOWFX||!SWAY.has(bn)||h%3)return;const w=Math.sin(time*2.2+tx*.6+ty*.4)*2.2,c=bn==="savana"?"#c8b860":bn==="sombrio"||bn==="taiga"?"#3a6a4a":"#5aae3a";X.strokeStyle=c;X.lineWidth=1.2;X.beginPath();
+ for(const[a,b]of[[8,26],[12,24],[20,27]]){const x=Math.round(px+ox+a+(h>>4)%6),y=Math.round(py+oy+b);X.moveTo(x,y);X.quadraticCurveTo(x+w*.4,y-4,x+w,y-8)}X.stroke()}
 const CRKS=mkS(32,32,g=>{g.lineCap="round";for(const[c,w,o]of[["#05070c",1.6,0],["rgba(160,175,210,.6)",.5,.9]]){g.strokeStyle=c;g.lineWidth=w;g.beginPath();g.moveTo(7+o,4);g.lineTo(11+o,9);g.lineTo(10+o,14);g.lineTo(16+o,18);g.lineTo(18+o,24);g.lineTo(23+o,28);g.moveTo(16+o,18);g.lineTo(13+o,24);g.moveTo(10+o,14);g.lineTo(22+o,10);g.lineTo(26+o,7);g.stroke()}});
 /* ===== Texturas em alta resolução: ruído suave + detalhes desenhados (grama, flores, pedras, água, brasas) ===== */
 const TS=32,RT=RS,TSZ=TS*RT;
@@ -1124,7 +1218,7 @@ function genWorld(){seed=11;const N=MW*MH;
  HUTS=[[-6,-5],[6,-5],[-7,5],[7,5],[-9,-1],[9,-1],[0,7]].map(([a,b])=>[VCX+a,VCY+b]);TOW=[[VCX-5,VCY+9],[VCX+5,VCY+9]];
  elder={x:(VCX-3)*T+16,y:(VCY-1)*T+16};cpX=VCX*T+16;cpY=VCY*T+16;
  for(let k=0;k<0;k++){const h=HUTS[k%HUTS.length];villagers.push({x:(h[0]+1)*T,y:(h[1]+2)*T,hx:(h[0]+1)*T,hy:(h[1]+2)*T,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6,col:k%NCOL,cs:k%3?CHEST_COS[(k*5)%CHEST_COS.length]:-1})}
- N0=MID;reorgWorld();buildFarms();buildMines();CC.clear();seen.fill(0);MM32.fill(0xff120a0a);mmDirty=1}
+ N0=MID;reorgWorld();buildFarms();buildMines();CC.clear();RB.clear();seen.fill(0);MM32.fill(0xff120a0a);mmDirty=1}
 const VEND_LV=150;
 /* chefe gigante de cada região (a partir do monstro mais forte que mora nela) */
 const zbT=z=>z.village||z.queen||z.boss||z.sea||z.lake||!z.t?0:(z.bt||z.t);
@@ -1232,7 +1326,7 @@ const tileAt=(x,y)=>map[Math.floor(y/T)]?.[Math.floor(x/T)];
 /* quem voa passa por cima de árvores, da muralha da cidade e do fosso (mas não pelas paredes das cavernas) */
 const solid=(x,y,o)=>{const tx=Math.floor(x/T),ty=Math.floor(y/T),t=map[ty]?.[tx];if(t===undefined)return true;
  if(o.fly&&(t===5||t===15||t===16||(t===1&&ZONES[zoneAt(tx,ty)].out)))return false;
- if(o.inv&&(t===5||(t===1&&ZONES[zoneAt(tx,ty)].out)))return false;/* invasores atravessam a mata */return t===1||t===3||t===5||t===10||t===14||((t===2||t===15||t===16)&&!o.fly)||(t===9&&!o.sm&&o.slot===undefined)};/* v3.7: o jogador passa por cima das pedras */
+ if(o.inv&&(t===5||(t===1&&ZONES[zoneAt(tx,ty)].out)))return false;/* invasores atravessam a mata */return t===1||t===3||t===5||t===10||t===14||((t===2||t===15||t===16)&&!o.fly)||(t===9&&!o.fly&&!(o.sm&&o.slot===undefined))};/* v3.17: pedras bloqueiam quem anda (o jogador também); quem voa passa */
 function mv(o,dx,dy){const r=9,h=(x,y)=>solid(x-r,y-r,o)||solid(x+r,y-r,o)||solid(x-r,y+r,o)||solid(x+r,y+r,o);if(!h(o.x+dx,o.y))o.x+=dx;if(!h(o.x,o.y+dy))o.y+=dy}
 const u32=h=>{const[r,g,b]=hx3(h);return(0xff000000|(b<<16)|(g<<8)|r)>>>0};
 const MMC={15:u32("#9aa0aa"),16:u32("#3a7ac8"),wall:u32("#1a1e2a"),out:u32("#143018"),0:u32("#4a5068"),2:u32("#000000"),3:u32("#a35bff"),4:u32("#3a7a30"),5:u32("#1e4a22"),6:u32("#2f6a3a"),7:u32("#f06a20"),9:u32("#9aa0aa"),14:u32("#8a8a9a"),17:u32("#5aa8d8")};
@@ -1529,7 +1623,7 @@ function updPlayer(p,dt,inp,ctl){healHook(p);p.hit-=dt;p.eatT-=dt;p.cast-=dt;
   if(k){const tg=nearMon(p,KD[k][0]*(k==="charge"||k==="stomp"||k==="spin"||k==="web"||k==="cloud"?.8:1));if(tg||k==="holy"||(ctl&&inp.skill&&fm.k)){if(tg)face(p,tg);const cr=R()<critC(p);p.ft=ft;
     cast(p,k,dmg(p)*(cr?2:1)*(fm.k?1:.8)*(SKPW[p.skin]||1),tg,p,cr);p.ft=fm.kd||fm.t||0;p.scd=KD[k][1]*(1-.06*S(p,"atk4"))*(fm.k?1:1.25);p.scdM=p.scd;p.ki++;p.kk=KL.indexOf(k);p.kseq++;p.rk=null}}}
  doDash(p,dt,dmg(p)*2,p);
- const hi=plants.findIndex(q=>Math.abs(q.x-p.x)<26&&Math.hypot(q.x-p.x,q.y-p.y)<26);if(hi>=0)herb(p,hi);cryTouch(p);
+ const hi=plants.findIndex(q=>Math.abs(q.x-p.x)<26&&Math.hypot(q.x-p.x,q.y-p.y)<26);if(hi>=0)herb(p,hi);cryTouch(p);rockPush(p,dt);
  const tx=Math.floor(p.x/T),ty=Math.floor(p.y/T),tt=map[ty]?.[tx];
  if(tt===9&&p.sm){map[ty][tx]=0;mmTile(tx,ty)}
  if(tt===11)openChest(tx,ty);
@@ -2260,17 +2354,17 @@ function readRemote(dt){const out=[];let host=null,ps=[];try{ps=NET.room.peers()
 function remoteFx(r,k){const c=k==="fire"||k==="fireball"?"#ff8a1f":k==="frost"?"#bff0ff":k==="bolt"?"#ffe14a":k==="cloud"?"#8bd06a":k==="blink"?"#b48aff":"#e0e6ee";
  rings.push({x:r.x,y:r.y,r0:6,r1:50,t:.3,m:.3,c});for(let i=0;i<10;i++)burst(r.x,r.y-8,c,4,.35,(R()-.5)*200,(R()-.5)*200)}
 function hostHits(peer,h){let last=NET.lastH[peer]??-1,mx=last;for(const e of h){if(!Array.isArray(e))continue;const seq=e[0]|0;if(seq<=last)continue;mx=Math.max(mx,seq);
- const id=e[1]|0,d=clamp(e[2]|0,0,5000),ef=e[3]|0;if(id===-1&&ef===99){if(G.phase<1)setPhase(1);continue}if(id<=-1000&&ef===97){const k=-id-1000;if(!CC.has(k)){CC.set(k,time+CRY_RESP);G.cr+=CRY_GOLD}continue}if(id===-2&&ef===98){cityUpgrade(d);continue}const m=MIDX.get(id);if(!m||m.gone)continue;
+ const id=e[1]|0,d=clamp(e[2]|0,0,5000),ef=e[3]|0;if(id===-1&&ef===99){if(G.phase<1)setPhase(1);continue}if(id<=-1000&&ef===96){const k=-id-1000;breakRock(k%MW,Math.floor(k/MW),0);continue}if(id<=-1000&&ef===97){const k=-id-1000;if(!CC.has(k)){CC.set(k,time+CRY_RESP);G.cr+=CRY_GOLD}continue}if(id===-2&&ef===98){cityUpgrade(d);continue}const m=MIDX.get(id);if(!m||m.gone)continue;
  if(ef)applyEff(m,ef);if(d>0){const dd=m.shield>0?Math.round(d*.6):d;m.hp-=dd;m.f=.12;num(m.x,m.y-28,d,"#ffffff");if(m.hp<=0)kill(m)}}NET.lastH[peer]=mx}
 function buildSnap(){const ents=[...localEnts(),...NET.remote.filter(r=>!r.dead)];
  const ms=[];for(const m of mons){let d=1e9;for(const e of ents)d=Math.min(d,Math.max(Math.abs(e.x-m.x),Math.abs(e.y-m.y)*1.25));if(d<700)ms.push([d,m])}ms.sort((a,b)=>a[0]-b[0]);
  const st=m=>(m.boss2?2048:0)|(m.vb?4096:0)|(m.web>0?1:0)|(m.slow>0?2:0)|(m.pz>0?4:0)|(m.f>0?8:0)|(m.dash>0?16:0)|(m.wind>0?32:0)|(m.elite?64:0)|(m.atkT>0?128:0)|(m.castT>0?256:0)|(m.haste>0?512:0)|(m.shield>0?1024:0);
- const w={cc:[...CC.keys()],s:++NET.ss,p:G.phase,c:G.ch,v:G.vname,u:G.vup,cr:G.cr,wv:G.wave,wa:G.wact,wt:Math.max(0,G.wt|0),vh:Math.max(0,G.vhp|0),mb:G.mb,ld:G.ld,it:Math.round(G.it||0),ig:G.ig|0,iv:G.inv?1:0,ni:G.ninv|0,td:Math.round(G.tod||0),ws:(G.ws||[]).map(v=>Math.round(v*100)),th:(G.th||[]).map(v=>Math.round(v*100)),rp:Math.round((G.rep||0)*10),
+ const w={rb:[...RB],cc:[...CC.keys()],s:++NET.ss,p:G.phase,c:G.ch,v:G.vname,u:G.vup,cr:G.cr,wv:G.wave,wa:G.wact,wt:Math.max(0,G.wt|0),vh:Math.max(0,G.vhp|0),mb:G.mb,ld:G.ld,it:Math.round(G.it||0),ig:G.ig|0,iv:G.inv?1:0,ni:G.ninv|0,td:Math.round(G.tod||0),ws:(G.ws||[]).map(v=>Math.round(v*100)),th:(G.th||[]).map(v=>Math.round(v*100)),rp:Math.round((G.rep||0)*10),
   m:ms.slice(0,90).map(([,m])=>[m.id,m.t,m.x|0,m.y|0,Math.max(0,m.hp|0),st(m),m.lv]),k:NET.kills.slice(-12),
   e:eshots.slice(0,24).map(s=>[s.id,s.x|0,s.y|0,Math.round(s.dx*100),Math.round(s.dy*100),EKL.indexOf(s.k),Math.round(s.t*100),s.sp|0,s.d|0,s.el,s.R|0,Math.round(s.warn*100),Math.round(s.age*100),s.ml|0])};
  if(NET.ss%15===1)w.d=G.dead;return w}
 function applySnap(w){if(!w||typeof w!=="object")return;
- if(Array.isArray(w.ws)&&w.ws.length===24)G.ws=w.ws.map(v=>clamp((+v||0)/100,0,1));if(Array.isArray(w.th)&&w.th.length===6)G.th=w.th.map(v=>clamp((+v||0)/100,0,1));G.rep=clamp((+w.rp||0)/10,0,20);if(Array.isArray(w.cc)){CC.clear();for(const k of w.cc)CC.set(k|0,1e12)}if(w.td!==undefined&&Math.abs(((+w.td)-(G.tod||0)+DAYLEN*1.5)%DAYLEN-DAYLEN/2)>3)G.tod=(+w.td)%DAYLEN;if((w.p|0)>=1&&G.phase<1)setPhase(1);G.ch=clamp(w.c|0,1,3);G.vname=String(w.v||"").slice(0,16);if(Array.isArray(w.u)){const nv=[0,1,2,3,4,5,6].map(i=>clamp(+w.u[i]||0,0,10));nv.forEach((l,i)=>{if(!NET.first&&l>(G.vup[i]|0)){showBanner(CITY[i].n.toUpperCase()+" NÍVEL "+l);sfx("chest")}});G.vup=nv}G.it=+w.it||0;G.ig=clamp(w.ig|0,0,INVS.length-1);G.inv=w.iv?1:0;G.ninv=w.ni|0;
+ if(Array.isArray(w.ws)&&w.ws.length===24)G.ws=w.ws.map(v=>clamp((+v||0)/100,0,1));if(Array.isArray(w.th)&&w.th.length===6)G.th=w.th.map(v=>clamp((+v||0)/100,0,1));G.rep=clamp((+w.rp||0)/10,0,20);if(Array.isArray(w.rb))for(const k of w.rb){const q=k|0;if(!RB.has(q)){RB.add(q);const tx=q%MW,ty=Math.floor(q/MW);if(map[ty]?.[tx]===9){map[ty][tx]=4;mmTile(tx,ty)}}}if(Array.isArray(w.cc)){CC.clear();for(const k of w.cc)CC.set(k|0,1e12)}if(w.td!==undefined&&Math.abs(((+w.td)-(G.tod||0)+DAYLEN*1.5)%DAYLEN-DAYLEN/2)>3)G.tod=(+w.td)%DAYLEN;if((w.p|0)>=1&&G.phase<1)setPhase(1);G.ch=clamp(w.c|0,1,3);G.vname=String(w.v||"").slice(0,16);if(Array.isArray(w.u)){const nv=[0,1,2,3,4,5,6].map(i=>clamp(+w.u[i]||0,0,10));nv.forEach((l,i)=>{if(!NET.first&&l>(G.vup[i]|0)){showBanner(CITY[i].n.toUpperCase()+" NÍVEL "+l);sfx("chest")}});G.vup=nv}G.it=+w.it||0;G.ig=clamp(w.ig|0,0,INVS.length-1);G.inv=w.iv?1:0;G.ninv=w.ni|0;
  G.cr=Math.max(0,w.cr|0);G.wave=clamp(w.wv|0,1,5);G.wact=w.wa?1:0;G.wt=+w.wt||0;G.vhp=+w.vh||0;G.mb=w.mb?1:0;G.ld=w.ld?1:0;
  const seenIds=new Set();
  if(Array.isArray(w.m))for(const e of w.m){if(!Array.isArray(e))continue;const id=e[0]|0,t=e[1]|0,s=e[5]|0;if(t<1||t>=NF||(t===DRG&&!(s&4096)))continue;seenIds.add(id);let m=MIDX.get(id);
@@ -2348,9 +2442,9 @@ const hs=(x,y)=>((x*73856093)^(y*19349663))>>>0;
 const isWall=t=>t===1||t===10;
 function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floor((camx+VW)/T),y1=Math.floor((camy+VH)/T),an=Math.floor(time*4)%3;
  for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=map[ty]?.[tx];if(t===undefined)continue;const px=tx*T,py=ty*T,h=hs(tx,ty),z=ZONES[BZ[ty*MW+tx]],bt=BT[z.bio];
-  if(isWall(t)||t===14){if(z.out&&t!==14){tile(bt.fl[h%3],px,py);paint(tx,ty,px,py);imgS(TRKS,px,py);continue}const W2=t===14?BT[5]:bt.wf?bt:BT[0],b=map[ty+1]?.[tx],face=b!==undefined&&!isWall(b)&&b!==14;
+  if(isWall(t)||t===14){if(z.out&&t!==14){tile(bt.fl[h%3],px,py);paint(tx,ty,px,py);trunkDraw(tx,ty,z,px,py);continue}const W2=t===14?BT[5]:bt.wf?bt:BT[0],b=map[ty+1]?.[tx],face=b!==undefined&&!isWall(b)&&b!==14;
    tile(face?W2.wf[h%2]:W2.wt[h%2],px,py);if(t===10)imgS(CRKS,px,py);if(!face){if(!isWall(map[ty][tx-1])&&map[ty][tx-1]!==14)blk(px,py,2,T,"#05060a");if(!isWall(map[ty][tx+1])&&map[ty][tx+1]!==14)blk(px+T-2,py,2,T,"#05060a")}continue}
-  if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&Math.abs(VCX-tx)<40)||(Math.abs(tx-VCX)<=1&&Math.abs(VCY-ty)<40&&Math.abs(VCY-ty)>12));tile(vill?DIRT:bt.fl[h%3],px,py);paint(tx,ty,px,py);if(t===5)imgS(TRKS,px,py);
+  if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&Math.abs(VCX-tx)<40)||(Math.abs(tx-VCX)<=1&&Math.abs(VCY-ty)<40&&Math.abs(VCY-ty)>12));tile(vill?DIRT:bt.fl[h%3],px,py);paint(tx,ty,px,py);if(t===4&&!vill)grassSway(tx,ty,px,py,BIO[z.bio].n,h);if(t===5)trunkDraw(tx,ty,z,px,py);
    /* v3.6: cristais e cogumelos brilhantes iluminam a noite (cristais em neve, deserto e pedra; cogumelos nas matas) */
    else if(z.gl&&!vill){const d=h%(z.gl==="c"?173:47);if(d===0){if(z.gl==="c"){if(!CC.has(ty*MW+tx)){imgS(CRY,px+6,py+14);const c=GLC[z.bio]||"120,220,255";LT.push([px+16,py+20,170,.55+.35*NIGHT]);GL.push([px+16,py+20,34,c,.22+.12*NIGHT+.05*Math.sin(time*2+tx)])}}
     else{imgS(MUSH,px+8,py+14);const c=GLC[z.bio]||"60,220,190";LT.push([px+16,py+18,110,.4+.35*NIGHT]);GL.push([px+16,py+18,18,c,.14+.12*NIGHT])}}}continue}
@@ -2359,7 +2453,7 @@ function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floo
   if(t===6){tile(SW[(an+h)%3],px,py);if(R()<.004)burst(px+R()*32,py+R()*32,"#8fd08a",3,.7,0,-14);continue}
   if(t===7){tile(LV[(an+h)%3],px,py);LT.push([px+16,py+16,70,.55]);GL.push([px+16,py+16,36,"255,110,30",.13]);if(R()<.006)burst(px+R()*32,py+R()*32,"#ffd060",3,.6,0,-24);continue}
   if(t===16){water(px,py,tx,ty);continue}
-  tile((bt.fl||BT[0].fl)[h%3],px,py);paint(tx,ty,px,py);if(t===9)imgS(RBS,px,py);
+  tile((bt.fl||BT[0].fl)[h%3],px,py);paint(tx,ty,px,py);if(t===9)rockDraw(tx,ty,z,px,py);
   if(t===11){imgS(CHS,px+5,py+12);if(z.out)LT.push([px+16,py+18,70,.5]);GL.push([px+16,py+18,26,"255,220,80",.25+.12*Math.sin(time*4)])}
   if(t===12)imgS(CHO,px+5,py+14);
   /* tochas espalhadas pelo mapa: sempre acesas, mas só fazem diferença à noite */
@@ -2516,10 +2610,10 @@ function castle(x,y){const M=MATS[10];shadow(x,y+4,104);
 /* cor do brilho dos cristais e cogumelos de cada bioma */
 const GLC={14:"120,255,170",6:"120,255,210",7:"170,120,255",12:"160,255,100",17:"255,100,170",18:"80,230,220",11:"200,240,255",16:"255,210,110",15:"255,225,130",13:"130,210,255",21:"190,150,255",10:"255,140,60"};
 /* rio raso: dá para atravessar */
-function shallow(px,py,tx,ty){blk(px,py,T,T,"#3f8ab4");const s=(time*18+tx*5+ty*9)%T;blk(px,py+s,T,2,"rgba(200,235,255,.35)");blk(px+((tx*11)%T),py+((s+14)%T),6,1,"rgba(255,255,255,.45)");
+function shallowOld(px,py,tx,ty){blk(px,py,T,T,"#3f8ab4");const s=(time*18+tx*5+ty*9)%T;blk(px,py+s,T,2,"rgba(200,235,255,.35)");blk(px+((tx*11)%T),py+((s+14)%T),6,1,"rgba(255,255,255,.45)");
  for(const[dx,dy]of[[0,-1],[0,1],[-1,0],[1,0]]){const n=map[ty+dy]?.[tx+dx];if(n!==17&&n!==16){X.fillStyle="rgba(230,215,160,.5)";if(dy)X.fillRect(Math.round(px+ox),Math.round(py+oy+(dy>0?T-3:0)),T,3);else X.fillRect(Math.round(px+ox+(dx>0?T-3:0)),Math.round(py+oy),3,T)}}}
 /* água do fosso, com ondinhas que se mexem */
-function water(px,py,tx,ty){blk(px,py,T,T,"#245a8a");const s=(time*14+tx*7+ty*11)%T;blk(px,py+s,T,2,"rgba(170,215,255,.35)");blk(px+((tx*13)%T),py+((s+12)%T),8,1,"rgba(255,255,255,.4)");
+function waterOld(px,py,tx,ty){blk(px,py,T,T,"#245a8a");const s=(time*14+tx*7+ty*11)%T;blk(px,py+s,T,2,"rgba(170,215,255,.35)");blk(px+((tx*13)%T),py+((s+12)%T),8,1,"rgba(255,255,255,.4)");
  if(map[ty-1]?.[tx]!==16)blk(px,py,T,4,"rgba(20,40,30,.55)");if(mo()>=3)GL.push([px+16,py+16,10,"120,180,255",.12])}
 /* muralha contínua e fechada (só os portões abertos), com ameias; half 0 = metade de trás, 1 = metade da frente (+ torres e pontes) */
 /* ponte de verdade sobre o fosso (lado oeste): pilares de pedra, tábuas, corrimão dos dois lados e sombra na água */
@@ -3117,7 +3211,7 @@ function draw(){HIT=hitArr();X.setTransform(Q,0,0,Q,0,0);X.imageSmoothingEnabled
  fxDraw();
  /* copas das árvores: cobre a tela inteira (de qualquer largura), mais uma margem porque a copa passa do bloco */
  const x0=Math.floor(camx/T)-1,y0=Math.floor(camy/T),x1=x0+Math.ceil(VW/T)+2,y1=y0+Math.ceil(VH/T)+2;for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=map[ty]?.[tx];if(t!==5&&t!==1)continue;const z=ZONES[BZ[ty*MW+tx]];if(!z.out)continue;
-  const cx=tx*T+16,cy=ty*T-8,under=PL.some(p=>Math.abs(p.x-cx)<30&&p.y<cy+30&&p.y>cy-34);X.globalAlpha=under?.45:1;imgS(CAN[BIO[z.bio].can][hs(tx,ty)%2],tx*T-8,ty*T-36);X.globalAlpha=1}
+  const cx=tx*T+16,cy=ty*T-8,under=PL.some(p=>Math.abs(p.x-cx)<30&&p.y<cy+30&&p.y>cy-34);treeDraw(tx,ty,z,under)}
  /* dia e noite: lá fora escurece quase por completo; nas cavernas só os cristais, as tochas e a luz do slime iluminam */
  const cz=ZONES[zoneOfPx(camx+VW/2,camy+VH/2)],target=cz.out?.08+.88*NIGHT:cz.day?.2+.72*NIGHT:.94;ambCur+=(target-ambCur)*.04;
  for(const p of PL)if(p.dead<=0)LT.push([p.x,p.y-6,210,.95]);for(const r of NET.remote)if(!r.dead)LT.push([r.x,r.y-6,170,.85]);
