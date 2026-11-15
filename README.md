@@ -1,6 +1,6 @@
 # Não sou um Slime Malvado
 
-Jogo no navegador: você renasce como um slime e cada monstro derrotado é devorado e vira uma forma nova e uma invocação. Atravesse as cavernas dos insetos, faça amizade com o Dragão do Vendaval e explore o mundo aberto, do nível 1 ao 100.
+Jogo no navegador: você renasce como um slime e cada monstro derrotado é devorado e vira uma forma nova e uma invocação. Explore um continente cercado de mar, com a cidade dos slimes no centro da selva tropical, e enfrente os chefes de cada região até o Dragão do Vendaval, nível 150.
 
 **Jogar:** https://guigatoledo.github.io/nao-sou-um-slime-malvado/
 
@@ -116,6 +116,23 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 ## Salvamento
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
+
+## Novidades da v3.6.0 (continente novo)
+
+- **Mapa novo, bem maior** (720 × 720 blocos, quase o dobro do anterior), no formato de um **continente cercado de mar**, com praias em volta.
+- **A cidade fica no centro, na selva tropical.** Em volta dela:
+  - **Noroeste:** neve (Tundra Gelada, Geleira do Dragão Glacial e Picos Gelados, com os Guerreiros de Gelo).
+  - **Nordeste:** o deserto dos orcs (Acampamento Xamã, Planícies Orc, o **Labirinto do Minotauro** em ruínas e a **Fortaleza do Lorde Orc**).
+  - **Oeste:** o **Lago do Vendaval**. O dragão fica na **ilha no meio do lago**, que só se alcança por uma passarela de terra que sai da Floresta Assombrada (esqueletos, zumbis, cavaleiros negros e magos sombrios).
+  - **Leste:** savana dos Ankhegs, Colinas dos Ogros, Penhascos do Trovão e as Montanhas do Dragão de Pedra.
+  - **Sudeste:** Bosque Sombrio e o Abismo do Dragão Negro.
+  - **Sudoeste:** brejos (Basiliscos e Dragão Verde), o Bosque Carmesim dos druidas e a Caldeira Infernal.
+  - **Sul:** as **terras de fogo dos dragões**, um deserto de pedra com rios de lava: Campos Vulcânicos, Picos do Dragão Vermelho e o Covil do Dragão Ancião.
+- **Sem cavernas por enquanto.** As criaturas fortes que moravam nelas agora vivem nas regiões mais distantes da cidade.
+- **Rios rasos** cortam o mapa e dá para atravessá-los andando.
+- **Cristais e cogumelos brilhantes** iluminam a noite: cristais na neve, no deserto e nas montanhas, e cogumelos nas matas e nos brejos.
+- O mapa do mundo mostra o nome de cada região já visitada.
+- Como os lugares mudaram, **os baús, o mapa descoberto e as missões do Ancião recomeçam**. Nível, formas, habilidades e a cidade continuam.
 
 ## Novidades da v3.5.0 (sem internet e reconexão)
 
