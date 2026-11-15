@@ -22,7 +22,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.0.0";
+const VERSION="v3.1.0";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VH=480,FT="'VT323',ui-monospace,monospace";
@@ -83,7 +83,7 @@ const MT=[
 const NF=MT.length,DRG=18,QUEEN=13,LORD=17,ANCIENT=24,HPM=1.8,DMM=1.5;
 const KD={arc:[200,1.5],bolt:[180,1.2],web:[95,4],cloud:[80,5],fire:[110,1.2],frost:[110,2],stomp:[70,3],charge:[130,3],gaze:[130,5],tornado:[170,2.5],spin:[70,1.6],fireball:[220,1.8],blink:[200,2.6],storm:[230,4],beat:[95,2.2],holy:[85,3],
  /* poderes novos dos visuais (sem repetir) */
- invis:[160,10],smite:[240,2.5],charm:[110,6],fury:[70,2.2],roots:[100,5],missiles:[220,2.4],gust:[130,3],bomb:[230,3.2],haste:[160,10],bees:[200,3],iceshield:[120,9],garden:[150,8],boomerang:[220,2.6],rally:[140,10],gift:[100,4],confetti:[95,2.6],chain5:[220,2.2]};
+ invis:[160,10],smite:[240,2.5],charm:[110,6],fury:[70,2.2],roots:[100,5],missiles:[220,2.4],gust:[130,3],bomb:[230,3.2],haste:[160,10],bees:[200,3],iceshield:[120,9],garden:[150,8],boomerang:[220,2.6],rally:[140,10],gift:[100,4],confetti:[95,2.6],chain5:[220,2.2],vbite:[80,2.4]};
 const KL=Object.keys(KD);
 /* elementos */
 const ELN=["Fogo","Gelo","Raio","Veneno","Ácido","Terra","Trevas"],ELC=["#ff8a1f","#9fe8f5","#ffe14a","#8bd06a","#c8ff4a","#c89a6a","#b48aff"];
@@ -456,7 +456,7 @@ Object.assign(ART,{
  "Fones de DJ":{f:both(ART["Óculos Escuros"].f,g=>{g.strokeStyle="#222034";g.lineWidth=1.6;g.beginPath();g.arc(30,33,16.4,Math.PI*1.08,Math.PI*1.92);g.stroke();ball(g,14.6,31,2.8,4.2,"#5fcde4");ball(g,45.4,31,2.8,4.2,"#d77bba");circ(g,14.6,31,1,"#ffffff");circ(g,45.4,31,1,"#ffffff")})}});
 DPAL.forEach((P,i)=>{ART["Asas D"+i]={b:dWings(P),f:hornsP(i===0?"#efe2b4":P.hn,0)}});
 const COS=[
- {n:"Asas de Morcego",t:1,a:"Asas de Morcego",fl:1,spd:1.25,sk:"Voo veloz"},{n:"Capuz Goblin",t:2,a:"Capuz Goblin",k:"arc"},{n:"Patas de Aranha",t:3,a:"Patas de Aranha",k:"web"},
+ {n:"Asas de Morcego",t:1,a:"Asas de Morcego",fl:1,spd:1.25,k:"vbite",sk:"Voo veloz e mordida que rouba vida"},{n:"Capuz Goblin",t:2,a:"Capuz Goblin",k:"arc"},{n:"Patas de Aranha",t:3,a:"Patas de Aranha",k:"web"},
  {n:"Antenas de Lagarta",t:4,a:"Antenas de Lagarta",k:"cloud"},{n:"Mandíbulas Ácidas",t:5,a:"Mandíbulas Ácidas",k:"arc",kd:5},{n:"Chifre do Trovão",t:6,a:"Chifre do Trovão",k:"bolt"},
  {n:"Chifres de Diabinho",t:7,a:"Chifres de Diabinho",k:"fire"},{n:"Gorro de Neve",t:8,a:"Gorro de Neve",k:"frost"},{n:"Capacete Viking",t:9,a:"Capacete Viking",k:"stomp",sm:1},
  {n:"Chifres de Touro",t:10,a:"Chifres de Touro",k:"charge",sm:1},{n:"Óculos Escuros",t:11,a:"Óculos Escuros",k:"gaze"},{n:"Elmo de Pedra",t:12,a:"Elmo de Pedra",k:"arc",kd:12,sm:1},
@@ -479,7 +479,9 @@ const COS=[
 COS.forEach(c=>{if(c.t){const m=MT[c.t];c.fd=c.fd||m.fd;c.sk=c.sk||m.sk}c.fd=c.fd||1.8;c.fs=c.spd||1;
  const ps=[];if(c.fl)ps.push("voa");if(c.sm)ps.push("quebra pedras");if(c.spd>1)ps.push("+"+Math.round((c.spd-1)*100)+"% velocidade");if(c.regen)ps.push("+"+c.regen+" vida/s");if(c.xp)ps.push("+"+Math.round((c.xp-1)*100)+"% XP");c.pas=ps.join(" · ")});
 const NSKIN=COS.length,CHEST_COS=COS.map((c,i)=>c.chest?i:-1).filter(i=>i>=0),COS_OF_T={};COS.forEach((c,i)=>{if(c.t)COS_OF_T[c.t]=i});
-const SKINS=COS.map(c=>{const A=ART[c.a]||{};return{n:c.n,b:A.b?mkS(60,46,A.b):null,f:A.f?mkS(60,46,A.f):null}});
+/* acessórios do rosto (bigode, óculos, máscaras): na visão de lado o rosto fica mais à frente e mais estreito, então eles acompanham */
+const FACE=new Set(["Óculos Escuros","Óculos de Nerd","Bigode","Máscara de Herói","Máscara Sombria"]);
+const SKINS=COS.map(c=>{const A=ART[c.a]||{};return{n:c.n,b:A.b?mkS(60,46,A.b):null,f:A.f?mkS(60,46,A.f):null,fs:A.f&&FACE.has(c.a)?mkS(60,46,g=>{g.translate(24.35-30*.71,0);g.scale(.71,1);A.f(g)}):null}});
 const OLD_SKIN_NAMES=SKIN_DEF.map(s=>s[0]);
 /* criaturas animadas: guardam a receita do desenho e criam as poses (parado, 6 de passo, 3 de ataque) na primeira vez que aparecem */
 function mkA(w,h,fn,S=1){const o=mkS(w,h,fn,S);o.spec=[w,h,fn,S];o.fr=[];return o}
@@ -668,7 +670,7 @@ function genZone(i){const z=ZONES[i],[x0,y0]=zOrigin(i),X0=x0+3,X1=x0+ZW-4,Y0=y0
  const w1=[X0+10+Math.floor(rnd()*(X1-X0-20)),Y0+10+Math.floor(rnd()*(Y1-Y0-20))],w2=[X0+10+Math.floor(rnd()*(X1-X0-20)),Y0+10+Math.floor(rnd()*(Y1-Y0-20))];
  const route=[];
  if(z.out){route.push(ctr);
-  if(z.village){VCX=x0+50;VCY=y0+50;for(let y=y0+1;y<y0+ZH;y++)for(let x=x0;x<x0+ZW-1;x++){const d=Math.hypot(x-VCX,y-VCY);if(d<16||(Math.abs(y-VCY)<=1&&x<VCX)||(Math.abs(x-VCX)<=1&&y>VCY))map[y][x]=4}
+  if(z.village){VCX=x0+50;VCY=y0+50;for(let y=y0+1;y<y0+ZH;y++)for(let x=x0;x<x0+ZW-1;x++){const d=Math.hypot(x-VCX,y-VCY);if(d<16||(Math.abs(y-VCY)<=1&&x<VCX+34)||(Math.abs(x-VCX)<=1&&y>VCY))map[y][x]=4}
    walk(inn[0],inn[1],VCX,VCY,route,1,4)}
   if(z.boss===LORD){FTX=x0+62;FTY=y0+50;for(let y=FTY-12;y<=FTY+12;y++)for(let x=FTX-16;x<=FTX+16;x++){const edge=Math.abs(y-FTY)===12||Math.abs(x-FTX)===16;map[y][x]=edge&&!(x===FTX-16&&Math.abs(y-FTY)<=2)?14:4}
    for(const[a,b]of[[-8,-5],[8,-5],[-8,5],[8,5]])map[FTY+b][FTX+a]=14;walk(inn[0],inn[1],FTX-20,FTY,route,1,4)}}
@@ -712,8 +714,13 @@ function genZone(i){const z=ZONES[i],[x0,y0]=zOrigin(i),X0=x0+3,X1=x0+ZW-4,Y0=y0
  if(z.seal){vXp=VX*T+16;vYp=VY*T+16}}
 function setPhase(n){G.phase=n;for(let y=0;y<MH;y++){const r=map[y];for(let x=0;x<MW;x++)if(r[x]===3){r[x]=0;mmTile(x,y)}}}
 function removeType(t){for(const m of [...mons])if(m.t===t){m.gone=1;mons.splice(mons.indexOf(m),1);MIDX.delete(m.id);if(m.id<N0)G.dead.push(m.id)}}
-function resetWorld(w){ctKey=-1;cityTiles=null;Object.assign(G,{brq:[],it:900,ninv:0,inv:0,warned:0,ig:0,ia:0,phase:0,ch:1,vname:"",vup:[0,0,0,0,0,0,0],cr:0,wave:1,wact:0,wt:0,vhp:900,mb:0,ld:0,dead:[],spawnLeft:0,st:0,rq:[],tw:[0,0],pool:14});
- if(w&&typeof w==="object"){G.ch=clamp(w.ch|0,1,3);G.phase=w.phase>=1||G.ch>1?1:0;G.vname=String(w.vname||"").slice(0,16);if(Array.isArray(w.vup))G.vup=[0,1,2,3,4,5,6].map(i=>clamp(+w.vup[i]||0,0,10));G.it=+w.it>0?Math.min(900,+w.it):900;G.ninv=w.ninv|0;G.cr=Math.max(0,w.cr|0);G.wave=clamp(w.wave|0,1,5);G.mb=w.mb?1:0;G.ld=w.ld?1:0}
+/* ===== Dia e noite: um ciclo de 16 minutos; 3/4 dia (12 min) e 1/4 noite (4 min), com 30 s de entardecer/amanhecer ===== */
+const DAYLEN=960,DAYP=720;let NIGHT=0,wasNight=0;
+function nightF(){const t=(G.tod||0)%DAYLEN;if(t<DAYP-30)return 0;if(t<DAYP)return(t-(DAYP-30))/30;if(t<DAYLEN-30)return 1;return(DAYLEN-t)/30}
+function dayTick(dt){G.tod=((G.tod||0)+dt)%DAYLEN;NIGHT=nightF();const n=NIGHT>.5?1:0;if(n!==wasNight){wasNight=n;if(state==="play")say(n?"A noite caiu… fique perto da luz: tochas, cristais e o brilho do seu slime.":"O sol nasceu sobre o reino.")}}
+function clockTxt(){const t=(G.tod||0)%DAYLEN;let h=t<DAYP?5+18*t/DAYP:23+6*(t-DAYP)/(DAYLEN-DAYP);h%=24;const hh=Math.floor(h),mm=Math.floor((h-hh)*60/10)*10;return(hh<10?"0":"")+hh+":"+(mm<10?"0":"")+mm}
+function resetWorld(w){ctKey=-1;cityTiles=null;Object.assign(G,{tod:60,brq:[],it:900,ninv:0,inv:0,warned:0,ig:0,ia:0,phase:0,ch:1,vname:"",vup:[0,0,0,0,0,0,0],cr:0,wave:1,wact:0,wt:0,vhp:900,mb:0,ld:0,dead:[],spawnLeft:0,st:0,rq:[],tw:[0,0],pool:14});
+ if(w&&typeof w==="object"){G.ch=clamp(w.ch|0,1,3);G.phase=w.phase>=1||G.ch>1?1:0;G.vname=String(w.vname||"").slice(0,16);if(Array.isArray(w.vup))G.vup=[0,1,2,3,4,5,6].map(i=>clamp(+w.vup[i]||0,0,10));G.it=+w.it>0?Math.min(900,+w.it):900;G.ninv=w.ninv|0;G.cr=Math.max(0,w.cr|0);G.wave=clamp(w.wave|0,1,5);G.mb=w.mb?1:0;G.ld=w.ld?1:0;G.tod=+w.tod>=0?(+w.tod)%DAYLEN:60}
  genWorld();if(G.phase>=1)setPhase(1);/* chefes renascem: ao carregar, todos estão no lugar */G.vhp=vmax();if(G.ch===2&&G.wave<5){G.wact=0;G.wt=20}}
 function applySecrets(mask){secrets.forEach((s,i)=>{if(mask&(1<<i)){if(s.wx>=0)map[s.wy][s.wx]=0;map[s.y][s.x]=12}})}
 /* ===== Perfis e salvamento ===== */
@@ -757,7 +764,7 @@ addEventListener("pagehide",()=>{if(PL.length)writeSave()});
 addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&PL.length)writeSave()});
 function storeSave(){CHARS[curChar]=SAVE;try{localStorage.setItem(CKEY(curChar),JSON.stringify(SAVE));localStorage.setItem("nsm-last",String(curChar));savedT=2.5}catch(e){}}
 function writeSave(){if(!PL.length)return;const keep=(SAVE&&SAVE.prof)||[],out=[];for(let i=0;i<4;i++){const p=PL.find(q=>q.slot===i);out[i]=p?profOf(p):keep[i]||null}
- const world=NET.foreign?((SAVE&&SAVE.world)||null):{v6:1,phase:G.phase,ch:G.ch,vname:G.vname,vup:G.vup.slice(),cr:G.cr,wave:G.wave,mb:G.mb,ld:G.ld,it:Math.round(G.it||900),ninv:G.ninv|0};
+ const world=NET.foreign?((SAVE&&SAVE.world)||null):{v6:1,phase:G.phase,ch:G.ch,vname:G.vname,vup:G.vup.slice(),cr:G.cr,wave:G.wave,mb:G.mb,ld:G.ld,it:Math.round(G.it||900),ninv:G.ninv|0,tod:Math.round(G.tod||0)};
  SAVE={v:1,t:Date.now(),world,prof:out};storeSave();saveSeen();saveDirty=0;saveT=0}
 /* ===== Estado ===== */
 let PL=[],shots=[],eshots=[],parts=[],clouds=[],torn=[],bolts=[],rings=[],nums=[],flashes=[],pillars=[];
@@ -911,6 +918,9 @@ function cast(s,k,d,tg,src,cr){const E=CAST_EL[k],H=(m,dd,eff)=>hurt(m,dd,eff,E,
  else if(k==="rally"){s.rally=5;for(const u of[s.su,s.su2])if(u)u.rally=5;rings.push({x:s.x,y:s.y,r0:6,r1:90,t:.4,m:.4,c:"#ff5a3a"});num(s.x,s.y-44,"+40% dano!","#ffb08a");sfx("roar")}
  else if(k==="gift"){allyZ.push({x:s.x+s.fx*30,y:s.y+s.fy*30,R:85,warn:1,age:0,t:1.4,d:d*1.6,el:-1,gift:1,src:s,fired:0,tick:0});sfx("chest")}
  else if(k==="confetti"){const cs=["#ff4aff","#5fcde4","#fbf236","#99e550","#ff6a3a"];rings.push({x:s.x,y:s.y,r0:8,r1:95,t:.35,m:.35,c:pk(cs)});for(let i=0;i<26;i++)burst(s.x,s.y-10,pk(cs),3,.7,(R()-.5)*260,(R()-.5)*220,null,180);sfx("beat");for(const m of monsIn(s.x,s.y,95))H(m,d*.9,0)}
+ /* mordida vampírica do morcego: fraca no começo, mas o dano e a parte que vira cura crescem com o nível (15% no nível 1, até 70% no 100) */
+ else if(k==="vbite"&&tg){const lv=s.lv||1,dd=d*(.55+lv*.011);H(tg,dd,0);burst(tg.x,tg.y-10,"#c8203a",8,.5,0,-20);sfx("swing");
+  if(PL.includes(s)&&s.hp>0){const hl=Math.max(1,Math.round(dd*clamp(.15+lv*.0055,.15,.7)));s.hp=Math.min(mhp(s),s.hp+hl);num(s.x,s.y-44,"+"+hl,"#ff6a8a");for(let i=0;i<5;i++)burst(tg.x,tg.y-10,"#ff3a5a",3,.5,(s.x-tg.x)*2+(R()-.5)*40,(s.y-tg.y)*2-20)}}
  else if(k==="chain5"&&tg){let from={x:s.x,y:s.y-8};const hit=new Set();let cur=tg;for(let j=0;j<5&&cur;j++){hit.add(cur);bolts.push({pts:zig(from,cur),t:.25,m:.25});H(cur,d*(j?.8:1.1),0);from=cur;let nb=null,nd=150;for(const m of monsIn(cur.x,cur.y,150)){if(hit.has(m))continue;const dd=Math.hypot(m.x-cur.x,m.y-cur.y);if(dd<nd){nd=dd;nb=m}}cur=nb}sfx("bolt");shake=Math.max(shake,3)}
  else if(k==="blink"&&s.slot!==undefined){const g=tg||{x:s.x+s.fx*90,y:s.y+s.fy*90};for(let i=0;i<18;i++)burst(g.x+(R()-.5)*30,g.y-8+(R()-.5)*30,pk(["#b48aff","#ff4aff","#3a2a4a"]),4,.45,(R()-.5)*100,(R()-.5)*100);sfx("web");
   rings.push({x:g.x,y:g.y,r0:6,r1:46,t:.3,m:.3,c:"#b48aff"});for(const m of monsIn(g.x,g.y,46))H(m,d*1.6,0)}
@@ -1148,6 +1158,7 @@ function updVillage(dt){cityTick(dt);if(G.ch!==2||G.wave>=5)return;
 const K={},KP={};
 addEventListener("keydown",e=>{ensureAudio();if(!K[e.code])KP[e.code]=1;K[e.code]=1;
  if(state==="title"&&e.key!=="Delete"&&!["Enter","ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Escape","Tab","ShiftLeft","ShiftRight"].includes(e.key)&&!e.ctrlKey&&!e.metaKey){if(e.key==="Backspace")crName=crName.slice(0,-1);else if(e.key.length===1&&crName.length<12&&/[\p{L}\p{N} '-]/u.test(e.key))crName=cleanName(crName+e.key);e.preventDefault();return}
+ if(e.target&&e.target.id==="nmIn")return;
  if(state==="naming"){if(e.key==="Backspace")nameBuf=nameBuf.slice(0,-1);else if(e.key.length===1&&nameBuf.length<16&&/[\p{L}\p{N} '-]/u.test(e.key))nameBuf+=e.key;e.preventDefault();return}
  if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Tab","Backspace"].includes(e.code))e.preventDefault()});
 addEventListener("keyup",e=>{K[e.code]=0});
@@ -1353,7 +1364,7 @@ function updCoins(dt){for(const c of coins){c.t+=dt;if(c.t<.45){c.vy+=420*dt;c.x
 /* ---- muralha fechada e fosso: viram parte do mapa (só quem voa atravessa); portões no sul e no oeste ---- */
 const WALL_RX=11,WALL_RY=8.25;
 /* só existe a entrada do oeste: a abertura da muralha e do fosso tem a largura da ponte */
-const GATE_H=1.6*T,isGate=(x,y)=>x<cpX&&Math.abs(y-cpY)<GATE_H;
+const GATE_H=1.6*T,isGate=(x,y)=>Math.abs(y-cpY)<GATE_H;
 const gateAng=a=>{const n=Math.atan2(Math.sin(a),Math.cos(a));return Math.abs(n-Math.PI/2)<.24||Math.abs(Math.abs(n)-Math.PI)<.24};
 const wallD=(x,y)=>Math.hypot((x-cpX)/(WALL_RX*T),(y-cpY)/(WALL_RY*T));
 let cityTiles=null,ctKey=-1;
@@ -1364,21 +1375,25 @@ function applyCityTiles(){if(!map||!cpX)return;const want=(cl("wall")?1:0)|(cl("
   const gt=isGate((tx+.5)*T,(ty+.5)*T);if(want&1&&Math.abs(d-1)<.09&&!gt)nt=15;else if(want&2&&d>1.2&&d<1.38&&!gt)nt=16;
   if(nt>=0){cityTiles.push([ty*MW+tx,t]);r[tx]=nt;mmTile(tx,ty)}}}
 /* portões: ponto de fora (depois do fosso) e de dentro */
-const CGATES=()=>[{ox:cpX-WALL_RX*1.6*T,oy:cpY,ix:cpX-(WALL_RX-2.5)*T,iy:cpY}];
+/* duas entradas: oeste (s=-1) e leste (s=1), cada uma com ponte e portão */
+const CGATES=()=>[-1,1].map(s=>({s,ox:cpX+s*WALL_RX*1.6*T,oy:cpY,ix:cpX+s*(WALL_RX-2.5)*T,iy:cpY}));
+const gateFor=x=>CGATES()[x<cpX?0:1];
 /* quem anda (não voa) e está do outro lado da muralha passa pelo portão mais perto */
 /* rota em volta da muralha (para quem anda): de dentro sai pelo portão oeste; de fora contorna o fosso até a ponte e entra;
    fora com o caminho reto cortando a muralha, dá a volta pelo lado de fora */
 const ringAng=(x,y)=>Math.atan2((y-cpY)/WALL_RY,(x-cpX)/WALL_RX);
-function ringRoute(o,gx,gy){if(o.fly||!(cl("wall")||cl("moat")))return[gx,gy];const g=CGATES()[0],oi=wallD(o.x,o.y)<1.05,ti=wallD(gx,gy)<1;
+function ringRoute(o,gx,gy){if(o.fly||!(cl("wall")||cl("moat")))return[gx,gy];const oi=wallD(o.x,o.y)<1.05,ti=wallD(gx,gy)<1;
  if(oi&&ti)return[gx,gy];
- if(oi)return o.x>g.ix+12?[g.ix,g.iy]:[g.ox-10,g.oy];
- if(wallD(o.x,o.y)<1.6&&o.x<cpX&&Math.abs(o.y-cpY)<GATE_H+24)return ti?[g.ix,g.iy]:[g.ox-14,g.oy];
+ /* de dentro: sai pelo portão do lado do destino; de fora: entra pelo portão do seu lado */
+ const g=oi?gateFor(gx):gateFor(o.x);
+ if(oi)return(o.x-g.ix)*g.s<-12?[g.ix,g.iy]:[g.ox+g.s*10,g.oy];
+ if(wallD(o.x,o.y)<1.6&&(o.x-cpX)*g.s>0&&Math.abs(o.y-cpY)<GATE_H+24)return ti?[g.ix,g.iy]:[g.ox+g.s*14,g.oy];
  let cut=false;for(let k=1;k<10;k++){const x=o.x+(gx-o.x)*k/10,y=o.y+(gy-o.y)*k/10;if(wallD(x,y)<1.45){cut=true;break}}
  if(!ti&&!cut)return[gx,gy];
- const a=ringAng(o.x,o.y),ta=ti?Math.PI:ringAng(gx,gy),da=Math.atan2(Math.sin(ta-a),Math.cos(ta-a));
+ const a=ringAng(o.x,o.y),ta=ti?(g.s<0?Math.PI:0):ringAng(gx,gy),da=Math.atan2(Math.sin(ta-a),Math.cos(ta-a));
  if(Math.abs(da)>.28){const na=a+Math.sign(da)*.4;return[cpX+Math.cos(na)*1.78*WALL_RX*T,cpY+Math.sin(na)*1.78*WALL_RY*T]}
  if(!ti)return[gx,gy];
- return o.x<g.ox-6&&Math.abs(o.y-g.oy)>20?[g.ox,g.oy]:[g.ix,g.iy]}
+ return(o.x-g.ox)*g.s>6&&Math.abs(o.y-g.oy)>20?[g.ox,g.oy]:[g.ix,g.iy]}
 function invRoute(m,gx,gy){if(cl("moat")>=3&&isGate(m.x,m.y)&&wallD(m.x,m.y)>1.05)m.slow=cl("moat")>=9?.8:.5;return ringRoute(m,gx,gy)}
 /* ---- defensores: moradores, slimes e guardas, com vida e nível pelas invocações dos jogadores ---- */
 function syncGuards(){const want=guardsN(),have=villagers.filter(v=>v.g).length;for(let i=have;i<want;i++){const a=i/12*6.283+.2,x=cpX+Math.cos(a)*7.5*T,y=cpY+Math.sin(a)*7.5*T*.75;villagers.push({g:1,col:6,cs:COS.findIndex(c=>c.n==="Capacete Viking"),x,y,hx:x,hy:y,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6})}}
@@ -1441,13 +1456,13 @@ function updTowers(dt){const ts=towers(),l=cl("tow"),st=l>=3,rg=(st?360:300)+Mat
  if(l>=10){G.met=(G.met??25)-dt;if(G.met<=0){G.met=25;let best=null,bn=0;for(const m of mons){if(!m.inv)continue;let n=0;for(const q of mons)if(q.inv&&Math.hypot(q.x-m.x,q.y-m.y)<100)n++;if(n>bn){bn=n;best=m}}
   if(best){allyZ.push({x:best.x,y:best.y,R:110,warn:1,age:0,t:1.4,d:(40+sumTop()*8)*SMITH_M[cl("smith")],el:EF,src:null,fired:0,tick:0});say("As torres chamaram um meteoro!")}}}}
 /* efeitos das construções durante a invasão (quem hospeda) */
-function cityEffects(dt){const wl=cl("wall"),ml=cl("moat"),tl=cl("heal"),g=CGATES()[0];
+function cityEffects(dt){const wl=cl("wall"),ml=cl("moat"),tl=cl("heal");
  /* anti-travamento: invasor que não se aproxima do cristal por 20s (fora da muralha) é levado até a ponte */
- for(const m of mons){if(!m.inv||m.fly)continue;const d=Math.hypot(m.x-cpX,m.y-cpY);if(m.bd2===undefined||d<m.bd2-20){m.bd2=d;m.st2=0}else{m.st2=(m.st2||0)+dt;if(m.st2>20&&wallD(m.x,m.y)>1.1){m.x=g.ox-30;m.y=g.oy+(R()-.5)*30;m.st2=0;m.bd2=undefined}}}
+ for(const m of mons){if(!m.inv||m.fly)continue;const d=Math.hypot(m.x-cpX,m.y-cpY);if(m.bd2===undefined||d<m.bd2-20){m.bd2=d;m.st2=0}else{m.st2=(m.st2||0)+dt;if(m.st2>20&&wallD(m.x,m.y)>1.1){const g=gateFor(m.x);m.x=g.ox+g.s*30;m.y=g.oy+(R()-.5)*30;m.st2=0;m.bd2=undefined}}}
  /* espinhos no portão (muralha 5) e armadilhas na ponte (fosso 5 e 8) */
  if(wl>=5||ml>=5)for(const m of mons){if(!m.inv||m.fly)continue;if(isGate(m.x,m.y)&&wallD(m.x,m.y)>.85&&wallD(m.x,m.y)<1.5){m.trapT=(m.trapT||0)-dt;if(m.trapT<=0){m.trapT=.5;const d=(5+sumTop()*1.2)*((wl>=5?1:0)+(ml>=5?1:0));hurt(m,d,ml>=8?2:0,null,null)}}}
  /* óleo fervente no portão (fosso 7) */
- if(ml>=7){G.oil=(G.oil??6)-dt;if(G.oil<=0){G.oil=6;if(mons.some(m=>m.inv&&Math.hypot(m.x-g.ox,m.y-g.oy)<160))allyZ.push({x:(g.ox+g.ix)/2,y:cpY,R:120,warn:.4,age:0,t:3,d:(20+sumTop()*3),el:EF,col:"#3a2a10",src:null,fired:0,tick:0})}}
+ if(ml>=7){G.oil=(G.oil??6)-dt;if(G.oil<=0){G.oil=6;for(const g of CGATES())if(mons.some(m=>m.inv&&Math.hypot(m.x-g.ox,m.y-g.oy)<160))allyZ.push({x:(g.ox+g.ix)/2,y:cpY,R:120,warn:.4,age:0,t:3,d:(20+sumTop()*3),el:EF,col:"#3a2a10",src:null,fired:0,tick:0})}}
  /* água elétrica (fosso 10): voador que passa por cima do fosso leva choque */
  if(ml>=10)for(const m of mons){if(!m.inv||!m.fly)continue;const d=wallD(m.x,m.y);if(d>1.18&&d<1.4){m.zapT=(m.zapT||0)-dt;if(m.zapT<=0){m.zapT=.6;hurt(m,10+sumTop()*2,2,ER,null);bolts.push({pts:zig({x:m.x,y:m.y+20},m),t:.15,m:.15})}}}
  /* reparo (muralha 8): cristal se regenera entre as ondas */
@@ -1583,12 +1598,12 @@ function hostHits(peer,h){let last=NET.lastH[peer]??-1,mx=last;for(const e of h)
 function buildSnap(){const ents=[...localEnts(),...NET.remote.filter(r=>!r.dead)];
  const ms=[];for(const m of mons){let d=1e9;for(const e of ents)d=Math.min(d,Math.max(Math.abs(e.x-m.x),Math.abs(e.y-m.y)*1.25));if(d<700)ms.push([d,m])}ms.sort((a,b)=>a[0]-b[0]);
  const st=m=>(m.web>0?1:0)|(m.slow>0?2:0)|(m.pz>0?4:0)|(m.f>0?8:0)|(m.dash>0?16:0)|(m.wind>0?32:0)|(m.elite?64:0)|(m.atkT>0?128:0)|(m.castT>0?256:0)|(m.haste>0?512:0)|(m.shield>0?1024:0);
- const w={s:++NET.ss,p:G.phase,c:G.ch,v:G.vname,u:G.vup,cr:G.cr,wv:G.wave,wa:G.wact,wt:Math.max(0,G.wt|0),vh:Math.max(0,G.vhp|0),mb:G.mb,ld:G.ld,it:Math.round(G.it||0),ig:G.ig|0,iv:G.inv?1:0,ni:G.ninv|0,
+ const w={s:++NET.ss,p:G.phase,c:G.ch,v:G.vname,u:G.vup,cr:G.cr,wv:G.wave,wa:G.wact,wt:Math.max(0,G.wt|0),vh:Math.max(0,G.vhp|0),mb:G.mb,ld:G.ld,it:Math.round(G.it||0),ig:G.ig|0,iv:G.inv?1:0,ni:G.ninv|0,td:Math.round(G.tod||0),
   m:ms.slice(0,90).map(([,m])=>[m.id,m.t,m.x|0,m.y|0,Math.max(0,m.hp|0),st(m),m.lv]),k:NET.kills.slice(-12),
   e:eshots.slice(0,24).map(s=>[s.id,s.x|0,s.y|0,Math.round(s.dx*100),Math.round(s.dy*100),EKL.indexOf(s.k),Math.round(s.t*100),s.sp|0,s.d|0,s.el,s.R|0,Math.round(s.warn*100),Math.round(s.age*100),s.ml|0])};
  if(NET.ss%15===1)w.d=G.dead;return w}
 function applySnap(w){if(!w||typeof w!=="object")return;
- if((w.p|0)>=1&&G.phase<1)setPhase(1);G.ch=clamp(w.c|0,1,3);G.vname=String(w.v||"").slice(0,16);if(Array.isArray(w.u)){const nv=[0,1,2,3,4,5,6].map(i=>clamp(+w.u[i]||0,0,10));nv.forEach((l,i)=>{if(!NET.first&&l>(G.vup[i]|0)){showBanner(CITY[i].n.toUpperCase()+" NÍVEL "+l);sfx("chest")}});G.vup=nv}G.it=+w.it||0;G.ig=clamp(w.ig|0,0,INVS.length-1);G.inv=w.iv?1:0;G.ninv=w.ni|0;
+ if(w.td!==undefined&&Math.abs(((+w.td)-(G.tod||0)+DAYLEN*1.5)%DAYLEN-DAYLEN/2)>3)G.tod=(+w.td)%DAYLEN;if((w.p|0)>=1&&G.phase<1)setPhase(1);G.ch=clamp(w.c|0,1,3);G.vname=String(w.v||"").slice(0,16);if(Array.isArray(w.u)){const nv=[0,1,2,3,4,5,6].map(i=>clamp(+w.u[i]||0,0,10));nv.forEach((l,i)=>{if(!NET.first&&l>(G.vup[i]|0)){showBanner(CITY[i].n.toUpperCase()+" NÍVEL "+l);sfx("chest")}});G.vup=nv}G.it=+w.it||0;G.ig=clamp(w.ig|0,0,INVS.length-1);G.inv=w.iv?1:0;G.ninv=w.ni|0;
  G.cr=Math.max(0,w.cr|0);G.wave=clamp(w.wv|0,1,5);G.wact=w.wa?1:0;G.wt=+w.wt||0;G.vhp=+w.vh||0;G.mb=w.mb?1:0;G.ld=w.ld?1:0;
  const seenIds=new Set();
  if(Array.isArray(w.m))for(const e of w.m){if(!Array.isArray(e))continue;const id=e[0]|0,t=e[1]|0;if(t<1||t>=NF||t===DRG)continue;seenIds.add(id);let m=MIDX.get(id);const s=e[5]|0;
@@ -1661,7 +1676,7 @@ function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floo
  for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=map[ty]?.[tx];if(t===undefined)continue;const px=tx*T,py=ty*T,h=hs(tx,ty),z=ZONES[BZ[ty*MW+tx]],bt=BT[z.bio];
   if(isWall(t)||t===14){if(z.out&&t!==14){tile(bt.fl[h%3],px,py);paint(tx,ty,px,py);imgS(TRKS,px,py);continue}const W2=t===14?BT[5]:bt.wf?bt:BT[0],b=map[ty+1]?.[tx],face=b!==undefined&&!isWall(b)&&b!==14;
    tile(face?W2.wf[h%2]:W2.wt[h%2],px,py);if(t===10)imgS(CRKS,px,py);if(!face){if(!isWall(map[ty][tx-1])&&map[ty][tx-1]!==14)blk(px,py,2,T,"#05060a");if(!isWall(map[ty][tx+1])&&map[ty][tx+1]!==14)blk(px+T-2,py,2,T,"#05060a")}continue}
-  if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&tx<VCX&&VCX-tx<40));tile(vill?DIRT:bt.fl[h%3],px,py);paint(tx,ty,px,py);if(t===5)imgS(TRKS,px,py);continue}
+  if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&Math.abs(VCX-tx)<40));tile(vill?DIRT:bt.fl[h%3],px,py);paint(tx,ty,px,py);if(t===5)imgS(TRKS,px,py);continue}
   if(t===2){tile(CHT,px,py);if(map[ty-1]?.[tx]!==2)X.drawImage(SHD,Math.round(px+ox),Math.round(py+oy),T,12);continue}
   if(t===6){tile(SW[(an+h)%3],px,py);if(R()<.004)burst(px+R()*32,py+R()*32,"#8fd08a",3,.7,0,-14);continue}
   if(t===7){tile(LV[(an+h)%3],px,py);LT.push([px+16,py+16,70,.55]);GL.push([px+16,py+16,36,"255,110,30",.13]);if(R()<.006)burst(px+R()*32,py+R()*32,"#ffd060",3,.6,0,-24);continue}
@@ -1669,9 +1684,11 @@ function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floo
   tile((bt.fl||BT[0].fl)[h%3],px,py);paint(tx,ty,px,py);if(t===9)imgS(RBS,px,py);
   if(t===11){imgS(CHS,px+5,py+12);LT.push([px+16,py+18,70,.5]);GL.push([px+16,py+18,26,"255,220,80",.25+.12*Math.sin(time*4)])}
   if(t===12)imgS(CHO,px+5,py+14);
+  /* tochas espalhadas pelo mapa: sempre acesas, mas só fazem diferença à noite */
+  if(z.out&&t===0&&!z.village&&h%113===7){shadow(px+16,py+26,10);blk(px+14,py+6,4,20,"#4a2e16");blk(px+12,py+4,8,4,"#6a4a2a");const fl3=Math.sin(time*9+tx)*1.5;blk(px+13,py-4+fl3,6,8,"#ff8a1f");blk(px+14,py-1+fl3,4,4,"#ffe08a");LT.push([px+16,py,150,.25+.7*NIGHT]);GL.push([px+16,py,22,"255,150,50",.25+.25*NIGHT])}
   if(!z.out){const up=map[ty-1]?.[tx];if(isWall(up))X.drawImage(SHD,Math.round(px+ox),Math.round(py+oy),T,14);
    if(isWall(map[ty]?.[tx-1])){X.fillStyle="rgba(0,0,0,.2)";X.fillRect(Math.round(px+ox),Math.round(py+oy),6,T)}
-   if(t===0){const d=h%29;if(d===0){imgS(CRY,px+6,py+14);const c=z.bio===4?"200,240,255":z.bio===9?"255,230,90":z.bio===3?"255,120,60":"90,200,255";LT.push([px+16,py+20,80,.45]);GL.push([px+16,py+20,30,c,.22])}else if(d===1&&z.bio!==4&&z.bio!==3){imgS(MUSH,px+8,py+14);LT.push([px+16,py+18,60,.4]);GL.push([px+16,py+18,24,"60,220,190",.18])}}}}}
+   if(t===0){const d=h%17;if(d===0){imgS(CRY,px+6,py+14);const c=z.bio===4?"200,240,255":z.bio===9?"255,230,90":z.bio===3?"255,120,60":"90,200,255";LT.push([px+16,py+20,140,.75]);GL.push([px+16,py+20,34,c,.3+.06*Math.sin(time*2+tx)])}else if(d===1&&z.bio!==4&&z.bio!==3){imgS(MUSH,px+8,py+14);LT.push([px+16,py+18,60,.4]);GL.push([px+16,py+18,24,"60,220,190",.18])}}}}}
 function barrier(){if(G.phase)return;for(let ty=Math.floor(camy/T);ty<=Math.floor((camy+VH)/T);ty++)for(let tx=Math.floor(camx/T);tx<=Math.floor((camx+VW)/T);tx++){if(map[ty]?.[tx]!==3)continue;const px=tx*T,py=ty*T;
  X.globalAlpha=.35+.15*Math.sin(time*3+tx);blk(px,py,T,T,"#7a4ad0");X.globalAlpha=.8;for(let i=0;i<3;i++)blk(px+4+i*10,py+((time*30+i*11+tx*7)%T),2,6,"#e0c8ff");X.globalAlpha=1;LT.push([px+16,py+16,60,.35])}}
 function seal(){if(Math.abs(vXp-camx-VW/2)>VW||Math.abs(vYp-camy-VH/2)>VH)return;const cx=vXp,cy=vYp+14;
@@ -1699,7 +1716,7 @@ function water(px,py,tx,ty){blk(px,py,T,T,"#245a8a");const s=(time*14+tx*7+ty*11
  if(map[ty-1]?.[tx]!==16)blk(px,py,T,4,"rgba(20,40,30,.55)");if(cl("moat")>=3)GL.push([px+16,py+16,10,"120,180,255",.12])}
 /* muralha contínua e fechada (só os portões abertos), com ameias; half 0 = metade de trás, 1 = metade da frente (+ torres e pontes) */
 /* ponte de verdade sobre o fosso (lado oeste): pilares de pedra, tábuas, corrimão dos dois lados e sombra na água */
-function bridgeDraw(){const ml=cl("moat"),wood=ml<2,x0=cpX-WALL_RX*1.44*T,x1=cpX-WALL_RX*1.1*T,y0=cpY-GATE_H,y1=cpY+GATE_H,w=x1-x0,h=y1-y0;
+function bridgeDraw(s){const ml=cl("moat"),wood=ml<2,xa=cpX+s*WALL_RX*1.44*T,xb=cpX+s*WALL_RX*1.1*T,x0=Math.min(xa,xb),x1=Math.max(xa,xb),y0=cpY-GATE_H,y1=cpY+GATE_H,w=x1-x0,h=y1-y0;
  const deck=wood?"#8a5a2e":"#9a9aa4",line=wood?"rgba(40,20,8,.45)":"rgba(40,40,50,.35)",rail=wood?"#5a3a1e":"#6a6e78";
  blk(x0+4,y1,w-8,8,"rgba(0,0,0,.35)");for(const k of[.28,.72]){blk(x0+w*k-5,y1-2,10,14,"#5e626c");blk(x0+w*k-5,y1+8,10,3,"rgba(255,255,255,.25)")}
  blk(x0,y0,w,h,deck);for(let x=x0+3;x<x1;x+=7){blk(x,y0,1,h,line);blk(x+1,y0,1,h,"rgba(255,255,255,.08)")}
@@ -1708,24 +1725,24 @@ function bridgeDraw(){const ml=cl("moat"),wood=ml<2,x0=cpX-WALL_RX*1.44*T,x1=cpX
  blk(x0-10,y0-6,12,h+12,"#6a6e78");blk(x0-10,y0-6,12,3,"#9aa0aa");blk(x1-2,y0-6,12,h+12,"#6a6e78");blk(x1-2,y0-6,12,3,"#9aa0aa");
  for(const ry of[y0,y1]){for(let x=x0+2;x<x1;x+=14)blk(x,ry-14,4,16,rail);blk(x0,ry-14,w,3,rail);blk(x0,ry-8,w,2,rail)}}
 /* portão oeste: duas torres, arco com passarela por cima, portas de madeira abertas e bandeira */
-function gateDraw(H,c,top){const gx=cpX-WALL_RX*T,y0=cpY-GATE_H,y1=cpY+GATE_H,wl=clv("wall");
+function gateDraw(H,c,top,s){const gx=cpX+s*WALL_RX*T,y0=cpY-GATE_H,y1=cpY+GATE_H,wl=clv("wall");
  blk(gx-12,y0,24,y1-y0,"rgba(20,14,8,.35)");
  if(wl===1){for(const py of[y0-6,y1+6]){blk(gx-5,py-H-14,10,H+14,"#5a3a1e");blk(gx-6,py-H-18,12,4,"#a07d4d")}blk(gx-6,y0-H-16,12,y1-y0+12,"#7a5228");return}
  for(const py of[y0-14,y1+14]){shadow(gx,py+2,16);blk(gx-15,py-H-24,30,H+24,c);blk(gx+9,py-H-24,6,H+24,"rgba(0,0,0,.2)");blk(gx-15,py-H-24,30,3,top);for(let k=0;k<4;k++)blk(gx-15+k*8,py-H-31,6,7,c);blk(gx-3,py-H-6,6,9,"#1a1a20")}
  blk(gx-13,y0-H-14,26,y1-y0+4,c);blk(gx-13,y0-H-14,26,3,top);for(let y=y0;y<y1;y+=12)blk(gx-12,y-H-17,6,4,c);
  /* folhas da porta, abertas para fora, com tábuas, faixas de ferro e argola */
- for(const[py,dir]of[[y0+2,1],[y1-2,-1]]){const lx=gx-46,ly=py-(dir>0?0:30);blk(lx,ly,34,30,"#7a4a22");for(let k=4;k<34;k+=6)blk(lx+k,ly,1,30,"rgba(40,20,8,.5)");
+ for(const[py,dir]of[[y0+2,1],[y1-2,-1]]){const lx=s<0?gx-46:gx+12,ly=py-(dir>0?0:30);blk(lx,ly,34,30,"#7a4a22");for(let k=4;k<34;k+=6)blk(lx+k,ly,1,30,"rgba(40,20,8,.5)");
   blk(lx,ly+6,34,3,"#4a4a52");blk(lx,ly+21,34,3,"#4a4a52");blk(lx,ly,34,2,"#a07040");X.strokeStyle="#c8a050";X.lineWidth=1.5;X.beginPath();X.arc(Math.round(lx+6+ox),Math.round(ly+15+oy),3,0,6.283);X.stroke()}
  blk(gx-11,y0,4,22,"#6a4020");blk(gx-11,y1-22,4,22,"#6a4020");
  if(wl>=3){blk(gx-1,y0-H-40,2,26,"#3a2412");X.fillStyle="#c83a3a";X.fillRect(Math.round(gx+1+ox),Math.round(y0-H-40+oy),16,10+Math.sin(time*5)*2);for(const py of[y0-14,y1+14]){GL.push([gx,py-H-30,10,"255,160,60",.5]);LT.push([gx,py-H-28,80,.5])}}}
 function cityWalls(half){const wl=clv("wall");
- if(half===1&&cl("moat"))bridgeDraw();
+ if(half===1&&cl("moat")){bridgeDraw(-1);bridgeDraw(1)}
  if(wl){const H=[0,26,32,42][wl],c=["","#7a5228","#7d8290","#5f6470"][wl],top=["","#a07d4d","#a3a8b4","#8a90a0"][wl],sg=[];
   for(let a=-Math.PI,i=0;a<Math.PI;a+=.03,i++){if(isGate(cpX+Math.cos(a)*WALL_RX*T,cpY+Math.sin(a)*WALL_RY*T))continue;const s=Math.sin(a);if((s>=0)!==(half===1))continue;sg.push([cpX+Math.cos(a)*WALL_RX*T,cpY+s*WALL_RY*T,i])}
   sg.sort((p,q)=>p[1]-q[1]);for(const[x,y,i]of sg){shadow(x,y+2,10);blk(x-8,y-H,16,H,c);blk(x-8,y-H,16,3,top);
    if(wl===1){blk(x-8,y-H,2,H,"#5a3a1e");if(i%2)blk(x-6,y-H-4,4,4,"#7a5228")}else{for(let k=6;k<H;k+=7)blk(x-8,y-H+k,16,1,"rgba(0,0,0,.2)");if(i%3===0)blk(x-7,y-H-6,7,6,c)}
    if(wl>=3&&i%17===0){blk(x-1,y-H-12,2,8,"#3a2412");GL.push([x,y-H-12,8,"255,160,60",.5]);LT.push([x,y-H-10,70,.45])}}
-  if(half===1)gateDraw(H,c,top)}
+  if(half===1){gateDraw(H,c,top,-1);gateDraw(H,c,top,1)}}
  /* torres na muralha; no alto, um atirador (morador que ataca à distância) */
  if(half===1){const st=cl("tow")>=3;towers().forEach((t,i)=>{const x=t.x,y=t.y,h=st?78:62,c=st?"#6a6e7a":"#7a5430";shadow(x,y+3,22);blk(x-15,y-h,30,h,c);blk(x+9,y-h,6,h,"rgba(0,0,0,.2)");
   for(let k=0;k<4;k++)blk(x-15+k*8,y-h-7,6,7,c);blk(x-3,y-h+20,6,10,"#1a1a20");if(!st)for(let k=8;k<h;k+=10)blk(x-15,y-h+k,30,1,"#5a3a1e");
@@ -1782,7 +1799,7 @@ function drawMon(m){const s=SPR[m.t],t=MT[m.t],fy=m.y+12,lift=t.fl?8+Math.sin(ti
  if(t.boss)return;let pr=null,pd=1e9;for(const p of PL){const d=Math.abs(m.x-p.x)+Math.abs(m.y-p.y);if(d<pd){pd=d;pr=p}}const near=pd<240,hov=Math.abs(MX+camx-m.x)<20&&Math.abs(MY+camy-m.y+10)<24;
  if(m.hp<m.mhp||near)hpBar(m.x,top-6,30,m.hp/m.mhp,m.elite?"#ffb02a":"#e83a3a");
  /* nome com o nível: verde = seu nível, amarelo = 5+ acima, vermelho = 10+ acima */
- if(hov||pd<420)MNAMES.push(["Nv "+(m.lv||1)+" "+(m.boss2?"Chefe ":"")+t.n+(m.elite&&!m.boss2?" Elite":""),m.x,top-10,pr?TIER_COL[lvTier((m.lv||1)-pr.lv)]:"#f0e4c8"])}
+ if((hov||pd<420)&&(NIGHT<.5||pd<220||hov))MNAMES.push(["Nv "+(m.lv||1)+" "+(m.boss2?"Chefe ":"")+t.n+(m.elite&&!m.boss2?" Elite":""),m.x,top-10,pr?TIER_COL[lvTier((m.lv||1)-pr.lv)]:"#f0e4c8"])}
 /* nomes dos monstros: desenhados por cima das árvores e da escuridão */
 const MNAMES=[];
 function drawMonNames(){X.font="13px "+FT;X.textAlign="center";X.lineWidth=3;X.strokeStyle="#07050d";
@@ -1890,7 +1907,7 @@ function txt(s,x,y,c="#ece4fa",sz=20,al="left"){X.font=sz+"px "+FT;X.textAlign=a
 /* vw: 0 de frente, 1 de lado, 2 de costas (de costas, o visual da frente fica atrás do corpo e as asas na frente) */
 function slimeDraw(col,skin,x,y,fl,sx=1,sy=1,fw=0,al=1,vw=0){const K=SKINS[skin],B=vw===1?SLCS[col]:vw===2?SLCB[col]:SLC[col];
  if(vw===2){if(K&&K.f)spr(K.f,x,y,fl,sx,sy,0,al);spr(B,x,y,fl,sx,sy,fw,al);if(K&&K.b)spr(K.b,x,y,fl,sx,sy,0,al);return}
- if(K&&K.b)spr(K.b,x,y,fl,sx,sy,0,al);spr(B,x,y,fl,sx,sy,fw,al);if(K&&K.f)spr(K.f,x,y,fl,sx,sy,0,al)}
+ if(K&&K.b)spr(K.b,x,y,fl,sx,sy,0,al);spr(B,x,y,fl,sx,sy,fw,al);const F=K&&(vw===1&&K.fs?K.fs:K.f);if(F)spr(F,x,y,fl,sx,sy,0,al)}
 /* para onde está olhando: de costas (subindo), de frente (descendo) ou de lado */
 const viewOf=(fx,fy)=>Math.abs(fy)>Math.abs(fx)*1.15?(fy<0?2:0):1;
 let curSkin=-1;
@@ -1945,7 +1962,11 @@ function minimap(x,y,cxp,cyp){flushMM();const cx=x+85,cy=y+58,Rr=51,span=110,k=R
  const gl=goal();if(Math.sin(time*6)>-.3)mark(gl.x,gl.y,"#ffd84a",0);
  /* invasão (ou aviso de 1 minuto): seta vermelha piscando apontando para a cidade */
  if(G.ch>=2&&G.wave>=5&&(G.inv||(G.it||0)<=INV_WARN)&&Math.sin(time*10)>-.5)mark(cpX,cpY,"#ff3a3a",1);
- X.fillStyle="#c83a3a";X.beginPath();X.moveTo(cx,cy-Rr-11);X.lineTo(cx-5,cy-Rr-3);X.lineTo(cx+5,cy-Rr-3);X.closePath();X.fill();txt("N",cx,cy-Rr+9,"#ffffff",13,"center")}
+ X.fillStyle="#c83a3a";X.beginPath();X.moveTo(cx,cy-Rr-11);X.lineTo(cx-5,cy-Rr-3);X.lineTo(cx+5,cy-Rr-3);X.closePath();X.fill();txt("N",cx,cy-Rr+9,"#ffffff",13,"center");
+ /* relógio do dia: sol de dia, lua à noite */
+ const nx=cx+Rr-4,ny=cy-Rr+2,isN=NIGHT>.5;X.fillStyle="#2a2018";X.beginPath();X.arc(nx,ny,10,0,6.283);X.fill();X.strokeStyle="#c8a050";X.lineWidth=2;X.stroke();
+ X.fillStyle=isN?"#e8eeff":"#ffd84a";X.beginPath();X.arc(nx,ny,6,0,6.283);X.fill();if(isN){X.fillStyle="#2a2018";X.beginPath();X.arc(nx+3,ny-2,5,0,6.283);X.fill()}
+ txt(clockTxt(),nx,ny+22,isN?"#b8c8ff":"#ffe8a0",11,"center")}
 /* mensagem do Sábio: só o texto, centralizado no alto da tela (abaixo do objetivo e do nome do lugar), com contorno para ler em qualquer fundo */
 function msgBox(x,y,w){if(mt<=0)return;const a=clamp(mt,0,1);X.font="19px "+FT;let line="";const out=[];for(const wd of msg.split(" ")){const t=line?line+" "+wd:wd;if(X.measureText(t).width>w&&line){out.push(line);line=wd}else line=t}out.push(line);
  X.save();X.globalAlpha=a;X.textAlign="center";X.lineJoin="round";out.slice(0,3).forEach((l,i)=>{const yy=y+12+i*20;X.lineWidth=4;X.strokeStyle="rgba(8,6,12,.9)";X.strokeText(l,VW/2,yy);X.fillStyle="#fff4d8";X.fillText(l,VW/2,yy)});X.restore()}
@@ -2047,7 +2068,10 @@ function overlay(){if(state==="worldmap"){worldMap();return}X.fillStyle="rgba(8,
   menuList(upgItems(),VW/2,108,menuSel,440);const u=CITY[menuSel];if(u){const l=G.vup[menuSel]|0;txt(l>=LMAX?"Nível máximo: "+u.d[LMAX-1]:"Próximo nível: "+u.d[l],VW/2,412,"#e8dcc0",16,"center");if(l)txt("Agora: "+u.d[l-1],VW/2,434,"#a89878",15,"center")}}
  if(state==="naming"){win(90,150,460,200,"Vila dos Slimes");txt(G.ch>=2?"Dê o seu nome à cidade":"Os slimes te receberam como herói!",VW/2,194,"#ffe7a0",23,"center");txt("Que nome terá a vila? (só você vê este nome)",VW/2,218,"#e8dcc0",19,"center");
   rr(160,232,320,34,4);X.fillStyle="rgba(232,220,192,.95)";X.fill();X.font="24px "+FT;X.fillStyle="#2a1e10";X.textAlign="center";X.fillText(nameBuf+(Math.sin(time*8)>0?"_":""),VW/2,256);X.textAlign="left";
-  txt("Digite um nome ou use ◄ ► para sugestões",VW/2,292,"#d8c8a0",17,"center");txt("ENTER / A / clique aqui para confirmar",VW/2,320,"#ffe7a0",18,"center");HIT.push({x:160,y:300,w:320,h:30,fn:confirmVillage})}
+  /* tocar na caixa abre o teclado do celular; as setas sorteiam um nome */
+  HIT.push({x:160,y:232,w:320,h:34,fn:()=>{wantNF=1;nmFocus()}});
+  for(const[ax,ch]of[[126,"◄"],[484,"►"]]){rr(ax,234,30,30,5);X.fillStyle="#6a4a22";X.fill();X.strokeStyle="#e8c25a";X.lineWidth=1.5;X.stroke();txt(ch,ax+15,256,"#ffe8c0",18,"center");HIT.push({x:ax-4,y:228,w:38,h:42,fn:()=>{nameBuf=randName();if(NMI)NMI.value=nameBuf;sfx("ui")}})}
+  txt("Toque na caixa para digitar ou use ◄ ► para um nome aleatório",VW/2,292,"#d8c8a0",16,"center");txt("ENTER / A / clique aqui para confirmar",VW/2,320,"#ffe7a0",18,"center");HIT.push({x:160,y:300,w:320,h:30,fn:confirmVillage})}
  if(state==="chend"){win(70,120,500,250,"Capítulo 2 completo");closeBtn(544,123,()=>{state="play"});txt("O Lorde Orc foi devorado e "+cityName()+" está a salva!",VW/2,190,"#e0f0d8",20,"center");
   txt("Os slimes agora chamam você de guardião.",VW/2,214,"#e0f0d8",20,"center");PL.forEach((p,i)=>txt((p.nm?p.nm+" · ":"")+"Nível "+p.lv+" · Visuais "+(cosList(p).length-1)+"/"+NSKIN,VW/2,250+i*20,PCOL[p.col],19,"center"));
   txt("ENTER / A / clique para continuar explorando",VW/2,350,"#ffffff",19,"center");HIT.push({x:0,y:0,w:VW,h:VH,fn:()=>{state="play"}})}}
@@ -2098,7 +2122,19 @@ addEventListener("orientationchange",()=>{if(isPhone()&&!isLand()&&isFull())togg
 function pauseItems(){return[{t:"Tela cheia: "+(isFull()?"ligada":"desligada"),act:()=>toggleFull()},{t:"Continuar",act:()=>{state="play"}},{t:"Mapa do mundo",act:()=>{state="worldmap"}},{t:"Salvar agora",act:()=>{writeSave();say("Jogo salvo.");state="play"}},{t:"Música: ◄ "+volTxt(AUD.mus)+" ►",act:()=>stepVol("mus",-1,1),adj:d=>stepVol("mus",d)},{t:"Efeitos: ◄ "+volTxt(AUD.sfx)+" ►",act:()=>stepVol("sfx",-1,1),adj:d=>stepVol("sfx",d)},{t:"Minimapa: "+(showMM?"ligado":"desligado"),act:()=>{showMM=showMM?0:1}},{t:"Gráficos: "+GFXN[GQ],act:toggleGfx},{t:"Jogar no: "+(MODE==="cel"?"Celular":"Computador"),act:toggleMode},{t:"Sair para o título",act:toTitle}]}
 /* (lista de construções movida para junto do nome da cidade) */
 /* o nome da cidade é de cada jogador (fica no personagem) e só ele vê */
-function confirmVillage(){const nm=nameBuf.trim().slice(0,16)||VNAMES[0];for(const p of PL)p.vn=nm;state="play";showBanner(nm.toUpperCase());sfx("lvl");saveDirty=1;
+/* nomes aleatórios: começo + fim */
+const NPRE=["Gosma","Pedra","Lua","Sol","Bruma","Vento","Musgo","Cristal","Orvalho","Brasa","Neve","Trovão","Âmbar","Folha","Estrela","Geleia"];
+const NSUF=["lândia","polis"," do Vale"," Alta","burgo"," Velha"," Nova","ville"," Serena"," do Norte","forte"," Azul","mar"," das Flores"];
+function randName(){let n;do{n=pk(NPRE)+pk(NSUF)}while(n===nameBuf);return n.slice(0,16)}
+/* campo de texto invisível: no celular é ele que faz aparecer o teclado virtual */
+let NMI=null,wantNF=0;
+function nmFocus(){if(!NMI){NMI=document.createElement("input");NMI.id="nmIn";NMI.maxLength=16;NMI.autocomplete="off";NMI.setAttribute("autocapitalize","words");NMI.setAttribute("enterkeyhint","done");
+  Object.assign(NMI.style,{position:"fixed",left:"50%",top:"30%",width:"200px",height:"30px",transform:"translateX(-50%)",opacity:"0",fontSize:"16px",zIndex:"5",border:"0",padding:"0"});document.body.appendChild(NMI);
+  NMI.addEventListener("input",()=>{if(state!=="naming")return;nameBuf=NMI.value.replace(/[^\p{L}\p{N} '-]/gu,"").slice(0,16)});
+  NMI.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();NMI.blur();if(state==="naming")confirmVillage()}e.stopPropagation()})}
+ NMI.value=nameBuf;try{NMI.focus({preventScroll:true});NMI.setSelectionRange(nameBuf.length,nameBuf.length)}catch(e){}}
+addEventListener("pointerup",()=>{if(wantNF&&state==="naming"){wantNF=0;nmFocus()}});
+function confirmVillage(){if(NMI)NMI.blur();const nm=nameBuf.trim().slice(0,16)||VNAMES[0];for(const p of PL)p.vn=nm;state="play";showBanner(nm.toUpperCase());sfx("lvl");saveDirty=1;
  if(G.ch>=2){say("Agora a cidade se chama "+nm+" para você. Os outros jogadores veem o nome que eles mesmos escolheram.");return}
  G.vname=nm;G.ch=2;G.wave=1;G.wt=25;G.wact=0;G.vhp=vmax();say("Os slimes comemoram: bem-vindo a "+nm+"! Os orcs atacam em 25s. Fale com o Ancião para melhorar a vila.")}
 function upgItems(){const items=CITY.map((u,i)=>{const l=G.vup[i]|0,c=costOf(u,l);return{t:u.n+" · Nv "+l+(l>=LMAX?" · máximo":" → "+(l+1)+" · "+c+" ouro"),dim:l>=LMAX||G.cr<c,act:()=>{if(l>=LMAX||G.cr<c){sfx("hurt");return}
@@ -2115,6 +2151,7 @@ const OVER=["pause","tree","upgrade","naming","chend","worldmap"];
 function play(dt){shake=Math.max(0,shake-dt*22);const ctl=state==="play";
  if(ctl){if(KP.KeyN)showMM=showMM?0:1;if(KP.KeyM)SND=SND?0:1;if(KP.KeyT&&PL[0])teleCrystal(PL[0])}
  for(const p of PL){const inp=inputFor(p),c=state==="play";if(c&&inp.pause){state="pause";menuSel=0;sfx("ui")}else if(c&&inp.tree){state="tree";treeOwner=p;treeSel=0;sfx("ui")}updPlayer(p,dt,inp,c&&state==="play")}
+ dayTick(dt);
  if(NET.mode!=="client"){monsterAI(dt);updVillage(dt);respawnTick()}else lerpMons(dt);
  contact(dt);updShots(dt);updEshots(dt);updFx(dt);updVillagers(dt);
  if(G.ch===1&&PL.some(p=>p.dead<=0&&ZONES[zoneOfPx(p.x,p.y)].village&&Math.hypot(p.x-cpX,p.y-cpY)<16*T)){if(NET.mode!=="client"){if(state==="play"){state="naming";nameBuf=VNAMES[0];nameSel=0;sfx("ok")}}else if(!hints.w){hints.w=1;say("O servidor está dando nome à vila…")}}
@@ -2126,7 +2163,7 @@ function play(dt){shake=Math.max(0,shake-dt*22);const ctl=state==="play";
 function menus(mi){
  if(state==="title"){titleMenu(mi);return}
  if(state==="naming"){const g=padNow.find(q=>q&&(q.pr[0]||q.pr[9])),l=KP.ArrowLeft||padNow.some(q=>q&&(q.pr[14]||q.se==="l")),r=KP.ArrowRight||padNow.some(q=>q&&(q.pr[15]||q.se==="r"));
-  if(l||r){nameSel=(nameSel+(r?1:-1)+VNAMES.length)%VNAMES.length;nameBuf=VNAMES[nameSel];sfx("ui")}if(KP.Enter||g)confirmVillage();return}
+  if(l||r){nameBuf=randName();if(NMI)NMI.value=nameBuf;sfx("ui")}if(KP.Enter||g)confirmVillage();return}
  if(state==="worldmap"){if(mi.back||mi.ok)state="pause";return}
  const list=state==="online"?onlineItems():state==="confirmNew"?CONF:state==="confirmDel"?DELC:state==="pause"?pauseItems():state==="upgrade"?upgItems():null;
  if(list){menuSel=clamp(menuSel,0,list.length-1);if(mi.u)menuSel=(menuSel+list.length-1)%list.length;if(mi.d)menuSel=(menuSel+1)%list.length;
@@ -2170,7 +2207,8 @@ function draw(){HIT=hitArr();X.setTransform(Q,0,0,Q,0,0);X.imageSmoothingEnabled
  /* copas das árvores: cobre a tela inteira (de qualquer largura), mais uma margem porque a copa passa do bloco */
  const x0=Math.floor(camx/T)-1,y0=Math.floor(camy/T),x1=x0+Math.ceil(VW/T)+2,y1=y0+Math.ceil(VH/T)+2;for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=map[ty]?.[tx];if(t!==5&&t!==1)continue;const z=ZONES[BZ[ty*MW+tx]];if(!z.out)continue;
   const cx=tx*T+16,cy=ty*T-8,under=PL.some(p=>Math.abs(p.x-cx)<30&&p.y<cy+30&&p.y>cy-34);X.globalAlpha=under?.45:1;imgS(CAN[BIO[z.bio].can][hs(tx,ty)%2],tx*T-8,ty*T-36);X.globalAlpha=1}
- const cz=ZONES[zoneOfPx(camx+VW/2,camy+VH/2)],target=cz.out?.08:cz.day?.2:cz.seal?.45:.6;ambCur+=(target-ambCur)*.04;
+ /* dia e noite: lá fora escurece quase por completo; nas cavernas só os cristais, as tochas e a luz do slime iluminam */
+ const cz=ZONES[zoneOfPx(camx+VW/2,camy+VH/2)],target=cz.out?.08+.88*NIGHT:cz.day?.2+.72*NIGHT:cz.seal?.5:.8;ambCur+=(target-ambCur)*.04;
  for(const p of PL)if(p.dead<=0)LT.push([p.x,p.y-6,210,.95]);for(const r of NET.remote)if(!r.dead)LT.push([r.x,r.y-6,170,.85]);
  for(const s of shots)LT.push([s.x,s.y,60,.5]);for(const s of eshots)LT.push([s.x,s.y,50,.4]);for(const b of bolts)LT.push([b.pts[Math.min(5,b.pts.length-1)][0],b.pts[Math.min(5,b.pts.length-1)][1],160,.8]);
  for(const f of flashes){LT.push([f.x,f.y,f.r,.9*f.t/f.m]);GL.push([f.x,f.y,f.r*.5,f.c,.35*f.t/f.m])}

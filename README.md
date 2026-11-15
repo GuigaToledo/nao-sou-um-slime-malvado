@@ -117,6 +117,15 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v3.1.0 (dia e noite)
+
+- **Dia e noite:** o tempo passa (ciclo de 16 minutos: 12 de dia e 4 de noite, com entardecer e amanhecer). Um **relógio com sol/lua** fica ao lado do minimapa. À noite, lá fora, **só se vê o que está iluminado**: a luz própria do slime, **tochas espalhadas pelo mapa** e as luzes da cidade. Os nomes dos monstros longe da luz somem.
+- **Cavernas mais escuras**, iluminadas por **mais cristais**, com mais brilho.
+- **Ponte e portão também do lado leste** da cidade, com estrada. Defensores e invasores usam o portão mais perto.
+- **Bigode (e óculos e máscaras)** acompanham o rosto quando o slime vira de lado.
+- **Asas de Morcego** agora têm a **Mordida Vampírica**: dano e roubo de vida crescem com o nível (cura 15% do dano no nível 1, até 70% no nível 100). Fraca no começo, ótima para se sustentar no fim. O morcego inimigo continua fraco nos níveis baixos.
+- **Nome da cidade:** tocar na caixa abre o **teclado do celular**; as setas **◄ ►** sorteiam **nomes aleatórios**.
+
 ## Novidades da v3.0.0 (parte 2: cidade, balanceamento e criaturas)
 
 - **Construções até o nível 10**, com efeitos de verdade (estilo tower defense):
