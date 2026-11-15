@@ -18,7 +18,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v2.9.0";
+const VERSION="v2.9.1";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VH=480,FT="'VT323',ui-monospace,monospace";
@@ -1784,7 +1784,7 @@ function hud(){const multi=PL.length>1,gl=goal();
  if(boss){const t=MT[boss.t],bw=multi?188:280,bx=VW/2-bw/2;frame(bx,ty,bw,28);txt("Nv "+(boss.lv||1)+" "+(boss.boss2?"Chefe ":"")+t.n+(boss.rage?" · FÚRIA":""),VW/2,ty+14,PL[0]?TIER_COL[lvTier((boss.lv||1)-PL[0].lv)]:"#ff9ab8",17,"center");bar(bx+8,ty+18,bw-16,5,boss.hp/boss.mhp,"#ff3a7a","#ffb0c8");ty+=32}
  if(zoneT>0){X.globalAlpha=clamp(zoneT,0,1);txt("— "+zoneName+" —",VW/2,ty+20,"#ffffff",20,"center");X.globalAlpha=1;ty+=30}
  const msgY=ty+10;
- if(!multi){panel(PL[0],8,8);if(showMM)minimap(VW-178,8,PL[0].x,PL[0].y);if(MODE==="cel")wheels(PL[0],VW/2-10,VH-44,.62);else wheels(PL[0],VW/2,VH-54,1);msgBox(0,msgY,Math.min(VW-120,560))}
+ if(!multi){panel(PL[0],8,8);if(showMM)minimap(VW-178,8,PL[0].x,PL[0].y);if(MODE==="cel"){/* no celular, cada quadrado fica do tamanho do botão DASH (se couber entre o joystick e os botões) */const s=clamp((VW/2-175)/229,.62,1.42);wheels(PL[0],VW/2,VH-28-48*s,s)}else wheels(PL[0],VW/2,VH-54,1);msgBox(0,msgY,Math.min(VW-120,560))}
  else{PL.forEach(p=>{const right=p.slot%2===1,bottom=p.slot>=2,x=right?VW-220:8;if(!bottom){panel(p,x,8);wheels(p,x+106,8+60+30,.5)}else{panel(p,x,VH-68);wheels(p,x+106,VH-68-34,.5)}});
   if(showMM)minimap(VW/2-85,ty+(zoneT>0?28:0),camx+VW/2,camy+VH/2);msgBox(64,Math.max(ty+(showMM?100:8),170),VW-128)}
  if(savedT>0){X.globalAlpha=clamp(savedT,0,1);txt("Jogo salvo",VW-8,VH-8,"#a8ffb8",16,"right");X.globalAlpha=1}

@@ -117,6 +117,10 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.9.1
+
+- No modo celular, as rodas de visual e de invocação ficaram maiores: cada quadrado tem o tamanho do botão DASH. Em telas estreitas, elas diminuem só o necessário para não encostar no joystick nem nos botões.
+
 ## Novidades da v2.9.0
 
 - **Fosso de água com pontes** em volta da cidade (construção nova, 3 níveis): pontes de madeira, pontes de pedra e, no nível 3, água encantada que deixa os invasores lentos na ponte. Bichos voadores passam voando direto. Os que andam têm que entrar pelas pontes e pelos portões (sul e oeste).
