@@ -117,6 +117,17 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.3.0 (visual estilo anime)
+
+- **Cel shading:** personagens, monstros, invocações e visuais têm sombra em faixas nítidas, como em anime, com cores mais vivas e contorno escuro mais marcado.
+- **Olhos de anime** nas criaturas, com íris grande e dois brilhos.
+- **Iluminação de cenário:**
+  - brilho suave (bloom) em magias, fogo e luzes;
+  - raios de sol entrando na floresta;
+  - tom quente ao ar livre e frio nas cavernas;
+  - manchas grandes de luz e sombra pelo chão, como cenário pintado à mão.
+- O brilho suave fica desligado no modo "Gráficos: Baixo (PC fraco)".
+
 ## Novidades da v2.2.0
 
 - **Gráficos em alta resolução:**

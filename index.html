@@ -18,7 +18,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v2.2.0";
+const VERSION="v2.3.0";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VW=640,VH=480,FT="'VT323',ui-monospace,monospace";
@@ -225,7 +225,16 @@ function poly(g,pts,col,ol=1){let y0=1e9,y1=-1e9;for(let i=1;i<pts.length;i+=2){
  g.fillStyle=gr;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill();if(ol){g.strokeStyle=lit(col,-.75);g.lineWidth=.7;g.lineJoin="round";g.stroke()}}
 function limb(g,pts,col,w){g.lineCap="round";g.lineJoin="round";const pth=()=>{g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1])};
  pth();g.strokeStyle=lit(col,-.75);g.lineWidth=w+1.3;g.stroke();pth();g.strokeStyle=col;g.lineWidth=w;g.stroke();g.save();g.translate(-w*.18,-w*.18);pth();g.strokeStyle=lit(col,.3);g.lineWidth=Math.max(.5,w*.28);g.stroke();g.restore()}
-function eye(g,x,y,r,col="#ffe14a"){circ(g,x,y,r+.5,"#0a0810");circ(g,x,y,r,col);circ(g,x+r*.2,y,r*.45,"#0a0810");circ(g,x-r*.3,y-r*.35,r*.28,"#ffffff")}
+/* olho estilo anime: íris grande, pupila, dois brilhos */
+function eye(g,x,y,r,col="#ffe14a"){circ(g,x,y,r+.5,"#0a0810");circ(g,x,y,r,col);circ(g,x,y+r*.25,r*.62,lit(col,-.45));circ(g,x+r*.15,y+r*.05,r*.42,"#0a0810");circ(g,x-r*.32,y-r*.38,r*.36,"#ffffff");circ(g,x+r*.38,y+r*.4,r*.16,"rgba(255,255,255,.9)")}
+/* cel shading (estilo anime): troca o degradê por faixas nítidas de luz e sombra e deixa as cores mais vivas */
+function toon(c){const g=c.getContext("2d"),id=g.getImageData(0,0,c.width,c.height),d=id.data;
+ const h2=(p,q,t)=>{t=t<0?t+1:t>1?t-1:t;return t<1/6?p+(q-p)*6*t:t<.5?q:t<2/3?p+(q-p)*(2/3-t)*6:p};
+ for(let i=0;i<d.length;i+=4){if(d[i+3]<20)continue;const r=d[i]/255,gg=d[i+1]/255,b=d[i+2]/255,mx=Math.max(r,gg,b),mn=Math.min(r,gg,b);let l=(mx+mn)/2,h=0,s=0;
+  if(mx!==mn){const dd=mx-mn;s=l>.5?dd/(2-mx-mn):dd/(mx+mn);h=(mx===r?(gg-b)/dd+(gg<b?6:0):mx===gg?(b-r)/dd+2:(r-gg)/dd+4)/6}
+  l=l<.13?.08:l<.3?.22:l<.52?.42:l<.74?.63:l<.9?.82:.95;s=Math.min(1,s*1.2);
+  if(s===0){d[i]=d[i+1]=d[i+2]=l*255;continue}const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;d[i]=h2(p,q,h+1/3)*255;d[i+1]=h2(p,q,h)*255;d[i+2]=h2(p,q,h-1/3)*255}
+ g.putImageData(id,0,0)}
 /* ===== Pixel art old school: paleta retrô (DB32 + tons claros/escuros), pontilhado Bayer e contorno de 1px ===== */
 const DB32=["#000000","#222034","#45283c","#663931","#8f563b","#df7126","#d9a066","#eec39a","#fbf236","#99e550","#6abe30","#37946e","#4b692f","#524b24","#323c39","#3f3f74","#306082","#5b6ee1","#639bff","#5fcde4","#cbdbfc","#ffffff","#9badb7","#847e87","#696a6a","#595652","#76428a","#ac3232","#d95763","#d77bba","#8f974a","#8a6f30"];
 const PAL=[];for(const h of DB32){const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));PAL.push(c,c.map(v=>v*.68|0),c.map(v=>(v+(255-v)*.3)|0),c.map(v=>v*.45|0))}
@@ -237,9 +246,9 @@ function quantize(c,ol,amt=20){const W=c.width,H=c.height,g=c.getContext("2d"),i
  if(ol)for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(A[y*W+x])continue;if((x>0&&A[y*W+x-1])||(x<W-1&&A[y*W+x+1])||(y>0&&A[(y-1)*W+x])||(y<H-1&&A[(y+1)*W+x])){const o=(y*W+x)*4;d[o]=18;d[o+1]=14;d[o+2]=24;d[o+3]=255}}
  g.putImageData(id,0,0)}
 /* sprites em alta resolução (RS vezes mais pontos), sombreado suave e contorno escuro fino; o tamanho no mundo continua o mesmo (lw x lh) */
-function mkS(w,h,fn,S=1){const lw=Math.ceil(w*S)+2,lh=Math.ceil(h*S)+2,K=RS,W=lw*K,H=lh*K,c=cv(W,H),g=c.getContext("2d");g.scale(K,K);g.translate(1,1);g.scale(S,S);fn(g);
- const sil=cv(W,H),sg=sil.getContext("2d");sg.drawImage(c,0,0);sg.globalCompositeOperation="source-in";sg.fillStyle="#140f1c";sg.fillRect(0,0,W,H);
- const o=cv(W,H),og=o.getContext("2d"),r=K*.7;for(let a=0;a<8;a++)og.drawImage(sil,Math.cos(a*.785)*r,Math.sin(a*.785)*r);og.drawImage(c,0,0);
+function mkS(w,h,fn,S=1){const lw=Math.ceil(w*S)+2,lh=Math.ceil(h*S)+2,K=RS,W=lw*K,H=lh*K,c=cv(W,H),g=c.getContext("2d");g.scale(K,K);g.translate(1,1);g.scale(S,S);fn(g);toon(c);
+ const sil=cv(W,H),sg=sil.getContext("2d");sg.drawImage(c,0,0);sg.globalCompositeOperation="source-in";sg.fillStyle="#120c1a";sg.fillRect(0,0,W,H);
+ const o=cv(W,H),og=o.getContext("2d"),r=K*.95;for(let a=0;a<8;a++)og.drawImage(sil,Math.cos(a*.785)*r,Math.sin(a*.785)*r);og.drawImage(c,0,0);
  const m=cv(W,H),q=m.getContext("2d");q.drawImage(o,0,0);q.globalCompositeOperation="source-in";q.fillStyle="#fff";q.fillRect(0,0,W,H);return{c:o,w:m,lw,lh}}
 /* slime redondinho e fofo: corpo de gelatina brilhante, olhos grandes, bochechas coradas */
 /* view: 0 = de frente, 1 = de lado (olhando para a direita), 2 = de costas */
@@ -459,7 +468,7 @@ const tri=(a,b,c,t)=>t<.5?mix3(a,b,t*2):mix3(b,c,(t-.5)*2);
 const dk=(c,t)=>mix3(c,[0,0,0],t),lt=(c,t)=>mix3(c,[255,255,255],t);
 const rgb=c=>"rgb("+(c[0]|0)+","+(c[1]|0)+","+(c[2]|0)+")";
 /* textura: fn(x,y) dá a cor em coordenadas de 0 a 32 (amostrada em alta resolução); deco(g) desenha os detalhes por cima */
-function hiTex(fn,deco,grain=7){const c=cv(TSZ,TSZ),g=c.getContext("2d"),id=g.createImageData(TSZ,TSZ),d=id.data;
+function hiTex(fn,deco,grain=3){const c=cv(TSZ,TSZ),g=c.getContext("2d"),id=g.createImageData(TSZ,TSZ),d=id.data;
  for(let y=0;y<TSZ;y++)for(let x=0;x<TSZ;x++){const c3=fn(x/RT,y/RT),o=(y*TSZ+x)*4,gr=(rnd()-.5)*grain;d[o]=c3[0]+gr;d[o+1]=c3[1]+gr;d[o+2]=c3[2]+gr;d[o+3]=255}
  g.putImageData(id,0,0);if(deco){g.save();g.scale(RT,RT);deco(g);g.restore()}return c}
 const texPx=(fn)=>hiTex(fn,null,4);
@@ -521,6 +530,10 @@ const SW=[0,1,2].map(f=>{const N=vnoise(),N2=vnoise();return texPx((x,y)=>{const
 const CHT=(()=>{const N=vnoise();return texPx((x,y)=>{const n=n32(N,x,y)*16;return[4+n,4+n,10+n]})})();
 const DIRT=(()=>{const N=vnoise();return hiTex((x,y)=>mix3([92,66,38],[138,104,62],n32(N,x,y)),g=>{for(let i=0;i<6;i++)once((x,y)=>stone(g,x,y,.8+rnd(),.6+rnd()*.6,"#968468"),rnd()*32,rnd()*32)})})();
 /* luzes e brilhos pré-desenhados (muito mais leve que criar gradientes a cada quadro) */
+/* raio de sol (para a luz entrando pela floresta) e tela pequena para o brilho (bloom) */
+const RAY=(()=>{const c=cv(32,256),g=c.getContext("2d"),r=g.createLinearGradient(0,0,0,256);r.addColorStop(0,"rgba(255,248,210,1)");r.addColorStop(1,"rgba(255,248,210,0)");g.fillStyle=r;g.fillRect(0,0,32,256);
+ const h=g.createLinearGradient(0,0,32,0);h.addColorStop(0,"rgba(0,0,0,1)");h.addColorStop(.5,"rgba(0,0,0,0)");h.addColorStop(1,"rgba(0,0,0,1)");g.globalCompositeOperation="destination-out";g.fillStyle=h;g.fillRect(0,0,32,256);return c})();
+const BLM=cv(160,120),blg=BLM.getContext("2d"),TN=vnoise();
 const LSPR=(()=>{const c=cv(128,128),g=c.getContext("2d"),r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,"rgba(0,0,0,1)");r.addColorStop(.55,"rgba(0,0,0,.55)");r.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=r;g.fillRect(0,0,128,128);return c})();
 const GLOWS=new Map();function glowSpr(col){let c=GLOWS.get(col);if(!c){c=cv(64,64);const g=c.getContext("2d"),r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,"rgba("+col+",1)");r.addColorStop(1,"rgba("+col+",0)");g.fillStyle=r;g.fillRect(0,0,64,64);GLOWS.set(col,c)}return c}
 const SHD=(()=>{const c=cv(8,16),g=c.getContext("2d"),r=g.createLinearGradient(0,0,0,16);r.addColorStop(0,"rgba(0,0,0,.55)");r.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=r;g.fillRect(0,0,8,16);return c})();
@@ -1324,6 +1337,8 @@ const img=(c,x,y)=>X.drawImage(c,Math.round(x+ox),Math.round(y+oy));
 function spr(s,x,y,fl,sx=1,sy=1,fw=0,al=1,wc){const w=Math.round(sw(s)*sx),h=Math.round(sh(s)*sy);X.save();X.translate(Math.round(x+ox),Math.round(y+oy));if(fl)X.scale(-1,1);X.globalAlpha=al;X.drawImage(s.c,-(w>>1),-h,w,h);
  if(fw>0){X.globalAlpha=fw;X.drawImage(s.w,-(w>>1),-h,w,h)}X.restore()}
 /* sprite com rotação em volta dos pés (para inclinar ao andar e atacar) */
+/* manchas grandes de luz e sombra pelo chão, como cenário pintado à mão */
+function paint(tx,ty,px,py){const v=TN(tx/7,ty/7)*.65+TN(tx/3+11,ty/3+5)*.35-.5;if(Math.abs(v)<.04)return;X.fillStyle=v>0?"rgba(255,244,200,"+Math.min(.16,v*.5)+")":"rgba(10,24,40,"+Math.min(.2,-v*.6)+")";X.fillRect(Math.round(px+ox),Math.round(py+oy),T,T)}
 function sprA(s,x,y,fl,sx=1,sy=1,fw=0,al=1,rot=0,im){if(sx<0){sx=-sx;fl=!fl}const w=Math.round(sw(s)*sx),h=Math.round(sh(s)*sy);X.save();X.translate(Math.round(x+ox),Math.round(y+oy));if(rot)X.rotate(rot);if(fl)X.scale(-1,1);X.globalAlpha=al;X.drawImage(im||s.c,-(w>>1),-h,w,h);
  if(fw>0&&!im){X.globalAlpha=fw;X.drawImage(s.w,-(w>>1),-h,w,h)}X.restore()}
 /* animação de qualquer criatura: passo com balanço e inclinação, asas batendo, investida no ataque e postura de magia */
@@ -1344,18 +1359,23 @@ function castFx(x,y,col,k,w){magicCircle(x,y,col,.4+k*.6);const c=hx3(col).join(
 function buffFx(o,x,y,h,w,hs,shd,rt){if(hs&&R()<.35)burst(x-(o.fl?-1:1)*w*.4,y-6-R()*h*.6,pk(["#ffe14a","#fff4b0"]),2,.3,(o.fl?1:-1)*80,0);
  if(shd){X.save();X.globalAlpha=.35+.12*Math.sin(time*5);X.strokeStyle="#6ac8ff";X.lineWidth=2;X.fillStyle="rgba(106,200,255,.12)";X.beginPath();X.ellipse(Math.round(x+ox),Math.round(y-h/2+oy),w*.6+6,h*.6+4,0,0,6.283);X.fill();X.stroke();X.restore()}
  if(rt){X.save();X.strokeStyle="#b48aff";X.lineWidth=2;X.globalAlpha=.8;for(let i=0;i<3;i++){X.beginPath();X.ellipse(Math.round(x+ox),Math.round(y+oy-i*4),w*.35+4-i*2,5-i,0,0,6.283);X.stroke()}X.restore()}}
+/* pós-efeitos estilo anime: brilho suave (bloom), raios de sol na floresta e tom de cor (quente fora, frio nas cavernas) */
+function postFx(cz){const hq=GQ!=="baixo"&&!fpsLow;
+ if(cz.out&&ambCur<.25){X.save();X.globalCompositeOperation="lighter";for(let i=0;i<4;i++){X.save();X.translate(VW*(.12+.26*i)+Math.sin(time*.15+i*2)*30,-30);X.rotate(.42);X.globalAlpha=.05+.025*Math.sin(time*.4+i);X.drawImage(RAY,-20,0,40+i*14,VH*1.6);X.restore()}X.restore()}
+ X.save();X.globalCompositeOperation="soft-light";X.fillStyle=cz.out?"rgba(255,196,120,.16)":"rgba(90,120,255,.14)";X.fillRect(0,0,VW,VH);X.restore();
+ if(hq){blg.filter="blur(3px) brightness(1.15) saturate(1.5)";blg.clearRect(0,0,160,120);blg.drawImage(C,0,0,160,120);blg.filter="none";X.save();X.globalCompositeOperation="screen";X.globalAlpha=.28;X.imageSmoothingEnabled=true;X.drawImage(BLM,0,0,VW,VH);X.restore()}}
 function shadow(x,y,r){X.fillStyle="rgba(0,0,0,.35)";X.beginPath();X.ellipse(Math.round(x+ox),Math.round(y+oy),r,r*.38,0,0,6.283);X.fill()}
 const hs=(x,y)=>((x*73856093)^(y*19349663))>>>0;
 const isWall=t=>t===1||t===10;
 function ground(){const x0=Math.floor(camx/T),y0=Math.floor(camy/T),x1=Math.floor((camx+VW)/T),y1=Math.floor((camy+VH)/T),an=Math.floor(time*4)%3;
  for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=map[ty]?.[tx];if(t===undefined)continue;const px=tx*T,py=ty*T,h=hs(tx,ty),z=ZONES[BZ[ty*MW+tx]],bt=BT[z.bio];
-  if(isWall(t)||t===14){if(z.out&&t!==14){tile(bt.fl[h%3],px,py);imgS(TRKS,px,py);continue}const W2=t===14?BT[5]:bt.wf?bt:BT[0],b=map[ty+1]?.[tx],face=b!==undefined&&!isWall(b)&&b!==14;
+  if(isWall(t)||t===14){if(z.out&&t!==14){tile(bt.fl[h%3],px,py);paint(tx,ty,px,py);imgS(TRKS,px,py);continue}const W2=t===14?BT[5]:bt.wf?bt:BT[0],b=map[ty+1]?.[tx],face=b!==undefined&&!isWall(b)&&b!==14;
    tile(face?W2.wf[h%2]:W2.wt[h%2],px,py);if(t===10)imgS(CRKS,px,py);if(!face){if(!isWall(map[ty][tx-1])&&map[ty][tx-1]!==14)blk(px,py,2,T,"#05060a");if(!isWall(map[ty][tx+1])&&map[ty][tx+1]!==14)blk(px+T-2,py,2,T,"#05060a")}continue}
-  if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&Math.abs(tx-VCX)<40));tile(vill?DIRT:bt.fl[h%3],px,py);if(t===5)imgS(TRKS,px,py);continue}
+  if(t===4||t===5){const vill=z.village&&(Math.hypot(tx-VCX,ty-VCY)<4.5||(Math.abs(ty-VCY)<=1&&Math.abs(tx-VCX)<40));tile(vill?DIRT:bt.fl[h%3],px,py);paint(tx,ty,px,py);if(t===5)imgS(TRKS,px,py);continue}
   if(t===2){tile(CHT,px,py);if(map[ty-1]?.[tx]!==2)X.drawImage(SHD,Math.round(px+ox),Math.round(py+oy),T,12);continue}
   if(t===6){tile(SW[(an+h)%3],px,py);if(R()<.004)burst(px+R()*32,py+R()*32,"#8fd08a",3,.7,0,-14);continue}
   if(t===7){tile(LV[(an+h)%3],px,py);LT.push([px+16,py+16,70,.55]);GL.push([px+16,py+16,36,"255,110,30",.13]);if(R()<.006)burst(px+R()*32,py+R()*32,"#ffd060",3,.6,0,-24);continue}
-  tile((bt.fl||BT[0].fl)[h%3],px,py);if(t===9)imgS(RBS,px,py);
+  tile((bt.fl||BT[0].fl)[h%3],px,py);paint(tx,ty,px,py);if(t===9)imgS(RBS,px,py);
   if(t===11){imgS(CHS,px+5,py+12);LT.push([px+16,py+18,70,.5]);GL.push([px+16,py+18,26,"255,220,80",.25+.12*Math.sin(time*4)])}
   if(t===12)imgS(CHO,px+5,py+14);
   if(!z.out){const up=map[ty-1]?.[tx];if(isWall(up))X.drawImage(SHD,Math.round(px+ox),Math.round(py+oy),T,14);
@@ -1745,7 +1765,7 @@ function draw(){HIT=[];X.setTransform(Q,0,0,Q,0,0);X.imageSmoothingEnabled=SMOOT
  for(const s of shots)LT.push([s.x,s.y,60,.5]);for(const s of eshots)LT.push([s.x,s.y,50,.4]);for(const b of bolts)LT.push([b.pts[Math.min(5,b.pts.length-1)][0],b.pts[Math.min(5,b.pts.length-1)][1],160,.8]);
  for(const f of flashes){LT.push([f.x,f.y,f.r,.9*f.t/f.m]);GL.push([f.x,f.y,f.r*.5,f.c,.35*f.t/f.m])}
  for(const p of parts)if(p.c==="#ff8a1f"||p.c==="#ffd84a")GL.push([p.x,p.y,10,"255,150,50",.25*p.t/p.m]);
- lighting(ambCur);drawMonNames();
+ lighting(ambCur);postFx(cz);drawMonNames();
  if(cz.out){for(const m of motes){X.globalCompositeOperation="lighter";X.fillStyle="rgba(255,250,200,"+(.25+.25*Math.sin(time*3+m.ph))+")";X.fillRect(m.x|0,m.y|0,2,2);X.globalCompositeOperation="source-over"}}
  else for(const m of motes){X.fillStyle="rgba(170,190,230,"+(.12+.1*Math.sin(time*2+m.ph))+")";X.fillRect(m.x|0,m.y|0,2,2)}
  for(const n of nums){X.globalAlpha=Math.min(1,n.t*2);const sz=typeof n.v==="string"&&isNaN(parseInt(n.v))?17:n.big?30:24;X.font=sz+"px "+FT;X.textAlign="center";X.lineWidth=4;X.strokeStyle="#000";X.strokeText(String(n.v),n.x+ox,n.y+oy);X.fillStyle=n.c;X.fillText(String(n.v),n.x+ox,n.y+oy);X.textAlign="left";X.globalAlpha=1}
