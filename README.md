@@ -117,6 +117,14 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.9.6
+
+- **Moradores passeiam pelo mapa em volta da cidade** (saem e voltam pela ponte), e os guardas fazem ronda por dentro da muralha. Quando chega o alerta de invasão, todos correm para dentro e ocupam **postos de defesa em anéis ao redor do cristal**, de onde atacam os invasores que entram na cidade ou chegam perto. Quem fica preso numa árvore ou pedra contorna o obstáculo.
+- **Rodas de visual e de invocação giram para os dois lados**: tocar no quadrado da esquerda volta para o anterior, e tocar no da direita vai para o próximo.
+- **Botão "Teleportar ao cristal"** embaixo do painel de vida, que aparece só durante a invasão. No teclado, a tecla é T. Ele leva você e as suas invocações até o cristal.
+- **Invasões a cada 15 minutos.**
+- **Slimes da cidade com cor e visual diferentes:** cada um usa uma cor própria (24 cores) e um visual diferente, só entre os visuais que você já liberou. Quem sobra fica sem visual.
+
 ## Novidades da v2.9.5
 
 - Saiu o aviso "CORRENDO", que aparecia no painel durante o dash e bagunçava a tela.
@@ -219,7 +227,7 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
   | Ferreiro | forja (+25% de dano dos defensores) | armas de aço (+50%) | armas encantadas (+100%) |
 
 - **Todos defendem:** na invasão, os moradores (um de cada monstro devorado), os slimes da vila e os guardas atacam os invasores, e as torres atiram.
-- **Invasões depois da missão das 4 ondas** (a cada 10 minutos desde a v2.7.0), com 7 tipos de exército vindo de lados diferentes: Horda Orc, Matilha Sombria, Tribo Goblin, Gigantes das Colinas, Enxame do Ninho, Feras de Fogo e Gelo, e Revoada de Dragões.
+- **Invasões depois da missão das 4 ondas** (a cada 15 minutos desde a v2.9.6), com 7 tipos de exército vindo de lados diferentes: Horda Orc, Matilha Sombria, Tribo Goblin, Gigantes das Colinas, Enxame do Ninho, Feras de Fogo e Gelo, e Revoada de Dragões.
   - Aviso antes da invasão, com contagem regressiva na tela em qualquer lugar do mapa.
   - Vencer dá ouro extra. Se a cidade cair, perde 25% do ouro.
 

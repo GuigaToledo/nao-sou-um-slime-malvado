@@ -22,7 +22,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v2.9.5";
+const VERSION="v2.9.6";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VH=480,FT="'VT323',ui-monospace,monospace";
@@ -371,6 +371,8 @@ const DPAL=[{b:"#26386a",d:"#18213f",w:"#3a5aa6",y:"#d8bc72",h:"#2e467e",e:"#ffe
  {b:"#6a6a62",d:"#3a3a34",w:"#86867a",y:"#a8a088",h:"#74746a",e:"#ffb030",s:"#9a8a6a",hn:"#d8d0b8"},{b:"#5a3a12",d:"#2a1a08",w:"#b88a2a",y:"#ffe08a",h:"#7a4a14",e:"#ff3a1a",s:"#ffd84a",hn:"#fff4c8"}];
 const WOLFP=[{b:"#8e9aaa",d:"#6a7484",e:"#ff4a4a",h:"#ffd84a"},{b:"#6a2222",d:"#3a1010",e:"#ffd84a",glow:"rgba(255,120,30,1)"},{b:"#dcecf4",d:"#9cc8d8",e:"#3aa8ff",glow:"rgba(140,220,255,1)"},{b:"#3a2a52",d:"#221636",e:"#ff4aff",glow:"rgba(160,90,255,1)"}];
 const ORCP={sk:"#6d8a4a",ar:"#7a5a3a",tr:"#c8ccd4",pn:"#4a3020",hm:"#3a2a1a",wp:"axe"};
+/* cores extras só para os slimes da cidade (os jogadores continuam escolhendo entre as 8 primeiras) */
+PCOL.push("#ff9a3a","#9ae06a","#6a8aff","#ff6aa8","#c8a06a","#5ae0e0","#e0e06a","#a06aff","#ff5a5a","#6affb0","#b0b0c8","#ffb0e0","#7a5aff","#a8ff5a","#ff8ad0","#5ab0ff");
 const SLC=PCOL.map(c=>mkS(36,28,g=>dSlime(g,c))),SLCS=PCOL.map(c=>mkS(36,28,g=>dSlime(g,c,1))),SLCB=PCOL.map(c=>mkS(36,28,g=>dSlime(g,c,2)));
 /* ===== Visuais do slime: camada de trás (asas) e da frente, em 60x46 com o slime em (12,18) ===== */
 const E1=24.6,E2=35.4,EY=33.6,HT=21.5;
@@ -677,8 +679,8 @@ function genZone(i){const z=ZONES[i],[x0,y0]=zOrigin(i),X0=x0+3,X1=x0+ZW-4,Y0=y0
  if(z.seal){vXp=VX*T+16;vYp=VY*T+16}}
 function setPhase(n){G.phase=n;for(let y=0;y<MH;y++){const r=map[y];for(let x=0;x<MW;x++)if(r[x]===3){r[x]=0;mmTile(x,y)}}}
 function removeType(t){for(const m of [...mons])if(m.t===t){m.gone=1;mons.splice(mons.indexOf(m),1);MIDX.delete(m.id);if(m.id<N0)G.dead.push(m.id)}}
-function resetWorld(w){ctKey=-1;cityTiles=null;Object.assign(G,{brq:[],it:600,ninv:0,inv:0,warned:0,ig:0,ia:0,phase:0,ch:1,vname:"",vup:[0,0,0,0,0,0,0],cr:0,wave:1,wact:0,wt:0,vhp:900,mb:0,ld:0,dead:[],spawnLeft:0,st:0,rq:[],tw:[0,0],pool:14});
- if(w&&typeof w==="object"){G.ch=clamp(w.ch|0,1,3);G.phase=w.phase>=1||G.ch>1?1:0;G.vname=String(w.vname||"").slice(0,16);if(Array.isArray(w.vup))G.vup=[0,1,2,3,4,5,6].map(i=>clamp(+w.vup[i]||0,0,3));G.it=+w.it>0?Math.min(600,+w.it):600;G.ninv=w.ninv|0;G.cr=Math.max(0,w.cr|0);G.wave=clamp(w.wave|0,1,5);G.mb=w.mb?1:0;G.ld=w.ld?1:0}
+function resetWorld(w){ctKey=-1;cityTiles=null;Object.assign(G,{brq:[],it:900,ninv:0,inv:0,warned:0,ig:0,ia:0,phase:0,ch:1,vname:"",vup:[0,0,0,0,0,0,0],cr:0,wave:1,wact:0,wt:0,vhp:900,mb:0,ld:0,dead:[],spawnLeft:0,st:0,rq:[],tw:[0,0],pool:14});
+ if(w&&typeof w==="object"){G.ch=clamp(w.ch|0,1,3);G.phase=w.phase>=1||G.ch>1?1:0;G.vname=String(w.vname||"").slice(0,16);if(Array.isArray(w.vup))G.vup=[0,1,2,3,4,5,6].map(i=>clamp(+w.vup[i]||0,0,3));G.it=+w.it>0?Math.min(900,+w.it):900;G.ninv=w.ninv|0;G.cr=Math.max(0,w.cr|0);G.wave=clamp(w.wave|0,1,5);G.mb=w.mb?1:0;G.ld=w.ld?1:0}
  genWorld();if(G.phase>=1)setPhase(1);/* chefes renascem: ao carregar, todos estão no lugar */G.vhp=vmax();if(G.ch===2&&G.wave<5){G.wact=0;G.wt=20}}
 function applySecrets(mask){secrets.forEach((s,i)=>{if(mask&(1<<i)){if(s.wx>=0)map[s.wy][s.wx]=0;map[s.y][s.x]=12}})}
 /* ===== Perfis e salvamento ===== */
@@ -722,7 +724,7 @@ addEventListener("pagehide",()=>{if(PL.length)writeSave()});
 addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&PL.length)writeSave()});
 function storeSave(){CHARS[curChar]=SAVE;try{localStorage.setItem(CKEY(curChar),JSON.stringify(SAVE));localStorage.setItem("nsm-last",String(curChar));savedT=2.5}catch(e){}}
 function writeSave(){if(!PL.length)return;const keep=(SAVE&&SAVE.prof)||[],out=[];for(let i=0;i<4;i++){const p=PL.find(q=>q.slot===i);out[i]=p?profOf(p):keep[i]||null}
- const world=NET.foreign?((SAVE&&SAVE.world)||null):{v6:1,phase:G.phase,ch:G.ch,vname:G.vname,vup:G.vup.slice(),cr:G.cr,wave:G.wave,mb:G.mb,ld:G.ld,it:Math.round(G.it||600),ninv:G.ninv|0};
+ const world=NET.foreign?((SAVE&&SAVE.world)||null):{v6:1,phase:G.phase,ch:G.ch,vname:G.vname,vup:G.vup.slice(),cr:G.cr,wave:G.wave,mb:G.mb,ld:G.ld,it:Math.round(G.it||900),ninv:G.ninv|0};
  SAVE={v:1,t:Date.now(),world,prof:out};storeSave();saveSeen();saveDirty=0;saveT=0}
 /* ===== Estado ===== */
 let PL=[],shots=[],eshots=[],parts=[],clouds=[],torn=[],bolts=[],rings=[],nums=[],flashes=[],pillars=[];
@@ -868,8 +870,8 @@ function doDash(s,dt,d,src){if(s.dash<=0)return;s.dash-=dt;mv(s,s.fx*470*dt,s.fy
 function cycleCos(p,d){const l=cosList(p);if(l.length<2){if(!hints.f){hints.f=1;say("Devore monstros e abra baús: cada um libera um visual com poderes.")}return}let i=l.indexOf(p.skin);if(i<0)i=0;p.skin=l[(i+d+l.length)%l.length];p.wf=d;p.scd=Math.max(p.scd,.3);p.rk=null;sfx("ui");
  for(let k=0;k<14;k++)burst(p.x,p.y-8,pk(["#b48aff","#fff"]),3,.4,(R()-.5)*160,(R()-.5)*160);const c=cosOf(p);num(p.x,p.y-46,p.skin<0?"Slime":c.n,"#d0b8ff");saveDirty=1}
 /* duas invocações ao mesmo tempo: RT troca a 1ª, RB troca a 2ª; a mesma criatura não ocupa as duas */
-function cycleSum(p,slot){const K=slot===2?"sum2":"sum",E=slot===2?"su2":"su",other=slot===2?p.sum:p.sum2,l=sumList(p).filter(t=>t<0||t!==other);
- if(l.length<2){if(!hints.s){hints.s=1;say("Derrote monstros para poder invocá-los como aliados.")}return}let i=l.indexOf(p[K]);if(i<0)i=0;p[K]=l[(i+1)%l.length];if(slot===2)p.ws2=1;else p.ws=1;p[E]=null;sfx(p[K]>0?"summon":"ui");saveDirty=1}
+function cycleSum(p,slot,d=1){const K=slot===2?"sum2":"sum",E=slot===2?"su2":"su",other=slot===2?p.sum:p.sum2,l=sumList(p).filter(t=>t<0||t!==other);
+ if(l.length<2){if(!hints.s){hints.s=1;say("Derrote monstros para poder invocá-los como aliados.")}return}let i=l.indexOf(p[K]);if(i<0)i=0;p[K]=l[(i+d+l.length)%l.length];if(slot===2)p.ws2=1;else p.ws=1;p[E]=null;sfx(p[K]>0?"summon":"ui");saveDirty=1}
 /* luz que cura dos visuais: cura todos os jogadores e invocações daqui que estão na tela (centro cx,cy); inimigos não */
 const HOLY_F=.08;
 function holyHeal(cx,cy){const on=e=>Math.abs(e.x-cx)<VW/2+40&&Math.abs(e.y-cy)<VH/2+40;
@@ -1058,9 +1060,13 @@ function updFx(dt){updAllyZ(dt);
 let party=0;
 function syncResidents(){const have=new Set(villagers.filter(v=>v.t).map(v=>v.t));for(let t=1;t<NF;t++){if(have.has(t)||!PL.some(p=>p.own[t]))continue;const a=R()*6.283,r=(4+R()*9)*T;
  const x=cpX+Math.cos(a)*r,y=cpY+Math.sin(a)*r*.8;villagers.push({t,x,y,hx:x,hy:y,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6,fly:!!MT[t].fl})}}
-function updVillagers(dt){if((time*2|0)!==((time-dt)*2|0)){syncResidents();if(G.ch>=2)syncGuards()}if(G.ch>=2)applyCityTiles();updCoins(dt);
+function updVillagers(dt){if((time*2|0)!==((time-dt)*2|0)){syncResidents();if(G.ch>=2){syncGuards();styleSlimes()}}if(G.ch>=2)applyCityTiles();updCoins(dt);
  const dj=e=>{const c=COS[e];return c&&c.dance};party=[...PL.filter(p=>p.dead<=0).map(p=>[p.x,p.y,p.skin]),...NET.remote.filter(r=>!r.dead).map(r=>[r.x,r.y,r.w])].some(([x,y,s])=>dj(s)&&Math.hypot(x-cpX,y-cpY)<16*T)?1:0;
- for(const v of villagers){if(G.wact&&defend(v,dt))continue;if(!G.wact&&G.ch>=2&&!v.ko&&(cl("wall")||cl("moat"))&&wallD(v.x,v.y)>1.02){walkTo(v,v.hx,v.hy,(v.g?80:65)*dt);continue}if(party){v.ph+=dt*9;continue}v.wt-=dt;if(v.wt<=0){v.wt=1.5+R()*2.5;const a=R()*6.28,s=R()<.4?0:.5;v.wx=Math.cos(a)*s;v.wy=Math.sin(a)*s}
+ /* cidade: moradores passeiam em volta; com alerta de invasão correm para os postos ao redor do cristal e defendem; na festa, dançam perto do cristal */
+ const alert=G.ch>=2&&G.wave>=5&&(G.inv||(G.it||0)<=INV_WARN);
+ for(const v of villagers){if(G.ch>=2&&!v.ko){
+   if(alert||party){if(alert&&G.wact&&defend(v,dt))continue;const ps=postOf(v);if(Math.hypot(v.x-ps[0],v.y-ps[1])>10){walkTo(v,ps[0],ps[1],(v.g?95:85)*dt);continue}v.wx=v.wy=0;if(!party){v.fl=cpX<v.x;continue}}
+   else{roam(v,dt);continue}}if(party){v.ph+=dt*9;continue}v.wt-=dt;if(v.wt<=0){v.wt=1.5+R()*2.5;const a=R()*6.28,s=R()<.4?0:.5;v.wx=Math.cos(a)*s;v.wy=Math.sin(a)*s}
  const sp=30*dt;let dx=v.wx*sp,dy=v.wy*sp;if(Math.hypot(v.x+dx-v.hx,v.y+dy-v.hy)>110){dx=(v.hx-v.x)*.02;dy=(v.hy-v.y)*.02}const ox=v.x;mv(v,dx,dy);if(Math.abs(v.x-ox)>.05)v.fl=v.x<ox}}
 /* ===== Vila: ondas de orcs (um tipo por onda) e o Lorde na fortaleza ===== */
 const WAVES=[null,{t:14,n:7},{t:16,n:9},{t:15,n:9},{t:14,n:11,el:1}];
@@ -1070,7 +1076,7 @@ function startWave(){G.wact=1;const w=WAVES[G.wave];G.pool=w.t;G.spawnLeft=w.n;G
 const invLv=el=>clamp(Math.max(...PL.map(p=>p.lv),...NET.remote.map(r=>r.l||1))+G.wave-2+Math.min(6,G.ninv||0)+(el?3:0),1,MAXLV);
 function spawnInvader(t,el){for(let k=0;k<40;k++){const x=VCX+Math.round((R()-.5)*30),y=VCY+46;if(map[y]?.[x]===4){const m=mkMon(MID++,t,x*T+16,y*T+16,el,invLv(el));m.inv=1;return m}}const m=mkMon(MID++,t,VCX*T+16,(VCY+44)*T,el,invLv(el));m.inv=1;return m}
 function endWave(){G.wact=0;const b=10+G.wave*6;G.cr+=b;
- if(G.wave>=4){G.wave=5;G.it=INV_EVERY;G.warned=0;say("A partir de agora a cidade sofre uma invasão a cada 10 minutos, com aviso 1 minuto antes.");if(G.ld){G.ch=3;showBanner("VITÓRIA!")}else{showBanner("A VILA RESISTIU!");say("O exército recuou! Agora vá à Fortaleza do Lorde, bem ao sul da vila, e derrote o Lorde Orc.")}saveDirty=1;return}
+ if(G.wave>=4){G.wave=5;G.it=INV_EVERY;G.warned=0;say("A partir de agora a cidade sofre uma invasão a cada 15 minutos, com aviso 1 minuto antes.");if(G.ld){G.ch=3;showBanner("VITÓRIA!")}else{showBanner("A VILA RESISTIU!");say("O exército recuou! Agora vá à Fortaleza do Lorde, bem ao sul da vila, e derrote o Lorde Orc.")}saveDirty=1;return}
  G.wave++;G.wt=25;say("Onda vencida! +"+b+" ouro. Próxima onda em 25s. Fale com o Ancião para melhorar a vila.");saveDirty=1}
 function villageFall(){mons=mons.filter(m=>{if(m.inv){m.gone=1;MIDX.delete(m.id);return false}return true});G.vhp=vmax();G.wact=0;G.wt=20;G.spawnLeft=0;showBanner("A VILA CAIU!");say("Os slimes reconstroem tudo… a onda "+G.wave+" recomeça em 20s.")}
 function updVillage(dt){cityTick(dt);if(G.ch!==2||G.wave>=5)return;
@@ -1256,7 +1262,7 @@ const CITY=[
 const NCITY=CITY.length,CK={};CITY.forEach((c,i)=>CK[c.k]=i);
 const cl=k=>G.vup[CK[k]]|0;
 const WALL_HP=[0,700,2200,5200],HEAL_R=[0,5,10,20],GOLD_M=[1,1.2,1.4,1.7],SMITH_M=[1,1.25,1.5,2];
-const INV_EVERY=600,INV_WARN=60,INV_WAVES=5,WAVE_GAP=10;
+const INV_EVERY=900,INV_WARN=60,INV_WAVES=5,WAVE_GAP=10;
 /* exércitos: corpo a corpo (m), à distância (r), voadores (f, a partir da 3ª onda) e o chefe da última onda (b) */
 const INVS=[
  {n:"Horda Orc",m:[14,9],r:[15,2],f:[1],b:14},{n:"Matilha Sombria",m:[16,6,7],r:[5],f:[1],b:16},{n:"Tribo Goblin",m:[2,14],r:[2,15],f:[1],b:2},
@@ -1306,13 +1312,31 @@ const defHP=v=>Math.round((60+defLv(v)*14)*(v.g?(cl("bar")>=3?2:1.5):1));
 const defDmg=v=>(6+defLv(v)*1.6)*(v.g?(cl("bar")>=3?2:1.4):v.t?1.2:.8)*SMITH_M[cl("smith")];
 const defAlive=()=>villagers.some(v=>!v.ko);
 function reviveDefenders(){for(const v of villagers){v.ko=0;v.mhp=defHP(v);v.hp=v.mhp}}
+/* postos de defesa: anéis ao redor do cristal (8 perto, 12 no meio, o resto mais longe) */
+function postOf(v){let i=villagers.indexOf(v);let r=2.6,n=8;if(i>=8){i-=8;r=4.2;n=12;if(i>=12){i-=12;r=5.8;n=Math.max(1,villagers.length-20)}}const a=i/n*6.283+(r>3?.26:0);return[cpX+Math.cos(a)*r*T,cpY+20+Math.sin(a)*r*T*.75]}
+/* passeio: guardas fazem a ronda por dentro da muralha; os outros passeiam pelo campo em volta da cidade (saem e voltam pelo portão) */
+function roam(v,dt){v.rt=(v.rt||0)-dt;const far=v.rx===undefined||Math.hypot(v.x-v.rx,v.y-v.ry)<12;
+ if(v.rt<=0||far){v.rt=6+R()*8;for(let k=0;k<12;k++){const a=R()*6.283,d=v.g?.55+R()*.35:(cl("wall")?1.7+R()*1.2:.4+R()*1.6),x=cpX+Math.cos(a)*d*WALL_RX*T,y=cpY+Math.sin(a)*d*WALL_RY*T;if(!solid(x,y,v)){v.rx=x;v.ry=y;break}}}
+ if(v.rx===undefined)return;if(Math.hypot(v.x-v.rx,v.y-v.ry)>12)walkTo(v,v.rx,v.ry,(v.g?40:32)*dt);else{v.wx=v.wy=0}}
+/* slimes da cidade: cada um com uma cor diferente e um visual diferente (só visuais que você já liberou) */
+let slimeSig="";
+function styleSlimes(){const p=PL[0];if(!p)return;const sl=villagers.filter(v=>!v.t),own=cosList(p).filter(i=>i>=0),sig=sl.length+"|"+own.join(",")+"|"+p.col;if(sig===slimeSig)return;slimeSig=sig;
+ const cols=[...Array(PCOL.length).keys()].filter(c=>c!==p.col);sl.forEach((v,k)=>{v.col=cols[k%cols.length];v.cs=k<own.length?own[k]:-1})}
+/* botão de teleporte: só durante a invasão, leva você (e suas invocações) até o cristal */
+function teleCrystal(p){if(!G.inv||!p||p.dead>0)return;for(let i=0;i<20;i++)burst(p.x,p.y-8,pk(["#7ad8ff","#ffffff"]),4,.5,(R()-.5)*160,(R()-.5)*160);p.x=cpX+(R()-.5)*30;p.y=cpY+50;for(const s of[p.su,p.su2])if(s&&s.dead<=0){s.x=p.x+20;s.y=p.y}
+ rings.push({x:p.x,y:p.y,r0:6,r1:60,t:.4,m:.4,c:"#7ad8ff"});sfx("summon");shake=4;updCam()}
 /* anda até (gx,gy) usando a rota da muralha */
-function walkTo(v,gx,gy,sp){const r=ringRoute(v,gx,gy),ex=r[0]-v.x,ey=r[1]-v.y,d=Math.hypot(ex,ey)||1;mv(v,ex/d*Math.min(sp,d),ey/d*Math.min(sp,d));v.wx=ex/d;v.wy=ey/d;if(Math.abs(ex)>1)v.fl=ex<0}
+/* se ficar preso (árvore, pedra) por 1,5s, contorna passando por cima do obstáculo por um instante */
+function walkTo(v,gx,gy,sp){const r=ringRoute(v,gx,gy),ex=r[0]-v.x,ey=r[1]-v.y,d=Math.hypot(ex,ey)||1,sx=v.x,sy=v.y,st=Math.min(sp,d);
+ if(v.ghost>0){v.ghost-=1/60;v.x+=ex/d*st;v.y+=ey/d*st}else mv(v,ex/d*st,ey/d*st);
+ if(st>.3&&Math.hypot(v.x-sx,v.y-sy)<st*.3){v.stk=(v.stk||0)+1/60;if(v.stk>1.5){v.stk=0;v.ghost=1}}else v.stk=0;
+ v.wx=ex/d;v.wy=ey/d;if(Math.abs(ex)>1)v.fl=ex<0}
 function defend(v,dt){if(v.ko)return true;if(!v.mhp||v.hp===undefined){v.mhp=defHP(v);v.hp=v.mhp}
  /* defensores saem pelo portão para pegar invasores até um pouco além do fosso */
- let b=null,bd=1e9;for(const m of mons){if(!m.inv||wallD(m.x,m.y)>2.4)continue;const d=Math.hypot(m.x-v.x,m.y-v.y);if(d<bd){bd=d;b=m}}
+ /* defende o cristal: pega invasores dentro da muralha ou perto do seu posto */
+ const ps=postOf(v);let b=null,bd=1e9;for(const m of mons){if(!m.inv)continue;if(wallD(m.x,m.y)>1.1&&Math.hypot(m.x-ps[0],m.y-ps[1])>230)continue;const d=Math.hypot(m.x-v.x,m.y-v.y);if(d<bd){bd=d;b=m}}
  v.cd=(v.cd||0)-dt;v.atkT=(v.atkT||0)-dt;const sp=(v.g?80:65)*dt;
- if(!b){if(wallD(v.x,v.y)>1.02){walkTo(v,v.hx,v.hy,sp);return true}return false}
+ if(!b)return false;
  const ex=b.x-v.x,ey=b.y-v.y,d=bd||1;v.fl=ex<0;
  if(d>26){walkTo(v,b.x,b.y,sp)}else{v.wx=v.wy=0;if(v.cd<=0){v.cd=.8;v.atkT=.25;if(NET.mode!=="client")hurt(b,defDmg(v)*(.85+R()*.3),0,null,null);for(let i=0;i<3;i++)burst(b.x,b.y-8,"#ffffff",3,.2,(R()-.5)*100,(R()-.5)*100)}}
  return true}
@@ -1337,18 +1361,18 @@ function spawnWaveMon(t,el,lv){for(let k=0;k<30;k++){const a=R()*6.283,r=(17+R()
 function startInvWave(){const I=INVS[G.ig||0],w=G.iw;G.spawnLeft=waveSize(w);G.st=0;G.iwT=0;G.bossOut=0;showBanner("ONDA "+w+" DE "+INV_WAVES+(w===INV_WAVES?" · CHEFE!":""));sfx("wave");
  say((w===1?"A "+I.n+" ataca "+cityName()+" por todos os lados! ":"")+"Onda "+w+"/"+INV_WAVES+": monstros de nível "+waveLv(w)+(w>=3?", com voadores":"")+(w===INV_WAVES?" e o chefe da horda!":"."))}
 function startInvasion(){G.wact=1;G.inv=1;G.iw=1;reviveDefenders();startInvWave();shake=8}
-function endInvasion(){const g=Math.round((60+G.ninv*15)*GOLD_M[cl("house")]);G.cr+=g;G.wact=0;G.inv=0;G.iw=0;G.ninv++;G.it=INV_EVERY;G.warned=0;reviveDefenders();showBanner("INVASÃO REPELIDA!");say("A cidade resistiu às 5 ondas! +"+g+" ouro. Próxima invasão em 10 minutos.");saveDirty=1}
+function endInvasion(){const g=Math.round((60+G.ninv*15)*GOLD_M[cl("house")]);G.cr+=g;G.wact=0;G.inv=0;G.iw=0;G.ninv++;G.it=INV_EVERY;G.warned=0;reviveDefenders();showBanner("INVASÃO REPELIDA!");say("A cidade resistiu às 5 ondas! +"+g+" ouro. Próxima invasão em 15 minutos.");saveDirty=1}
 function spawnTick(){const I=INVS[G.ig||0],w=G.iw,lv=waveLv(w);
  if(w===INV_WAVES&&!G.bossOut){G.bossOut=1;const b=spawnWaveMon(I.b,1,Math.min(MAXLV+10,lv));b.boss2=1;b.mhp=b.hp=Math.round(b.mhp*6);b.dm*=1.6;say("O chefe da "+I.n+" chegou: "+MT[I.b].n+" gigante!");sfx("roar");shake=10}
  const r=R(),pool=w>=3&&r<.22?I.f:r<.62?I.m:I.r;spawnWaveMon(pk(pool),R()<.1?1:0,lv)}
-function cityTick(dt){if(G.ch<2)return;applyCityTiles();syncGuards();if(cl("tow"))updTowers(dt);
+function cityTick(dt){if(G.ch<2)return;applyCityTiles();syncGuards();styleSlimes();if(cl("tow"))updTowers(dt);
  if(cl("heal")>=3&&!G.wact)G.vhp=Math.min(vmax(),G.vhp+5*dt);
  if(G.wave<5)return;/* a missão das 4 ondas ainda não acabou */
  if(!G.inv){G.it=(G.it??INV_EVERY)-dt;if(G.it<=INV_WARN&&!G.warned){G.warned=1;G.ig=Math.floor(R()*INVS.length);showBanner("INVASÃO EM 1 MINUTO!");say("Batedores avistaram a "+INVS[G.ig].n+"! Ela chega em 1 minuto, por todos os lados. Prepare a defesa.");sfx("warn")}
   if(G.it<=0)startInvasion();return}
  if(G.spawnLeft>0){G.st-=dt;if(G.st<=0){G.st=.75;G.spawnLeft--;spawnTick()}}
  else if(!mons.some(m=>m.inv)){if(G.iw>=INV_WAVES)endInvasion();else if(!G.iwT){G.iwT=WAVE_GAP;say("Onda "+G.iw+" vencida! A próxima chega em 10 segundos.")}else{G.iwT-=dt;if(G.iwT<=0){G.iw++;startInvWave()}}}
- if(G.vhp<=0){const lost=Math.floor(G.cr*.25);G.cr-=lost;villageFall();G.inv=0;G.wact=0;G.iw=0;G.it=INV_EVERY;G.warned=0;reviveDefenders();say("O cristal foi destruído e a cidade perdeu "+lost+" de ouro… os slimes reconstroem tudo. Próxima invasão em 10 minutos.")}}
+ if(G.vhp<=0){const lost=Math.floor(G.cr*.25);G.cr-=lost;villageFall();G.inv=0;G.wact=0;G.iw=0;G.it=INV_EVERY;G.warned=0;reviveDefenders();say("O cristal foi destruído e a cidade perdeu "+lost+" de ouro… os slimes reconstroem tudo. Próxima invasão em 15 minutos.")}}
 /* construir: quem hospeda aplica (pedidos dos outros jogadores chegam pela rede) */
 function cityUpgrade(i){const u=CITY[i];if(!u)return;const l=G.vup[i]|0,c=u.c[l];if(l>=3||G.cr<c)return;G.cr-=c;G.vup[i]=l+1;if(u.k==="wall")G.vhp+=WALL_HP[l+1]-WALL_HP[l];sfx("chest");showBanner(u.n.toUpperCase()+" NÍVEL "+(l+1));saveDirty=1}
 const cityName=()=>(PL[0]&&PL[0].vn)||(!NET.foreign&&G.vname)||"Vila dos Slimes";
@@ -1777,8 +1801,11 @@ function wheels(p,cx,cy,sc){curSkin=p.skin;const pad=p.src.pad>=0,cl=cosList(p),
   if(p.scd>0)txt("magia em "+p.scd.toFixed(1)+"s",x,y+6*sc,"#d8c8a0",T13,"center");else txt((f.k?f.sk:"magia aleatória")+" pronta",x,y+6*sc,"#ffe14a",T13,"center")},null,cel?d=>cycleCos(p,d):null,1);
  const sw2=(K,E,lab,key,anim,slot)=>{const l=sl.filter(t=>t<0||t!==(slot===2?p.sum:p.sum2));wheel(cx+(slot===2?D:0),cy,sc,l,Math.max(0,l.indexOf(p[K])),anim,lab,cel?null:"",cel?null:key,p.col,(x,y)=>{const s=p[E];if(!s||p[K]<1)return;
   if(s.dead>0)txt("volta em "+Math.ceil(s.dead)+"s",x,y+6*sc,"#ff9a9a",T13,"center");else{bar(x-26*sc,y,52*sc,3,s.hp/s.mhp,"#b48aff","#e0d0ff");const t=s.t,lv=p.slv[t];if(sc>.7)bar(x-26*sc,y+5,52*sc,2,lv>=p.lv?1:p.sxp[t]/needLv(lv),"#e8c25a","#fff4b0")}},
-  t=>t<0?"":p.slv[t],cel?()=>cycleSum(p,slot):null)};
+  t=>t<0?"":p.slv[t],cel?d=>cycleSum(p,slot,d):null)};
  sw2("sum","su","INVOCAÇÃO 1",pad?"RT":"C",p.ws,1);sw2("sum2","su2","INVOCAÇÃO 2",pad?"RB":"Z",p.ws2,2)}
+/* botão de teleporte para o cristal: aparece embaixo do painel de vida só durante a invasão (tecla T) */
+function teleBtn(p,x,y){if(!(G.ch>=2&&G.inv))return;const w=212,h=MODE==="cel"?34:26,pulse=.6+.4*Math.sin(time*6);rr(x,y,w,h,6);X.fillStyle="rgba(20,40,70,.9)";X.fill();X.strokeStyle="rgba(122,216,255,"+pulse+")";X.lineWidth=2;X.stroke();
+ txt("⚡ Teleportar ao cristal"+(MODE==="cel"?"":" [T]"),x+w/2,y+h/2+6,"#bff0ff",MODE==="cel"?18:16,"center");HIT.push({x,y,w,h,fn:()=>teleCrystal(p)})}
 function panel(p,x,y){curSkin=p.skin;frame(x,y,212,60);rr(x+6,y+6,48,48,5);X.fillStyle="rgba(16,12,10,.85)";X.fill();icon(0,x+30,y+30,40,1,p.col);
  rr(x+38,y+40,20,16,3);X.fillStyle="#ffe14a";X.fill();X.font="16px "+FT;X.fillStyle="#2a1e10";X.textAlign="center";X.fillText(String(p.lv),x+48,y+53);X.textAlign="left";
  X.fillStyle=PCOL[p.col];X.fillRect(x+60,y+10,8,8);txt(p.nm||"J"+(p.slot+1),x+72,y+19,"#ffffff",17);
@@ -1825,7 +1852,7 @@ function hud(){const multi=PL.length>1,gl=goal();
  if(boss){const t=MT[boss.t],bw=multi?188:280,bx=VW/2-bw/2;frame(bx,ty,bw,28);txt("Nv "+(boss.lv||1)+" "+(boss.boss2?"Chefe ":"")+t.n+(boss.rage?" · FÚRIA":""),VW/2,ty+14,PL[0]?TIER_COL[lvTier((boss.lv||1)-PL[0].lv)]:"#ff9ab8",17,"center");bar(bx+8,ty+18,bw-16,5,boss.hp/boss.mhp,"#ff3a7a","#ffb0c8");ty+=32}
  if(zoneT>0){X.globalAlpha=clamp(zoneT,0,1);txt("— "+zoneName+" —",VW/2,ty+20,"#ffffff",20,"center");X.globalAlpha=1;ty+=30}
  const msgY=ty+10;
- if(!multi){panel(PL[0],8,8);if(showMM)minimap(VW-178,8,PL[0].x,PL[0].y);if(MODE==="cel"){/* no celular, cada quadrado fica do tamanho do botão DASH (se couber entre o joystick e os botões) */const s=clamp((VW/2-190)/229,.62,1.42);wheels(PL[0],VW/2,VH-28-48*s,s)}else wheels(PL[0],VW/2,VH-54,1);msgBox(0,msgY,Math.min(VW-120,560))}
+ if(!multi){panel(PL[0],8,8);teleBtn(PL[0],8,74);if(showMM)minimap(VW-178,8,PL[0].x,PL[0].y);if(MODE==="cel"){/* no celular, cada quadrado fica do tamanho do botão DASH (se couber entre o joystick e os botões) */const s=clamp((VW/2-190)/229,.62,1.42);wheels(PL[0],VW/2,VH-28-48*s,s)}else wheels(PL[0],VW/2,VH-54,1);msgBox(0,msgY,Math.min(VW-120,560))}
  else{PL.forEach(p=>{const right=p.slot%2===1,bottom=p.slot>=2,x=right?VW-220:8;if(!bottom){panel(p,x,8);wheels(p,x+106,8+60+30,.5)}else{panel(p,x,VH-68);wheels(p,x+106,VH-68-34,.5)}});
   if(showMM)minimap(VW/2-85,ty+(zoneT>0?28:0),camx+VW/2,camy+VH/2);msgBox(64,Math.max(ty+(showMM?100:8),170),VW-128)}
  if(savedT>0){X.globalAlpha=clamp(savedT,0,1);txt("Jogo salvo",VW-8,VH-8,"#a8ffb8",16,"right");X.globalAlpha=1}
@@ -1975,7 +2002,7 @@ function toTitle(){writeSave();leaveNet();NET.foreign=0;PL=[];state="title";menu
 function updCam(){const al=PL.filter(p=>p.dead<=0),s=al.length?al:PL;if(!s.length)return;let x=0,y=0;for(const p of s){x+=p.x;y+=p.y}x/=s.length;y/=s.length;camx=clamp(x-VW/2,0,MW*T-VW);camy=clamp(y-VH/2,0,MH*T-VH)}
 const OVER=["pause","tree","upgrade","naming","chend","worldmap"];
 function play(dt){shake=Math.max(0,shake-dt*22);const ctl=state==="play";
- if(ctl){if(KP.KeyN)showMM=showMM?0:1;if(KP.KeyM)SND=SND?0:1}
+ if(ctl){if(KP.KeyN)showMM=showMM?0:1;if(KP.KeyM)SND=SND?0:1;if(KP.KeyT&&PL[0])teleCrystal(PL[0])}
  for(const p of PL){const inp=inputFor(p),c=state==="play";if(c&&inp.pause){state="pause";menuSel=0;sfx("ui")}else if(c&&inp.tree){state="tree";treeOwner=p;treeSel=0;sfx("ui")}updPlayer(p,dt,inp,c&&state==="play")}
  if(NET.mode!=="client"){monsterAI(dt);updVillage(dt);respawnTick()}else lerpMons(dt);
  contact(dt);updShots(dt);updEshots(dt);updFx(dt);updVillagers(dt);
