@@ -117,6 +117,27 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.9.0
+
+- **Fosso de água com pontes** em volta da cidade (construção nova, 3 níveis): pontes de madeira, pontes de pedra e, no nível 3, água encantada que deixa os invasores lentos na ponte. Bichos voadores passam voando direto. Os que andam têm que entrar pelas pontes e pelos portões (sul e oeste).
+- **Muralha fechada e imponente:** contínua, alta, com ameias, tochas e portões com torres. Ninguém atravessa a pé, só voando.
+- **Quem voa passa por cima das árvores**, da muralha e do fosso (mas não pelas paredes das cavernas).
+- **Torres fazem parte da muralha** (2, 4 ou 6). Em cima delas ficam só atiradores: moradores que atacam à distância (Orc Xamã, Gigante, Goblin, Ankheg, Lagarta, Aranha) ou slimes arqueiros.
+- **Cristal mágico no lugar da fogueira:** é a vida da cidade, com aura que muda de cor quando enfraquece. Os inimigos só atacam o cristal depois de derrotar todos os defensores.
+- **Defensores com vida e nível:** os moradores usam o nível da sua invocação daquele bicho, e os slimes e guardas usam o nível das suas invocações. Quem cai volta no fim da invasão.
+- **Invasões em 5 ondas**, de todos os lados:
+  - 10 segundos entre uma onda e outra;
+  - o nível sobe a cada onda, e a última fica 10 níveis acima do jogador mais forte;
+  - cada onda mistura bichos corpo a corpo e à distância;
+  - voadores a partir da 3ª onda;
+  - na 5ª, um **chefe gigante** do bicho principal do exército.
+- **Mensagem do Sábio** sem caixa, só o texto, centralizada no alto da tela, abaixo do objetivo. O nome do lugar aparece por 5 segundos e some, e os dois não se sobrepõem.
+- **Otimização para celulares fracos e PCs lentos:**
+  - O **modo leve** liga sozinho em aparelhos com poucos núcleos ou pouca memória, no "Gráficos: Baixo" ou quando o jogo começa a travar.
+  - Ele desliga o brilho suave, os raios de sol, o chão pintado e a poeira no ar, e limita partículas e brilhos.
+  - No celular, a resolução fica limitada.
+  - Nos testes, o tempo de cada quadro caiu pela metade.
+
 ## Novidades da v2.8.0
 
 - **O jogo ocupa a tela inteira** no computador e no celular na horizontal. A altura é sempre a mesma, e a largura acompanha o formato da tela (4:3, 16:9, ultrawide), sem faixas pretas nas laterais. Em telas largas você vê mais do mapa dos lados.
