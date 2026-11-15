@@ -117,6 +117,12 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.9.4
+
+- **Corrigido:** o topo das árvores só aparecia perto do personagem em telas largas. Agora as copas cobrem a tela inteira, de qualquer largura.
+- **Tela cheia automática no celular:** com o celular na horizontal, o jogo entra em tela cheia (sem a barra de endereço) no primeiro toque. Na vertical, volta ao normal.
+- **iPhone:** o Safari não deixa sites usarem tela cheia. Para jogar sem a barra de endereço, use **Compartilhar → Adicionar à Tela de Início** e abra o jogo pelo ícone.
+
 ## Novidades da v2.9.3
 
 - **Celular:** as setas das rodas de visual e de invocação saíram. Para girar a roda, toque no quadrado vizinho da esquerda ou da direita.

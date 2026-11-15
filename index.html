@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#06050c">
 <meta name="description" content="Não sou um Slime Malvado: jogo de pixel art no navegador, com até 4 jogadores online.">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <title>Não sou um Slime Malvado</title>
@@ -18,7 +22,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v2.9.3";
+const VERSION="v2.9.4";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
 const C=document.getElementById("c"),X=C.getContext("2d"),VH=480,FT="'VT323',ui-monospace,monospace";
@@ -1086,7 +1090,7 @@ addEventListener("blur",()=>{for(const k in K)K[k]=0});
 let HIT=[],MX=-1,MY=-1;
 const cpos=e=>{const r=C.getBoundingClientRect();return[(e.clientX-r.left)*VW/r.width,(e.clientY-r.top)*VH/r.height]};
 C.addEventListener("pointermove",e=>{[MX,MY]=cpos(e);let over=0;for(const h of HIT)if(MX>=h.x&&MX<=h.x+h.w&&MY>=h.y&&MY<=h.y+h.h){over=1;if(h.hov)h.hov()}C.style.cursor=over?"pointer":"default"});
-C.addEventListener("pointerdown",e=>{ensureAudio();if(MODE==="cel"&&!window.__fsTried&&!isFull()){window.__fsTried=1;toggleFull(true)}try{C.focus()}catch(x){}const[x,y]=cpos(e);for(const h of [...HIT].reverse())if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){sfx("ok");h.fn();break}});
+C.addEventListener("pointerdown",e=>{ensureAudio();phoneFull();try{C.focus()}catch(x){}const[x,y]=cpos(e);for(const h of [...HIT].reverse())if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){sfx("ok");h.fn();break}});
 const padPrev=[[],[],[],[]],stickPrev=["","","",""];let padNow=[null,null,null,null];
 /* contra drift: guarda onde cada analógico descansa, desconta esse desvio e aplica zona morta de 30% */
 const padRest=[null,null,null,null],DZ=.3;
@@ -1930,7 +1934,13 @@ const CONF=[{t:"Sim, começar do zero",act:()=>{applyIdentity();const pr=fixProf
 function onlineItems(){return[{t:"Tentar de novo",act:()=>{NET.tries=0;goOnline()}},{t:"Voltar",act:()=>{state="title";netMsg=""}}]}
 /* tela cheia de verdade (sem as barras do navegador) */
 const isFull=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
-function toggleFull(on){try{if(on===undefined)on=!isFull();if(on){const el=document.documentElement;(el.requestFullscreen||el.webkitRequestFullscreen).call(el).then?.(()=>{try{screen.orientation.lock("landscape").catch(()=>{})}catch(e){}}).catch(()=>{})}else(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(e){}}
+function toggleFull(on){try{if(on===undefined)on=!isFull();if(on){const el=document.documentElement,r=(el.requestFullscreen||el.webkitRequestFullscreen).call(el,{navigationUI:"hide"});if(r&&r.catch)r.catch(()=>{})}else{const r=(document.exitFullscreen||document.webkitExitFullscreen).call(document);if(r&&r.catch)r.catch(()=>{})}}catch(e){}}
+/* celular: deitado (horizontal) = tela cheia no próximo toque; em pé (vertical) = volta ao normal */
+const isPhone=()=>MODE==="cel"||(window.matchMedia&&matchMedia("(pointer:coarse)").matches);
+const isLand=()=>innerWidth>innerHeight;
+function phoneFull(){if(isPhone()&&isLand()&&!isFull())toggleFull(true)}
+addEventListener("resize",()=>{if(isPhone()&&!isLand()&&isFull())toggleFull(false)});
+addEventListener("orientationchange",()=>{if(isPhone()&&!isLand()&&isFull())toggleFull(false)});
 function pauseItems(){return[{t:"Tela cheia: "+(isFull()?"ligada":"desligada"),act:()=>toggleFull()},{t:"Continuar",act:()=>{state="play"}},{t:"Mapa do mundo",act:()=>{state="worldmap"}},{t:"Salvar agora",act:()=>{writeSave();say("Jogo salvo.");state="play"}},{t:"Música: ◄ "+volTxt(AUD.mus)+" ►",act:()=>stepVol("mus",-1,1),adj:d=>stepVol("mus",d)},{t:"Efeitos: ◄ "+volTxt(AUD.sfx)+" ►",act:()=>stepVol("sfx",-1,1),adj:d=>stepVol("sfx",d)},{t:"Minimapa: "+(showMM?"ligado":"desligado"),act:()=>{showMM=showMM?0:1}},{t:"Gráficos: "+GFXN[GQ],act:toggleGfx},{t:"Jogar no: "+(MODE==="cel"?"Celular":"Computador"),act:toggleMode},{t:"Sair para o título",act:toTitle}]}
 /* (lista de construções movida para junto do nome da cidade) */
 /* o nome da cidade é de cada jogador (fica no personagem) e só ele vê */
@@ -2003,7 +2013,8 @@ function draw(){HIT=hitArr();X.setTransform(Q,0,0,Q,0,0);X.imageSmoothingEnabled
  ents.sort((a,b)=>a[0]-b[0]);
  for(const e of ents){if(e[1]===0)drawMon(e[2]);else if(e[1]===1)drawHero(e[2]);else if(e[1]===2)drawSum(e[2],e[3]);else if(e[1]===3)drawVillager(e[2]);else drawElder()}
  fxDraw();
- const x0=Math.floor(camx/T),y0=Math.floor(camy/T);for(let ty=y0;ty<=y0+16;ty++)for(let tx=x0;tx<=x0+21;tx++){const t=map[ty]?.[tx];if(t!==5&&t!==1)continue;const z=ZONES[BZ[ty*MW+tx]];if(!z.out)continue;
+ /* copas das árvores: cobre a tela inteira (de qualquer largura), mais uma margem porque a copa passa do bloco */
+ const x0=Math.floor(camx/T)-1,y0=Math.floor(camy/T),x1=x0+Math.ceil(VW/T)+2,y1=y0+Math.ceil(VH/T)+2;for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=map[ty]?.[tx];if(t!==5&&t!==1)continue;const z=ZONES[BZ[ty*MW+tx]];if(!z.out)continue;
   const cx=tx*T+16,cy=ty*T-8,under=PL.some(p=>Math.abs(p.x-cx)<30&&p.y<cy+30&&p.y>cy-34);X.globalAlpha=under?.45:1;imgS(CAN[BIO[z.bio].can][hs(tx,ty)%2],tx*T-8,ty*T-36);X.globalAlpha=1}
  const cz=ZONES[zoneOfPx(camx+VW/2,camy+VH/2)],target=cz.out?.08:cz.day?.2:cz.seal?.45:.6;ambCur+=(target-ambCur)*.04;
  for(const p of PL)if(p.dead<=0)LT.push([p.x,p.y-6,210,.95]);for(const r of NET.remote)if(!r.dead)LT.push([r.x,r.y-6,170,.85]);
