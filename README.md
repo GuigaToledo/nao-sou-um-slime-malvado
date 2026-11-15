@@ -117,6 +117,13 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v3.5.0 (sem internet e reconexão)
+
+- **Jogar sozinho sem internet:** depois de abrir o jogo uma vez com internet, o navegador guarda uma cópia. Sem internet, o jogo abre e roda normalmente no modo sozinho. Com internet, ele sempre baixa a versão mais nova.
+- **Dá para instalar no celular:** no Chrome, menu ⋮ → **Adicionar à tela inicial** (ou **Instalar app**). O jogo ganha um ícone e abre em tela cheia, deitado.
+- **Caiu a internet jogando online?** O jogo **não para**: continua só com você no mesmo mundo, com os monstros que já estavam lá. Quando a internet volta, ele **reconecta sozinho** à sala, sem precisar voltar ao menu. O progresso do personagem é salvo antes de reconectar.
+- Se for você quem hospeda a sala, o seu mundo continua normalmente e a sala abre de novo para os amigos quando a internet volta.
+
 ## Novidades da v3.4.0 (missões do Ancião)
 
 - **O Ancião agora dá missões de chefe**, do mais fraco ao mais forte: começa pela **Rainha Aranha (nível 12)** e vai até o **Dragão do Vendaval (nível 150)**, passando pelo chefe de cada área, o Lorde Orc e o Dragão Ancião. São 23 missões.

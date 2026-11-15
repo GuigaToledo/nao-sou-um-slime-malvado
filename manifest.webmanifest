@@ -1,0 +1,16 @@
+{
+  "name": "Não sou um Slime Malvado",
+  "short_name": "Slime Malvado",
+  "description": "Jogo de pixel art no navegador: renasça como um slime e devore monstros.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#06050c",
+  "theme_color": "#06050c",
+  "lang": "pt-BR",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
