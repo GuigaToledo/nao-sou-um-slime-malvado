@@ -575,3 +575,8 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 ## v3.11.2
 - Morcego (**Asas de Morcego**) e a skin **Capa do Vampiro**: o golpe básico agora rouba vida — você cura exatamente o dano que causou (número rosa "+X" em cima do slime).
 - A Mordida Vampírica automática das Asas de Morcego também passou a curar 100% do dano que causa (antes curava só 15% no começo, quase nada).
+
+## v3.11.3
+
+- **A cidade se defende de qualquer monstro:** guardas, moradores (as invocações que vivem na cidade) e torres atacam **qualquer monstro que chegar perto da muralha**, não só os invasores. Fora das invasões eles vigiam um raio maior.
+- **A kill conta para o seu personagem,** esteja onde estiver: você ganha o XP e a devoração (invocação, visual e resistência) do monstro que a cidade abateu. Isso ajuda a subir os primeiros níveis.
