@@ -568,3 +568,6 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 ## Novidades da v3.11.0 (nova música de chefe)
 - A Drum and Breaks foi substituída por uma música nova, **Jungle Drum and Bass** (172 BPM, 61 s de loop): quebras picotadas no estilo Amen, sub grave rolando, reese na parte B, pads de clima, harpa e sino, e uma melodia nova de flauta doce.
 - O Minimal Techno não foi alterado.
+
+## v3.11.1
+- Cada música toca no seu próprio canal de áudio: ao trocar (por exemplo, quando aparece um chefe), a música anterior é cortada em 0,15 s, incluindo pads, eco e reverberação. Nada fica tocando junto por trás.

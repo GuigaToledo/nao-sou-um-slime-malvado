@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.11.0";
+const VERSION="v3.11.1";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -144,7 +144,8 @@ function ensureAudio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudi
   LUTEB=ksBuf(KSF,2.4,.9965,.55);HARPB=ksBuf(KSF,3.2,.9985,.85);PANOK=!!AC.createStereoPanner;applyVol()}catch(e){AC=null}}if(AC&&AC.state==="suspended")AC.resume().catch(()=>{})}
 const OUTB=()=>BUS||SFXG||MG;
 /* saída de uma nota: volume, lado (pan) e quanto vai para a reverberação */
-function outN(v,pan,rv,t){const g=AC.createGain();g.gain.value=v;let n=g;if(pan&&PANOK){const p=AC.createStereoPanner();p.pan.value=clamp(pan,-1,1);g.connect(p);n=p}n.connect(OUTB());if(rv&&REVIN){const s=AC.createGain();s.gain.value=rv;g.connect(s);s.connect(REVIN)}return g}
+let MSES=null,MRV=null,INMUS=0;
+function outN(v,pan,rv,t){const g=AC.createGain();g.gain.value=v;let n=g;if(pan&&PANOK){const p=AC.createStereoPanner();p.pan.value=clamp(pan,-1,1);g.connect(p);n=p}n.connect(OUTB());if(rv&&REVIN){const s=AC.createGain();s.gain.value=rv;g.connect(s);s.connect(INMUS&&MRV?MRV:REVIN)}return g}
 function tone(f,d,type="square",v=.05,f2=0,del=0,at=0,cut=0){if(!AC||!SND)return;try{const t=at||AC.currentTime+del,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(Math.max(20,f2),t+d);
  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+d);let n=o;if(cut){const fl=AC.createBiquadFilter();fl.type="lowpass";fl.frequency.setValueAtTime(cut,t);fl.Q.value=2;o.connect(fl);n=fl}n.connect(g);g.connect(OUTB());o.start(t);o.stop(t+d+.03)}catch(e){}}
 function noise(d,v=.05,fq=1200,del=0,at=0,type="lowpass"){if(!AC||!SND)return;try{if(!NB){NB=AC.createBuffer(1,AC.sampleRate*1.2|0,AC.sampleRate);const a=NB.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1}
@@ -233,8 +234,8 @@ const scN=(t,d)=>{const S=SC[t.mode],o=Math.floor(d/7),i=((d%7)+7)%7;return t.ro
 const ACIDSQ=[0,0,7,0,2,0,0,4,0,7,0,6,0,2,3,4],ACIDAC=[1,0,1,0,0,1,0,0,1,0,1,0,0,1,0,1];
 /* ---------- base eletrônica (v3.8): bumbo, chimbal, palmas, baixo de sintetizador, pad e "sidechain" (o resto da música respira junto com o bumbo) ---------- */
 let PUMP=null;
-function pumpBus(){if(PUMP||!AC)return PUMP;try{PUMP=AC.createGain();PUMP.gain.value=1;PUMP.connect(MUSG||MG)}catch(e){PUMP=null}return PUMP}
-const DRUMS=fn=>{const b=BUS;BUS=MUSG;try{fn()}finally{BUS=b}};
+function pumpBus(){if(PUMP||!AC)return PUMP;try{PUMP=AC.createGain();PUMP.gain.value=1;PUMP.connect(MSES||MUSG||MG)}catch(e){PUMP=null}return PUMP}
+const DRUMS=fn=>{const b=BUS;BUS=MSES||MUSG;try{fn()}finally{BUS=b}};
 const ekick=(at,v=.42,rumble)=>DRUMS(()=>{osc({f:165,f2:46,fd:.12,at,d:.36,a:.001,v});osc({f:2400,f2:200,fd:.02,at,d:.025,a:.001,v:v*.12,w:"triangle"});if(rumble)osc({f:52,at:at+.08,d:.32,a:.02,v:v*.22,w:"sawtooth",lp:140});
  if(PUMP){const g=PUMP.gain;g.cancelScheduledValues(at);g.setValueAtTime(.42,at);g.linearRampToValueAtTime(1,at+.2)}});
 const ehat=(at,v=.03,open)=>DRUMS(()=>{nz({f:9000,ft:"highpass",at,d:open?.2:.035,a:.001,v});nz({f:12000,q:3,at,d:open?.15:.025,v:v*.5})});
@@ -316,7 +317,7 @@ function thStep(t,s,at){pumpBus();const prevBus=BUS;if(PUMP)BUS=PUMP;try{
 /* eco (delay com retorno) para os acordes de dub */
 let DLIN=null,DLY=null;
 function echoBus(){if(DLIN||!AC)return;try{DLIN=AC.createGain();DLIN.gain.value=1;DLY=AC.createDelay(1.5);DLY.delayTime.value=.375;const fb=AC.createGain();fb.gain.value=.45;const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=1600;const out=AC.createGain();out.gain.value=.8;
- DLIN.connect(DLY);DLY.connect(lp);lp.connect(fb);fb.connect(DLY);lp.connect(out);out.connect(MUSG||MG)}catch(e){DLIN=null}}
+ DLIN.connect(DLY);DLY.connect(lp);lp.connect(fb);fb.connect(DLY);lp.connect(out);out.connect(MSES||MUSG||MG)}catch(e){DLIN=null}}
 function etone(f,d,type,v,at,cut){if(!AC||!SND)return;echoBus();try{const o=AC.createOscillator(),g=AC.createGain(),fl=AC.createBiquadFilter();o.type=type;o.frequency.setValueAtTime(f,at);fl.type="lowpass";fl.frequency.setValueAtTime(cut,at);fl.Q.value=2;
  g.gain.setValueAtTime(v,at);g.gain.exponentialRampToValueAtTime(.0001,at+d);o.connect(fl);fl.connect(g);g.connect(OUTB());if(DLIN)g.connect(DLIN);o.start(at);o.stop(at+d+.03)}catch(e){}}
 const MUS={};for(const k in TH)MUS[k]={bpm:TH[k].bpm,step:TH[k].jg?(s,at)=>jStep(TH[k],s,at):(s,at)=>thStep(TH[k],s,at)};
@@ -329,16 +330,20 @@ function rotTheme(){if(performance.now()-rotT0>ROT_S*1000){let n;do n=Math.floor
 const BOSS_MUS={[QUEEN]:"jungle",[LORD]:"breakbeat",[ANCIENT]:"dnb"};
 let musNext=0,musStep=0,musTheme="minimal",musLbl="",musLblT=0,musPrev=null;
 const BOSSTH=new Set(["dnb","jungle","breakbeat"]),loopSteps=k=>TH[k].AR.length*64;
+/* cada música toca no seu próprio canal; ao trocar, o canal antigo é cortado em 0,15 s (nada da música anterior fica tocando junto) */
+function newSession(){const old=[MSES,MRV],t=AC.currentTime;for(const g of old)if(g){try{g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+.15);setTimeout(()=>{try{g.disconnect()}catch(e){}},400)}catch(e){}}
+ try{MSES=AC.createGain();MSES.connect(MUSG||MG);MRV=AC.createGain();if(REVIN)MRV.connect(REVIN)}catch(e){MSES=MRV=null}PUMP=null;DLIN=null;DLY=null}
 function music(theme){if(!AC||!SND||AC.state!=="running")return;
+ if(!MSES)newSession();
  if(theme!==musTheme&&(musStep%loopSteps(musTheme)===0||!(ROT.includes(theme)&&ROT.includes(musTheme)))){
   /* chefe à vista: guarda a música de antes (e onde ela estava) para voltar a ela depois */
   if(BOSSTH.has(theme)&&!BOSSTH.has(musTheme)){musPrev={th:musTheme,st:musStep-musStep%64,t:performance.now()};musStep=0}
   else if(musPrev&&theme===musPrev.th){musStep=musPrev.st;rotT0+=performance.now()-musPrev.t;musPrev=null}
   else{if(!BOSSTH.has(theme))musPrev=null;musStep=0}
-  musTheme=theme;musNext=AC.currentTime+.05;musLbl=MNAME[theme]||"";musLblT=performance.now()+5000;
+  newSession();musTheme=theme;musNext=AC.currentTime+.05;musLbl=MNAME[theme]||"";musLblT=performance.now()+5000;
   echoBus();if(DLY)DLY.delayTime.setValueAtTime(60/MUS[theme].bpm*.75,AC.currentTime)}
  const m=MUS[musTheme],st=60/m.bpm/4;if(musNext<AC.currentTime)musNext=AC.currentTime+.05;
- BUS=MUSG;try{while(musNext<AC.currentTime+.2){m.step(musStep,musNext);musStep++;musNext+=st}}finally{BUS=null}}
+ BUS=MSES||MUSG;INMUS=1;try{while(musNext<AC.currentTime+.2){m.step(musStep,musNext);musStep++;musNext+=st}}finally{BUS=null;INMUS=0}}
 /* ---------- efeitos de interface e do jogador ---------- */
 let QS=0;/* quando 1, os sons antigos de dentro das magias ficam quietos (a magia já tocou o som próprio) */
 const SFX={
