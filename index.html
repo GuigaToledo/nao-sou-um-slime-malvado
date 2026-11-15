@@ -89,7 +89,7 @@ const NF=MT.length,DRG=18,QUEEN=13,LORD=17,ANCIENT=24,HPM=1.8,DMM=1.5;
 const KD={arc:[200,1.5],bolt:[180,1.2],web:[95,4],cloud:[80,5],fire:[110,1.2],frost:[110,2],stomp:[70,3],charge:[130,3],gaze:[130,5],tornado:[170,2.5],spin:[70,1.6],fireball:[220,1.8],blink:[200,2.6],storm:[230,4],beat:[95,2.2],holy:[85,3],
  /* poderes novos dos visuais (sem repetir) */
  invis:[160,10],smite:[240,2.5],charm:[110,6],fury:[70,2.2],roots:[100,5],missiles:[220,2.4],gust:[130,3],bomb:[230,3.2],haste:[160,10],bees:[200,3],iceshield:[120,9],garden:[150,8],boomerang:[220,2.6],rally:[140,10],gift:[100,4],confetti:[95,2.6],chain5:[220,2.2],vbite:[80,2.4]};
-const KL=Object.keys(KD);
+let KL=Object.keys(KD);
 /* elementos */
 const ELN=["Fogo","Gelo","Raio","Veneno","Ácido","Terra","Trevas"],ELC=["#ff8a1f","#9fe8f5","#ffe14a","#8bd06a","#c8ff4a","#c89a6a","#b48aff"];
 const EF=0,EG=1,ER=2,EV=3,EA=4,ET=5,ES=6;
@@ -570,6 +570,137 @@ Object.assign(ART,{
  "Chifres do Dragão de Pedra":{f:hornsP("#9badb7",1)},
  "Fones de DJ":{f:both(ART["Óculos Escuros"].f,g=>{g.strokeStyle="#222034";g.lineWidth=1.6;g.beginPath();g.arc(30,33,16.4,Math.PI*1.08,Math.PI*1.92);g.stroke();ball(g,14.6,31,2.8,4.2,"#5fcde4");ball(g,45.4,31,2.8,4.2,"#d77bba");circ(g,14.6,31,1,"#ffffff");circ(g,45.4,31,1,"#ffffff")})}});
 DPAL.forEach((P,i)=>{ART["Asas D"+i]={b:dWings(P),f:hornsP(i===0?"#efe2b4":P.hn,0)}});
+/* ===== v3.7: segunda skin de cada monstro (traje completo) com uma magia nova =====
+   sai ao devorar um Elite, um chefe gigante ou o próprio chefe daquele monstro; as skins antigas continuam iguais */
+const PT={
+ hood:(c,c2)=>g=>{ball(g,30,25,11.4,7.4,c);poly(g,[18.6,26,15.5,38,21.5,31],c);poly(g,[41.4,26,44.5,38,38.5,31],c);g.strokeStyle=lit(c,-.5);g.lineWidth=.7;g.beginPath();g.ellipse(30,28.5,9,3.6,0,Math.PI*1.05,Math.PI*1.95);g.stroke();if(c2){g.fillStyle=c2;g.fillRect(19,27.5,22,1.2)}},
+ helm:(c,cr)=>g=>{ball(g,30,24.6,10.6,5.8,c);g.fillStyle=lit(c,-.35);g.fillRect(19.6,27.2,20.8,1.6);if(cr)poly(g,[27.5,20,30,9,32.5,20],cr)},
+ visor:c=>g=>{g.fillStyle=c;g.beginPath();g.moveTo(18,EY-4);g.quadraticCurveTo(30,EY-6.5,42,EY-4);g.lineTo(42,EY+.5);g.quadraticCurveTo(30,EY-1.4,18,EY+.5);g.fill();g.fillStyle="#0a0810";g.fillRect(20,EY-2.2,20,1.4);g.fillStyle="rgba(255,60,60,.9)";g.fillRect(23,EY-2,3,1);g.fillRect(34,EY-2,3,1)},
+ horns:(c,s=1)=>g=>{for(const d of[-1,1]){g.save();g.translate(30,0);g.scale(d,1);poly(g,[6,24,8+3*s,14-4*s,13+2*s,10-6*s,10,18,9,24],c);g.restore()}},
+ ram:c=>g=>{for(const d of[-1,1]){g.save();g.translate(30,0);g.scale(d,1);g.strokeStyle=lit(c,-.5);g.lineWidth=3.4;g.lineCap="round";g.beginPath();g.arc(12,26,5,-1.9,1.3);g.stroke();g.strokeStyle=c;g.lineWidth=2.4;g.stroke();g.restore()}},
+ ears:(c,ci,big)=>g=>{const s=big?1.4:1;for(const d of[-1,1]){g.save();g.translate(30,0);g.scale(d,1);poly(g,[5,24,6+2*s,13-5*s,11,21],c);poly(g,[6.4,22.5,7+1.4*s,15.5-4*s,9.8,21],ci);g.restore()}},
+ mask:(c,e)=>g=>{g.fillStyle=c;g.beginPath();g.moveTo(17,EY-2.8);g.quadraticCurveTo(30,EY-5,43,EY-2.8);g.lineTo(43,EY+2.2);g.quadraticCurveTo(30,EY+3.8,17,EY+2.2);g.fill();for(const x of[E1,E2]){g.fillStyle=e;g.beginPath();g.ellipse(x,EY,2.2,1.6,0,0,6.283);g.fill()}},
+ eyes:c=>g=>{for(const x of[E1,E2]){g.fillStyle=c;g.beginPath();g.ellipse(x,EY,2.3,2.6,0,0,6.283);g.fill();circ(g,x-.7,EY-.9,.7,"#ffffff")}},
+ crown:(c,gem)=>g=>{poly(g,[22,24.5,22,15,25.5,19.5,30,12.5,34.5,19.5,38,15,38,24.5],c);for(const[x,y]of[[30,18],[25,21],[35,21]])ball(g,x,y,1.2,1.2,gem)},
+ iceCrown:c=>g=>{for(const[x,h]of[[22,7],[26,11],[30,15],[34,11],[38,7]])poly(g,[x-2.2,24,x,24-h,x+2.2,24],c);g.fillStyle="rgba(255,255,255,.7)";for(const x of[26,30,34])g.fillRect(x-.4,18,.8,4)},
+ flames:(c,c2)=>g=>{for(const[x,h]of[[23,8],[27,12],[30,16],[33,12],[37,8]]){poly(g,[x-3,24,x-1,24-h*.6,x,24-h,x+1.4,24-h*.5,x+3,24],c);poly(g,[x-1.4,24,x,24-h*.5,x+1.4,24],c2)}},
+ collar:(c,sp)=>g=>{g.strokeStyle=c;g.lineWidth=2.4;g.beginPath();g.ellipse(30,41,14,3.2,0,.15,Math.PI-.15);g.stroke();if(sp)for(let i=0;i<5;i++){const x=20+i*5;poly(g,[x-1.2,43,x,46.5,x+1.2,43],sp)}},
+ band:(c)=>g=>{g.fillStyle=c;g.beginPath();g.ellipse(30,25.6,10.4,2.2,0,0,6.283);g.fill();poly(g,[40,25,46,22,45.5,27],c)},
+ shoulders:(c,sp)=>g=>{for(const x of[16.5,43.5]){ball(g,x,36,4.6,3.6,c);if(sp)poly(g,[x-1.5,33.5,x,29,x+1.5,33.5],sp)}},
+ bandage:c=>g=>{g.strokeStyle=c;g.lineWidth=1.5;for(const[a,b,cc,d]of[[16,30,44,36],[17,40,42,33],[22,23,39,27]]){g.beginPath();g.moveTo(a,b);g.lineTo(cc,d);g.stroke()}g.strokeStyle="rgba(120,90,60,.6)";g.lineWidth=.5;g.beginPath();g.moveTo(16,30);g.lineTo(44,36);g.stroke()},
+ skull:()=>g=>{ball(g,30,25.5,10,6.4,"#e8e2d0");for(const x of[25.4,34.6]){g.fillStyle="#1a1418";g.beginPath();g.ellipse(x,26.6,2,1.6,0,0,6.283);g.fill()}g.fillStyle="#a8a290";for(const x of[27,29,31,33])g.fillRect(x,30.4,1.1,1.6)},
+ antlers:c=>g=>{for(const d of[-1,1]){g.save();g.translate(30,0);g.scale(d,1);limb(g,[6,23,9,12,13,6],c,1.4);limb(g,[8.6,15,4,10],c,1.1);limb(g,[11,9,15,5],c,1);g.restore()}},
+ moss:(c,fl)=>g=>{for(const[x,y,r]of[[21,24,4],[26,21.5,4.6],[31,21,5],[36,22,4.4],[39.5,25,3.4]])ball(g,x,y,r,r*.75,c,0,0);if(fl)for(const[x,y]of[[24,21],[33,19],[38.5,23]]){circ(g,x,y,1.3,fl);circ(g,x,y,.5,"#ffe14a")}},
+ cracks:c=>g=>{g.strokeStyle=c;g.lineWidth=1;g.shadowColor=c;g.shadowBlur=3;g.beginPath();g.moveTo(18,30);g.lineTo(22,33);g.lineTo(20,38);g.moveTo(42,29);g.lineTo(38,34);g.lineTo(41,39);g.moveTo(28,40);g.lineTo(30,43);g.lineTo(33,41);g.stroke();g.shadowBlur=0},
+ fangs:()=>g=>{for(const x of[27.4,32.6])poly(g,[x-1.2,38.2,x,41.6,x+1.2,38.2],"#ffffff")},
+ hat:(c,b)=>g=>{ball(g,30,22.6,13,2.8,lit(c,-.3));poly(g,[21,22.5,28,8,25,0,32,6,39,22.5],c);if(b){g.fillStyle=b;g.fillRect(21.5,20.4,17,1.6)}},
+ scales:c=>g=>{g.strokeStyle=c;g.lineWidth=.7;for(let r=0;r<3;r++)for(let i=0;i<6;i++){const x=18+i*4.8+(r%2)*2.4,y=37+r*2.6;g.beginPath();g.arc(x,y,1.6,0,Math.PI);g.stroke()}},
+ club:c=>g=>{limb(g,[46,44,52,26],"#6a4a2a",2.2);ball(g,52.5,23,3.6,5,c);for(const[x,y]of[[50,20],[55,22],[52,27]])poly(g,[x-.8,y,x,y-2,x+.8,y],"#d8d0c0")},
+ /* camada de trás */
+ shellB:(c,l)=>g=>{ball(g,30,31,17.5,13,c);g.strokeStyle=l||lit(c,.3);g.lineWidth=.7;for(const x of[22,30,38]){g.beginPath();g.moveTo(x,19);g.lineTo(x,43);g.stroke()}},
+ spikesB:c=>g=>{for(let i=0;i<5;i++){const x=19+i*5.5,h=i===2?9:i%2?7:5;poly(g,[x-2.4,25,x,25-h,x+2.4,25],c)}},
+ tailB:(c,tip)=>g=>{limb(g,[42,40,51,37,56,30,55,24],c,2.6);poly(g,[53,25,55,18,58,25],tip||c)},
+ capeB:(c,c2)=>g=>{poly(g,[15,30,9,46,51,46,45,30],c);g.fillStyle=c2||lit(c,-.3);g.fillRect(14,30,32,2)},
+ legsB:c=>g=>{for(const d of[-1,1]){g.save();g.translate(30,0);g.scale(d,1);for(let i=0;i<3;i++)limb(g,[11,30+i*3.5,19+i*2,24+i*4,23+i,34+i*3.5],c,1.1);g.restore()}},
+ wingsB:(kind,c1,c2)=>g=>{wing(g,1,c1,c2,kind);wing(g,-1,c1,c2,kind)},
+ dragonB:P=>dWings(P)};
+const NEWSK=[
+ [1,"Capa do Vampiro",{b:[["wingsB","bat","#3a1a3a"],["capeB","#5a1428","#8a2440"]],f:[["fangs"],["eyes","#ff3a5a"]]},"sp_echo",{fl:1,spd:1.15}],
+ [2,"Armadura Goblin",{f:[["helm","#7a6a4a","#6abe30"],["shoulders","#5a5048"],["ears","#6abe30","#4b692f"]]},"sp_spears",{}],
+ [3,"Traje de Tecelã",{b:[["legsB","#2c2034"]],f:[["mask","#2c2034","#ff3a3a"]]},"sp_cocoon",{}],
+ [4,"Casulo de Borboleta",{b:[["wingsB","fairy","#ffb0e0","#8ad0ff"]],f:[["antlers","#4a6a2a"]]},"sp_dust",{regen:1,fl:1}],
+ [5,"Carapaça de Ankheg",{b:[["shellB","#7a5a2a","#c8a060"]],f:[["horns","#d8c890",.6]]},"sp_geyser",{}],
+ [6,"Pele do Lobo-Trovão",{b:[["tailB","#5a6a8a","#ffe14a"]],f:[["ears","#5a6a8a","#ffe14a"],["eyes","#ffe14a"]]},"sp_howl",{spd:1.15}],
+ [7,"Coleira Infernal",{b:[["tailB","#3a2020","#ff6a1a"]],f:[["collar","#2a2020","#ff8a1f"],["flames","#ff6a1a","#ffe14a"]]},"sp_embers",{}],
+ [8,"Pele do Lobo Invernal",{b:[["capeB","#dceeff","#9fe8f5"]],f:[["ears","#eef6ff","#9fe8f5"],["eyes","#9fe8f5"]]},"sp_frosthowl",{spd:1.1}],
+ [9,"Clava de Ogro",{f:[["band","#8a3a2a"],["club","#8a6a4a"],["fangs"]]},"sp_quake",{sm:1}],
+ [10,"Elmo do Minotauro",{f:[["ram","#c8b8a0"],["helm","#6a4a2a",null],["eyes","#ff4a2a"]]},"sp_stampede",{sm:1}],
+ [11,"Coroa do Basilisco",{b:[["spikesB","#4a7a3a"]],f:[["crown","#5a8a3a","#ffe14a"],["eyes","#ffe14a"]]},"sp_stonegaze",{}],
+ [12,"Gorro de Gigante",{f:[["hat","#7a6a4a","#5a4a30"],["shoulders","#8a7a5a"]]},"sp_avalanche",{sm:1}],
+ [13,"Manto da Rainha",{b:[["legsB","#3a2048"],["capeB","#5a2a6a","#d77bba"]],f:[["crown","#76428a","#d77bba"]]},"sp_brood",{}],
+ [14,"Ombreiras de Saqueador",{f:[["shoulders","#595652","#cfd8e8"],["helm","#4a4a4a","#8a2a2a"],["fangs"]]},"sp_axes",{}],
+ [15,"Máscara do Xamã",{b:[["capeB","#6a3a1a","#c8a040"]],f:[["mask","#c8a060","#ff8a1f"],["antlers","#e8dcc0"]]},"sp_totem",{}],
+ [16,"Capuz das Sombras",{b:[["tailB","#2a2a3a","#7a5aff"]],f:[["hood","#2a2a40","#7a5aff"],["eyes","#b48aff"]]},"sp_blades",{spd:1.15}],
+ [17,"Armadura do Lorde",{b:[["capeB","#8a1a1a","#e8c25a"]],f:[["crown","#e8c25a","#d95763"],["shoulders","#3a3a44","#e8c25a"]]},"sp_warcry",{sm:1}],
+ [18,"Manto do Vendaval",{b:[["dragonB",{w:"#3a4a8a",d:"#ffe14a",hn:"#ffe14a"}]],f:[["horns","#fff4c8",1.1],["eyes","#9ae8ff"]]},"sp_eye",{fl:1,sm:1}],
+ [19,"Escamas Verdes",{b:[["dragonB",{w:"#3a6a2a",d:"#9aff5a",hn:"#c8ff8a"}]],f:[["scales","#2a5a1a"],["horns","#c8ff8a",.8]]},"sp_swamp",{fl:1}],
+ [20,"Escamas Rubras",{b:[["dragonB",{w:"#8a1a1a",d:"#ff8a1f",hn:"#ffd84a"}]],f:[["scales","#5a0a0a"],["horns","#ffd84a",1]]},"sp_meteor",{fl:1}],
+ [21,"Escamas de Gelo",{b:[["dragonB",{w:"#6a9ac8",d:"#dff6ff",hn:"#ffffff"}]],f:[["iceCrown","#bff4ff"],["scales","#4a7aa8"]]},"sp_blizzard",{fl:1}],
+ [22,"Escamas da Noite",{b:[["dragonB",{w:"#1a1428",d:"#7a5aff",hn:"#b48aff"}]],f:[["horns","#3a2a4a",1.2],["eyes","#b48aff"]]},"sp_eclipse",{fl:1}],
+ [23,"Escamas de Rocha",{b:[["spikesB","#6a6a74"],["tailB","#5a5a64","#9badb7"]],f:[["horns","#9badb7",1.2],["scales","#3a3a44"]]},"sp_thorns",{sm:1}],
+ [24,"Manto Ancestral",{b:[["dragonB",{w:"#6a1a0a",d:"#ffd84a",hn:"#fff4c8"}]],f:[["crown","#fbf236","#d95763"],["flames","#ff8a1f","#fff4c8"]]},"sp_ancient",{fl:1,sm:1}],
+ [25,"Elmo de Ossos",{f:[["skull"],["eyes","#9ae8ff"]]},"sp_bones",{}],
+ [26,"Bandagens de Zumbi",{f:[["bandage","#d8d0b0"],["eyes","#9aff5a"]]},"sp_bite",{regen:1}],
+ [27,"Elmo do Cavaleiro Negro",{b:[["capeB","#1a1420","#5a2a6a"]],f:[["helm","#2a2430","#5a2a6a"],["visor","#2a2430"]]},"sp_darkcharge",{sm:1}],
+ [28,"Capuz do Mago Sombrio",{b:[["capeB","#2a1a40","#b48aff"]],f:[["hat","#3a2a5a","#b48aff"],["eyes","#b48aff"]]},"sp_void",{}],
+ [29,"Chifres de Demônio",{b:[["tailB","#5a1414","#ff4a2a"],["wingsB","bat","#3a0a0a"]],f:[["horns","#2a1414",1.3],["eyes","#ff4a2a"]]},"sp_pillar",{fl:1}],
+ [30,"Elmo de Gelo",{f:[["helm","#9ac8e8","#dff6ff"],["iceCrown","#dff6ff"],["shoulders","#bfe8ff"]]},"sp_icelances",{}],
+ [31,"Coroa de Musgo",{f:[["moss","#4a7a3a","#ff9ad8"],["eyes","#c8ff8a"]]},"sp_briar",{regen:2,sm:1}],
+ [32,"Galhada do Druida",{b:[["capeB","#2a3a20","#7a5aff"]],f:[["antlers","#5a4030"],["mask","#3a4a2a","#9a7aff"]]},"sp_vines",{}],
+ [33,"Asas de Gárgula",{b:[["dragonB",{w:"#6a6a74",d:"#cfd8e8",hn:"#cfd8e8"}]],f:[["horns","#8a8a94",.9],["eyes","#ff4a2a"]]},"sp_dive",{fl:1,sm:1}],
+ [34,"Elmo de Magma",{f:[["helm","#3a2020","#ff6a1a"],["cracks","#ff8a1f"],["flames","#ff6a1a","#ffd84a"]]},"sp_eruption",{sm:1}]];
+/* magias novas: forma (sh), elemento (el), força (m), alcance (R/L), efeito (ef: 1 preso, 2 lento, 3 veneno, 4 preso rápido), cor, som; KD: [alcance para mirar, recarga] */
+const SPELL={
+ sp_echo:{n:"Eco Sônico",sh:"cone",R:160,m:1.1,el:ES,ef:2,c:"#b48aff",snd:"gaze",kd:[150,2.6]},
+ sp_spears:{n:"Chuva de Lanças",sh:"rain",n:5,R:70,r:34,m:.8,el:-1,c:"#d8c8a0",snd:"missiles",kd:[220,2.8]},
+ sp_cocoon:{n:"Casulo",sh:"nova",R:115,m:.9,el:EV,ef:1,c:"#e8e2d0",snd:"web",kd:[110,4]},
+ sp_dust:{n:"Pó de Borboleta",sh:"blades",R:120,n:3,m:.45,el:EV,ef:3,c:"#ffb0e0",snd:"cloud",kd:[120,4]},
+ sp_geyser:{n:"Gêiser Ácido",sh:"rain",n:4,R:60,r:38,m:1,el:EA,ef:3,c:"#c8ff4a",snd:"acid",kd:[200,3]},
+ sp_howl:{n:"Uivo do Trovão",sh:"chain",n:4,R:200,m:1,el:ER,c:"#ffe14a",snd:"bolt",kd:[200,2.8]},
+ sp_embers:{n:"Rastro de Brasas",sh:"beam",L:230,w:24,m:1.3,el:EF,c:"#ff8a1f",snd:"fire",kd:[220,2.6]},
+ sp_frosthowl:{n:"Uivo Gélido",sh:"nova",R:150,m:.9,el:EG,ef:2,c:"#bff4ff",snd:"frost",kd:[140,3.4]},
+ sp_quake:{n:"Terremoto",sh:"echo",R:140,m:.9,el:ET,ef:4,c:"#c89a6a",snd:"stomp",kd:[120,4]},
+ sp_stampede:{n:"Estouro",sh:"leap",R:100,m:1.4,el:-1,c:"#e8dcc0",snd:"charge",kd:[220,3.4]},
+ sp_stonegaze:{n:"Olhar de Pedra",sh:"beam",L:260,w:20,m:1,el:ET,ef:4,c:"#c8b890",snd:"gaze",kd:[250,3.6]},
+ sp_avalanche:{n:"Avalanche",sh:"rain",n:6,R:80,r:36,m:.9,el:ET,c:"#9badb7",snd:"stomp",kd:[230,4]},
+ sp_brood:{n:"Ninhada",sh:"volley",n:8,kd2:"webshot",sp:.9,m:.6,el:EV,ef:3,c:"#d77bba",snd:"web",kd:[220,3.4]},
+ sp_axes:{n:"Redemoinho de Machados",sh:"blades",R:95,n:4,m:.55,el:-1,c:"#cfd8e8",snd:"spin",kd:[90,3.4]},
+ sp_totem:{n:"Totem de Fogo",sh:"rain",n:4,R:55,r:44,m:1.1,el:EF,c:"#ff6a1a",snd:"fire",kd:[220,3.6]},
+ sp_blades:{n:"Lâminas Sombrias",sh:"blades",R:115,n:4,m:.6,el:ES,c:"#7a5aff",snd:"blink",kd:[110,3.6]},
+ sp_warcry:{n:"Grito de Guerra",sh:"nova",R:170,m:1,el:ET,buff:"shield",c:"#e8c25a",snd:"rally",kd:[160,5]},
+ sp_eye:{n:"Olho da Tempestade",sh:"pull",R:230,m:1.3,el:ER,c:"#9ae8ff",snd:"storm",kd:[220,4.4]},
+ sp_swamp:{n:"Pântano Tóxico",sh:"blades",R:150,n:4,m:.55,el:EV,ef:3,c:"#8bd06a",snd:"cloud",kd:[140,4.2]},
+ sp_meteor:{n:"Chuva de Meteoros",sh:"rain",n:6,R:90,r:44,m:1.1,el:EF,c:"#ff8a1f",snd:"bomb",kd:[240,4.2]},
+ sp_blizzard:{n:"Nevasca",sh:"blades",R:165,n:4,m:.55,el:EG,ef:2,c:"#dff6ff",snd:"frost",kd:[150,4.2]},
+ sp_eclipse:{n:"Eclipse",sh:"nova",R:185,m:1.1,el:ES,drain:.3,c:"#7a5aff",snd:"dark",kd:[170,4.4]},
+ sp_thorns:{n:"Muralha de Espinhos",sh:"cone",R:150,m:1.3,el:ET,ef:4,c:"#9badb7",snd:"roots",kd:[140,3.2]},
+ sp_ancient:{n:"Sopro Ancestral",sh:"cone",R:230,m:1.5,el:EF,wide:1,c:"#ffd84a",snd:"fire",kd:[220,4]},
+ sp_bones:{n:"Lanças de Ossos",sh:"volley",n:3,kd2:"spear",sp:.3,m:1.1,el:-1,c:"#e8e2d0",snd:"missiles",kd:[230,2.4]},
+ sp_bite:{n:"Mordida Contagiosa",sh:"drain",m:1.6,el:EV,ef:3,heal:.5,c:"#9aff5a",snd:"vbite",kd:[70,2.6]},
+ sp_darkcharge:{n:"Investida Sombria",sh:"leap",R:110,m:1.5,el:ES,c:"#5a2a6a",snd:"blink",kd:[230,3.6]},
+ sp_void:{n:"Orbes do Vazio",sh:"volley",n:5,kd2:"dark",sp:.7,m:.8,el:ES,c:"#b48aff",snd:"dark",kd:[230,3]},
+ sp_pillar:{n:"Pilar Infernal",sh:"beam",L:250,w:34,m:1.4,el:EF,c:"#ff4a2a",snd:"fire",kd:[240,3.6]},
+ sp_icelances:{n:"Lanças de Gelo",sh:"volley",n:4,kd2:"ice",sp:.5,m:.9,el:EG,ef:2,c:"#bff4ff",snd:"frost",kd:[230,2.8]},
+ sp_briar:{n:"Espinheiro",sh:"nova",R:140,m:.9,el:ET,ef:1,heal:.15,c:"#7ad85a",snd:"garden",kd:[130,4]},
+ sp_vines:{n:"Cipós Sombrios",sh:"chain",n:5,R:200,m:.9,el:ES,ef:4,c:"#9a7aff",snd:"roots",kd:[200,3.2]},
+ sp_dive:{n:"Mergulho de Pedra",sh:"leap",R:120,m:1.5,el:ET,c:"#cfd8e8",snd:"stomp",kd:[230,3.6]},
+ sp_eruption:{n:"Erupção",sh:"echo",R:135,m:1.1,el:EF,c:"#ff6a1a",snd:"bomb",kd:[120,4]}};
+for(const k in SPELL)KD[k]=SPELL[k].kd;
+KL=Object.keys(KD);
+for(const[t,n,art]of NEWSK){const mk=L=>L?g=>{for(const[p,...a]of L)PT[p](...a)(g)}:null;ART["S2 "+n]={b:mk(art.b),f:mk(art.f)}}
+/* efeitos que acontecem depois (segundo pulso, rodadas de lâminas) */
+let LATER=[];function later(t,fn){LATER.push({t,fn})}
+function tickLater(dt){if(!LATER.length)return;for(const q of LATER)q.t-=dt;const run=LATER.filter(q=>q.t<=0);LATER=LATER.filter(q=>q.t>0);for(const q of run)try{q.fn()}catch(e){}}
+function spellCast(s,S,d,tg,src,cr){const el=S.el>=0?S.el:null,H=(m,dd)=>{if(!m.gone)hurt(m,dd,S.ef||0,el,src,cr)},col=S.c,cc=hx3(col).join(",");s.cast=.4;
+ const ring=(x,y,rr)=>{rings.push({x,y,r0:8,r1:rr,t:.35,m:.35,c:col});flashes.push({x,y,r:rr*1.2,c:cc,t:.25,m:.25});for(let i=0;i<14;i++)burst(x,y-8,col,4,.5,(R()-.5)*rr*1.6,(R()-.5)*rr*1.6)};
+ const nova=(x,y,rr,m)=>{ring(x,y,rr);for(const q of monsIn(x,y,rr))H(q,d*m)};
+ const tx=tg?tg.x:s.x+s.fx*120,ty=tg?tg.y:s.y+s.fy*120;
+ switch(S.sh){
+  case"nova":nova(s.x,s.y,S.R,S.m);if(S.drain&&s.hp!==undefined){const mx=s.mhp||mhp(s);s.hp=Math.min(mx,s.hp+d*S.drain*monsIn(s.x,s.y,S.R).length)}
+   if(S.heal&&s.hp!==undefined){const mx=s.mhp||mhp(s);s.hp=Math.min(mx,s.hp+mx*S.heal)}if(S.buff&&s.slot!==undefined){s.shield=4}break;
+  case"echo":nova(s.x,s.y,S.R,S.m);later(.45,()=>nova(s.x,s.y,S.R*1.25,S.m*.8));break;
+  case"cone":{const RR=S.R,cs=S.wide?.35:.6;spray(s,[col,"#ffffff",col],RR*1.6,24);flashes.push({x:s.x+s.fx*RR*.5,y:s.y+s.fy*RR*.5,r:RR,c:cc,t:.3,m:.3});
+   for(const q of monsIn(s.x,s.y,RR)){const ex=q.x-s.x,ey=q.y-s.y,dd=Math.hypot(ex,ey)||1;if((ex*s.fx+ey*s.fy)/dd>cs)H(q,d*S.m)}break}
+  case"beam":{const L=S.L,w=S.w;for(let i=1;i<=10;i++){const x=s.x+s.fx*L*i/10,y=s.y-6+s.fy*L*i/10;burst(x,y,col,5,.4,(R()-.5)*40,(R()-.5)*40);if(i%3===0)flashes.push({x,y,r:w*3,c:cc,t:.2,m:.2})}
+   for(const q of monsIn(s.x,s.y,L)){const ex=q.x-s.x,ey=q.y-s.y,a=ex*s.fx+ey*s.fy,b=Math.abs(ex*s.fy-ey*s.fx);if(a>0&&a<L&&b<w)H(q,d*S.m)}break}
+  case"rain":for(let i=0;i<S.n;i++){const a=R()*6.283,r=R()*S.R,x=tx+Math.cos(a)*r,y=ty+Math.sin(a)*r;rings.push({x,y,r0:S.r,r1:4,t:.3+i*.08,m:.3+i*.08,c:col});later(.3+i*.08,()=>nova(x,y,S.r,S.m))}break;
+  case"volley":{const a0=Math.atan2(s.fy,s.fx);for(let i=0;i<S.n;i++){const a=a0+(S.n>1?(i/(S.n-1)-.5)*S.sp*2:0);shots.push({x:s.x,y:s.y-6,dx:Math.cos(a),dy:Math.sin(a),t:1.2,d:d*S.m,kd:S.kd2,el:el===null?undefined:el,eff:S.ef||0,src,cr})}break}
+  case"chain":{let from=s,hit=new Set();for(let i=0;i<S.n;i++){let b=null,bd=i?150:S.R;for(const q of mons){if(hit.has(q))continue;const dd=Math.hypot(q.x-from.x,q.y-from.y);if(dd<bd){bd=dd;b=q}}if(!b)break;hit.add(b);
+    const pts=[[from.x,from.y-8]];for(let k=1;k<5;k++)pts.push([from.x+(b.x-from.x)*k/5+(R()-.5)*16,from.y-8+(b.y-from.y)*k/5+(R()-.5)*16]);pts.push([b.x,b.y-8]);bolts.push({pts,t:.22,m:.22,c:col});H(b,d*S.m*(1-i*.1));from=b}break}
+  case"drain":if(tg&&Math.hypot(tg.x-s.x,tg.y-s.y)<90){H(tg,d*S.m);for(let i=0;i<10;i++)burst(tg.x,tg.y-8,col,4,.5,(s.x-tg.x)*2,(s.y-tg.y)*2,s);if(s.hp!==undefined){const mx=s.mhp||mhp(s);s.hp=Math.min(mx,s.hp+d*S.m*S.heal)}}break;
+  case"leap":{for(let i=0;i<10;i++)burst(s.x,s.y-8,col,4,.4,(R()-.5)*90,(R()-.5)*90);if(tg){const ox=s.x,oy=s.y,r=Math.hypot(tg.x-s.x,tg.y-s.y)||1;s.x=tg.x-(tg.x-s.x)/r*30;s.y=tg.y-(tg.y-s.y)/r*30;if(solid(s.x,s.y,s)){s.x=ox;s.y=oy}}nova(s.x,s.y,S.R,S.m);shake=Math.max(shake,5);break}
+  case"pull":{ring(tx,ty,S.R);for(const q of monsIn(tx,ty,S.R)){knock(q,(tx-q.x)*.5,(ty-q.y)*.5);H(q,d*S.m)}for(let i=0;i<3;i++){const sx=tx+(R()-.5)*120,sy=ty-60-R()*60,pts=[[sx,sy]];for(let k=1;k<5;k++)pts.push([sx+(R()-.5)*30,sy+k*16]);bolts.push({pts,t:.15,m:.15})}break}
+  case"blades":for(let k=0;k<S.n;k++)later(k*.3,()=>{rings.push({x:s.x,y:s.y,r0:S.R,r1:S.R*.7,t:.25,m:.25,c:col});for(let i=0;i<8;i++){const a=i/8*6.283+k;burst(s.x+Math.cos(a)*S.R*.8,s.y-6+Math.sin(a)*S.R*.5,col,4,.3,-Math.sin(a)*120,Math.cos(a)*80)}for(const q of monsIn(s.x,s.y,S.R))H(q,d*S.m)});break}}
 const COS=[
  {n:"Asas de Morcego",t:1,a:"Asas de Morcego",fl:1,spd:1.25,k:"vbite",sk:"Voo veloz e mordida que rouba vida"},{n:"Capuz Goblin",t:2,a:"Capuz Goblin",k:"arc"},{n:"Patas de Aranha",t:3,a:"Patas de Aranha",k:"web"},
  {n:"Antenas de Lagarta",t:4,a:"Antenas de Lagarta",k:"cloud"},{n:"Mandíbulas Ácidas",t:5,a:"Mandíbulas Ácidas",k:"arc",kd:5},{n:"Chifre do Trovão",t:6,a:"Chifre do Trovão",k:"bolt"},
@@ -591,7 +722,10 @@ const COS=[
  {n:"Tiara de Flores",chest:1,a:"Tiara de Flores",k:"garden",regen:2,sk:"Jardim que cura quem estiver dentro"},{n:"Boné",chest:1,a:"Boné",k:"boomerang",sk:"Bumerangue que vai e volta"},
  {n:"Máscara de Herói",chest:1,a:"Máscara de Herói",k:"rally",sk:"Grito heroico: +40% de dano"},{n:"Gorro de Natal",chest:1,a:"Gorro de Natal",k:"gift",regen:1,sk:"Presente que explode"},
  {n:"Chapéu do Mago Louco",chest:1,a:"Mago Louco",k:"chain5",sk:"Corrente de relâmpagos (até 5 inimigos)"}];
-COS.forEach(c=>{if(c.t){const m=MT[c.t];c.fd=c.fd||m.fd;c.sk=c.sk||m.sk}c.fd=c.fd||1.8;c.fs=c.spd||1;
+{const SH={nova:"explosão em volta",echo:"dois tremores em volta",cone:"sopro em leque",beam:"raio em linha reta",rain:"chuva sobre o alvo",volley:"leque de projéteis",chain:"salta de inimigo em inimigo",drain:"rouba vida",leap:"salta no alvo e explode",pull:"puxa os inimigos e eletrocuta",blades:"gira em volta várias vezes"};
+ for(const[t,n,,k,o]of NEWSK)COS.push(Object.assign({n,mt:t,a:"S2 "+n,k,sk:SPELL[k].n+": "+SH[SPELL[k].sh]},o))}
+const MSK2={};
+COS.forEach((c,i)=>{if(c.mt){MSK2[c.mt]=i;c.fd=c.fd||MT[c.mt].fd}if(c.t){const m=MT[c.t];c.fd=c.fd||m.fd;c.sk=c.sk||m.sk}c.fd=c.fd||1.8;c.fs=c.spd||1;
  const ps=[];if(c.fl)ps.push("voa");if(c.sm)ps.push("quebra pedras");if(c.spd>1)ps.push("+"+Math.round((c.spd-1)*100)+"% velocidade");if(c.regen)ps.push("+"+c.regen+" vida/s");if(c.xp)ps.push("+"+Math.round((c.xp-1)*100)+"% XP");c.pas=ps.join(" · ")});
 const NSKIN=COS.length,CHEST_COS=COS.map((c,i)=>c.chest?i:-1).filter(i=>i>=0),COS_OF_T={};COS.forEach((c,i)=>{if(c.t)COS_OF_T[c.t]=i});
 /* acessórios do rosto (bigode, óculos, máscaras): na visão de lado o rosto fica mais à frente e mais estreito, então eles acompanham */
@@ -916,8 +1050,8 @@ function mkVend(x,y){const m=mkMon(MID++,DRG,x,y,0,VEND_LV);m.vb=1;m.sp=-1;m.mhp
 function reorgWorld(){const host=typeof NET==="undefined"||NET.mode!=="client",now=time||0;
  /* em volta da cidade: insetos de dia, morcegos à noite (fracos, para começar) */
  for(let k=0;k<26;k++){let p=null;for(let q=0;q<80&&!p;q++){const a=R()*6.283,d=19+R()*24,x=Math.round(VCX+Math.cos(a)*d),y=Math.round(VCY+Math.sin(a)*d*.8),j=y*MW+x;if(map[y]?.[x]===4&&ZMAP[j]===Z_VIL&&CONN[j])p=[x,y,d]}if(!p)continue;
-  const dn=k%3===0?"n":"d",t=dn==="n"?1:INSECTS[(k>>1)%3],lv=1+Math.floor((p[2]-19)/5);spawns.push({x:p[0],y:p[1],t,el:0,lv,dn});const si=spawns.length-1;
-  if(host){if(dn===(NIGHT>.5?"n":"d")){const m=mkMon(MID++,t,p[0]*T+16,p[1]*T+16,0,lv);m.sp=si}else G.rq&&G.rq.push({si,at:now+2})}}
+  const dn=k%3===0?"n":"d",t=dn==="n"?1:INSECTS[(k>>1)%3],lv=1+Math.floor((p[2]-19)/5),el=k%9===0?1:0;spawns.push({x:p[0],y:p[1],t,el,lv,dn});const si=spawns.length-1;
+  if(host){if(dn===(NIGHT>.5?"n":"d")){const m=mkMon(MID++,t,p[0]*T+16,p[1]*T+16,el,lv);m.sp=si}else G.rq&&G.rq.push({si,at:now+2})}}
  if(!host)return;
  /* chefes: o Vendaval na ilha do lago; a Rainha Aranha na Floresta dos Goblins; um chefe gigante em cada outra região */
  mkVend(ISX*T+16,ISY*T+16);
@@ -957,7 +1091,7 @@ function fixProf(o){const p=newProf();if(!o||typeof o!=="object")return p;p.lv=c
  /* mapa novo (v3.6): baús e missões recomeçam, porque os lugares mudaram */
  if((o.mp|0)!==MAPV){p.sec=0;p.qi=0;p.qa=0}
  if(Array.isArray(o.slv))o.slv.forEach((v,i)=>{if(i<NF)p.slv[i]=clamp(v|0,1,p.lv)});if(Array.isArray(o.sxp))o.sxp.forEach((v,i)=>{if(i<NF)p.sxp[i]=Math.max(0,+v||0)});
- if(Array.isArray(o.cos)){o.cos.forEach((v,i)=>{if(i<NSKIN&&v&&COS[i].chest)p.cos[i]=1});const k=o.skin|0;p.skin=cosOwned(p,k)?k:-1}
+ if(Array.isArray(o.cos)){o.cos.forEach((v,i)=>{if(i<NSKIN&&v&&(COS[i].chest||COS[i].mt))p.cos[i]=1});const k=o.skin|0;p.skin=cosOwned(p,k)?k:-1}
  else if(Array.isArray(o.skins)){/* salvamento antigo: os visuais antigos viram os novos de mesmo nome; o que era forma vira o visual do monstro */
   o.skins.forEach((v,i)=>{if(!v)return;const j=COS.findIndex(c=>c.chest&&c.n===(OLD_SKIN_NAMES[i]==="Fones de Ouvido"?"Fones de DJ":OLD_SKIN_NAMES[i]));if(j>=0)p.cos[j]=1});
   const on=OLD_SKIN_NAMES[o.skin|0],j=on?COS.findIndex(c=>c.n===on||(on==="Fones de Ouvido"&&c.n==="Fones de DJ")):-1;p.skin=cosOwned(p,j)?j:-1;
@@ -1074,6 +1208,8 @@ function devourGain(p,t,x,y,el,lv){const m=MT[t];lv=lv||NLV[t];const tier=lvTier
  if(!p.own[t]){p.own[t]=1;p.slv[t]=clamp(Math.min(lv,p.lv),1,MAXLV);p.sxp[t]=0;sfx("newform");const ci=COS_OF_T[t];say(pn(p)+" devorou "+m.n+"! "+(ci!==undefined?"Novo visual “"+COS[ci].n+"” ("+m.sk+") e nova invocação":"Nova invocação: "+m.n)+rtx+".");saveDirty=1}
  else if(newEl)say(pn(p)+" agora resiste "+Math.round(resF(p,e)*100)+"% ao elemento "+ELN[e]+"!");
  if(m.boss){say(pn(p)+" devorou o chefe "+m.n+"!");grantSkin(p)}
+ /* v3.7: Elite, chefe gigante ou chefe libera a segunda skin daquele monstro */
+ {const si=MSK2[t];if(si!==undefined&&!p.cos[si]&&(el||(m.boss&&!m.friend))){p.cos[si]=1;sfx("newform");showBanner("SKIN NOVA");say(pn(p)+" ganhou a skin “"+COS[si].n+"” · "+COS[si].sk+"!");saveDirty=1}}
  gain(p,xp)}
 /* a invocação ativa ganha o mesmo XP (mesmo morta) e sobe até, no máximo, o nível do dono */
 function sumGain(p,x){sumGain1(p,x,"sum","su");if(p.sum2!==p.sum)sumGain1(p,x,"sum2","su2")}
@@ -1102,8 +1238,8 @@ function attack(p){p.cd=.4;p.af=.15;p.aseq++;sfx("swing");const cr=R()<critC(p),
  hitCrack(p.x+p.fx*30,p.y+p.fy*30,1)}
 const inCone=(s,m,r)=>{const ex=m.x-s.x,ey=m.y-s.y,d=Math.hypot(ex,ey)||1;return d<r&&(ex*s.fx+ey*s.fy)/d>.6};
 function spray(s,cols,spd,n){const a=Math.atan2(s.fy,s.fx);for(let i=0;i<n;i++){const b=a+(R()-.5)*.8,v=spd*(.5+R()*.6);burst(s.x+s.fx*14,s.y-6+s.fy*14,pk(cols),6,.35,Math.cos(b)*v,Math.sin(b)*v)}}
-function cast(s,k,d,tg,src,cr){castSnd(k,s.x,s.y);QS++;try{return cast0(s,k,d,tg,src,cr)}finally{QS--}}
-function cast0(s,k,d,tg,src,cr){const E=CAST_EL[k],H=(m,dd,eff)=>hurt(m,dd,eff,E,src,cr);s.cast=.35;
+function cast(s,k,d,tg,src,cr){castSnd(SPELL[k]?SPELL[k].snd:k,s.x,s.y);QS++;try{return cast0(s,k,d,tg,src,cr)}finally{QS--}}
+function cast0(s,k,d,tg,src,cr){if(SPELL[k])return spellCast(s,SPELL[k],d,tg,src,cr);const E=CAST_EL[k],H=(m,dd,eff)=>hurt(m,dd,eff,E,src,cr);s.cast=.35;
  if(k==="arc"){shots.push({x:s.x,y:s.y-6,dx:s.fx,dy:s.fy,t:1.1,d,kd:s.ft===5?"acid":s.ft===12||s.ft===23?"rock":"spear",src,cr});sfx("shoot")}
  else if(k==="fireball"){shots.push({x:s.x,y:s.y-6,dx:s.fx,dy:s.fy,t:1.2,d:d*1.2,kd:"fireball",src,cr});sfx("shoot")}
  else if(k==="bolt"){const px=-s.fy,py=s.fx,pts=[[s.x,s.y-8]];for(let i=1;i<=9;i++){const j=(R()-.5)*18;pts.push([s.x+s.fx*i*20+px*j,s.y-8+s.fy*i*20+py*j])}bolts.push({pts,t:.2,m:.2});
@@ -2482,16 +2618,19 @@ function tabs(p){const T2=["Habilidades","Visual"];T2.forEach((n,i)=>{const x=20
  X.font="17px "+FT;X.textAlign="center";X.fillStyle=on?"#2a1e10":"#d8c8a0";X.fillText(n,x+58,60);X.textAlign="left";HIT.push({x,y:44,w:116,h:22,fn:()=>{treeTab=i}})});
  const k=p.src.pad>=0?"LB/RB":"Q/E";closeBtn(600,44,()=>{state="play"});txt(k+": trocar aba",590,60,"#a89878",14,"right")}
 /* aba Visuais: 7 colunas; os de monstro saem ao devorar, os especiais em baús e chefes */
-const SKC=7;
+const SKC=7;let skinOff=0;
 function skinScreen(){const p=treeOwner,o0=ox,o1=oy;ox=oy=0;win(12,40,616,420,"");tabs(p);let n=0;for(let k=0;k<NSKIN;k++)n+=cosOwned(p,k)?1:0;
  txt("Visuais: "+n+"/"+NSKIN+" · devore monstros, abra baús e vença chefes para liberar mais",VW/2,84,"#ffe7a0",15,"center");
- for(let i=0;i<NSKIN;i++){const c=i%SKC,r=Math.floor(i/SKC),x=22+c*85,y=92+r*52,own=cosOwned(p,i),sel=skinSel===i,on=p.skin===i;
+ const NR=Math.ceil(NSKIN/SKC),sr=Math.floor(skinSel/SKC);skinOff=clamp(Math.min(skinOff,sr),Math.max(0,sr-5),Math.max(0,NR-6));
+ if(skinOff>0){txt("▲",612,104,"#ffe14a",18,"center");HIT.push({x:598,y:88,w:28,h:28,fn:()=>{skinSel=Math.max(0,skinSel-SKC*3);sfx("ui")}})}
+ if(skinOff<NR-6){txt("▼",612,398,"#ffe14a",18,"center");HIT.push({x:598,y:380,w:28,h:28,fn:()=>{skinSel=Math.min(NSKIN-1,skinSel+SKC*3);sfx("ui")}})}
+ for(let i=skinOff*SKC;i<Math.min(NSKIN,(skinOff+6)*SKC);i++){const c=i%SKC,r=Math.floor(i/SKC)-skinOff,x=22+c*83,y=92+r*52,own=cosOwned(p,i),sel=skinSel===i,on=p.skin===i;
   rr(x,y,81,49,5);X.fillStyle=on?"rgba(60,150,90,.8)":sel?"rgba(120,90,40,.85)":"rgba(26,20,16,.85)";X.fill();X.strokeStyle=sel?"#ffe14a":on?"#a8ffb8":"#5a4a30";X.lineWidth=sel?2:1;X.stroke();
   if(own)slimeDraw(p.col,i,x+40,y+38,0,.85,.85,0,1);else{const K=SKINS[i];X.globalAlpha=.25;if(K.b)spr(K.b,x+40,y+38,0,.85,.85,0,.18);spr(SLC[p.col],x+40,y+38,0,.85,.85,0,.18);if(K.f)spr(K.f,x+40,y+38,0,.85,.85,0,.18);X.globalAlpha=1;txt("?",x+40,y+30,"#d8c8a0",18,"center")}
   if(COS[i].chest){X.fillStyle="#e8c25a";X.fillRect(x+3,y+3,4,4)}HIT.push({x,y,w:81,h:49,fn:()=>{if(skinSel===i)equipSkin(p,i);else skinSel=i},hov:()=>{skinSel=i}})}
  const c=COS[skinSel],own=cosOwned(p,skinSel);
- txt(own?c.n:"??? · "+(c.t?"devore: "+MT[c.t].n:"visual especial de baú ou chefe"),VW/2,412,own?"#ffffff":"#a89878",17,"center");
- if(own)txt("Poder: "+c.sk+(c.pas?" · "+c.pas:"")+(p.skin===skinSel?" · vestindo":" · ENTER / A veste"),VW/2,432,"#ffe14a",15,"center");
+ txt(own?c.n:"??? · "+(c.t?"devore: "+MT[c.t].n:c.mt?"devore um Elite ou chefe: "+MT[c.mt].n:"visual especial de baú ou chefe"),VW/2,412,own?"#ffffff":"#a89878",17,"center");
+ if(own){const L="Poder: "+c.sk+(c.pas?" · "+c.pas:""),E=p.skin===skinSel?" · vestindo":" · ENTER / A veste";txt(L.length+E.length>78?L:L+E,VW/2,432,"#ffe14a",L.length>78?13:15,"center")}
  txt("Setas: escolher · quadradinho dourado = visual especial · Select / K / B: fechar",VW/2,452,"#a89878",14,"center");ox=o0;oy=o1}
 function equipSkin(p,i){if(!cosOwned(p,i)){sfx("hurt");return}p.skin=p.skin===i?-1:i;p.rk=null;sfx("ok");saveDirty=1}
 function treeScreen(){const p=treeOwner;if(treeTab===1){skinScreen();return}win(12,40,616,420,"");tabs(p);const spent=p.sk.reduce((a,b)=>a+b,0);txt("Pontos: "+p.sp+" · usados "+spent+"/"+SKTOT+" · 1 ponto por nível, a árvore fecha no nível "+MAXLV,VW/2,86,"#ffe7a0",16,"center");
@@ -2556,7 +2695,7 @@ function play(dt){shake=Math.max(0,shake-dt*22);const ctl=state==="play";
  for(const p of PL){const inp=inputFor(p),c=state==="play";if(c&&inp.pause){state="pause";menuSel=0;sfx("ui")}else if(c&&inp.tree){state="tree";treeOwner=p;treeSel=0;sfx("ui")}updPlayer(p,dt,inp,c&&state==="play")}
  dayTick(dt);
  if(NET.mode!=="client"){monsterAI(dt);updVillage(dt);respawnTick()}else lerpMons(dt);
- contact(dt);updShots(dt);updEshots(dt);updFx(dt);updVillagers(dt);
+ contact(dt);updShots(dt);updEshots(dt);updFx(dt);tickLater(dt);updVillagers(dt);
  if(G.ch===1&&PL.some(p=>p.dead<=0&&ZONES[zoneOfPx(p.x,p.y)].village&&Math.hypot(p.x-cpX,p.y-cpY)<16*T)){if(NET.mode!=="client"){if(state==="play"){state="naming";nameBuf=VNAMES[0];nameSel=0;sfx("ok")}}else if(!hints.w){hints.w=1;say("O servidor está dando nome à vila…")}}
  /* quem chega numa cidade já fundada (ou num save antigo) escolhe o próprio nome para ela */
  if(false&&G.ch>=2&&state==="play"&&PL[0]&&!PL[0].vn&&!hints.vn&&ZONES[zoneOfPx(PL[0].x,PL[0].y)].village&&Math.hypot(PL[0].x-cpX,PL[0].y-cpY)<14*T){hints.vn=1;if(G.vname&&!NET.foreign){PL[0].vn=G.vname;saveDirty=1}else{state="naming";nameBuf=VNAMES[0];nameSel=0;sfx("ok")}}
