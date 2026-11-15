@@ -117,6 +117,19 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v3.2.0 (muralha, torres e cidadela do Lorde)
+
+- **Título novo** em estilo grafite: uma linha só, letras do mesmo tamanho, arco-íris brilhante com contorno preto.
+- **Quartel:** cada nível dá **1 guarda** (nível 0 = nenhum, nível 10 = 10 guardas).
+- **Torres:** cada nível põe **mais uma torre**, até **6**: duas em cada portão (oeste e leste), uma ao norte e uma ao sul. Os níveis 7 a 10 continuam melhorando (vida dobrada, raio, dano e meteoro). **As torres têm vida e podem ser destruídas.**
+- **Muralha em segmentos:** cada pedaço tem vida e pode ser **rompido**. Pelo buraco passam os invasores, e os guardas também saem por ali sem dar a volta até o portão. Cada nível dá **mais vida e resistência** a cada segmento.
+- **O material evolui com o nível:** sacos de areia → madeira com espinhos → paliçada → paliçada reforçada → pedra rústica → pedra talhada → pedra com ameias → granito → basalto → **obsidiana** (pedra preta com brilho verde). Portões e torres seguem o material.
+- **Conserto:** no menu da cidade, pague em ouro e um guarda reconstrói a muralha e as torres em **20 segundos**, só fora de batalha.
+- **Voadores** ignoram a muralha, mas atacam **primeiro as torres**. Quem anda quebra a muralha (ou uma torre) se não houver portão ou buraco por perto.
+- **Fosso** só com a **muralha de obsidiana (nível 10)**. Antes disso, a muralha pode ser rompida. O choque contra voadores saiu; o fosso nível 10 agora **dobra o dano das armadilhas e do óleo**.
+- **Cidadela do Lorde:** a fortaleza ganhou a **muralha de obsidiana**, torres de vigia (só decoração, não ferem ninguém) e uma **mini cidade de cabanas orc com moradores inimigos**.
+- **Rebalanceamento das invasões** para o sistema novo.
+
 ## Novidades da v3.1.0 (dia e noite)
 
 - **Dia e noite:** o tempo passa (ciclo de 16 minutos: 12 de dia e 4 de noite, com entardecer e amanhecer). Um **relógio com sol/lua** fica ao lado do minimapa. À noite, lá fora, **só se vê o que está iluminado**: a luz própria do slime, **tochas espalhadas pelo mapa** e as luzes da cidade. Os nomes dos monstros longe da luz somem.
