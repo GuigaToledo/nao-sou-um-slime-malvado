@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.13.0";
+const VERSION="v3.14.0";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -1602,7 +1602,11 @@ function monsterAI(dt){const tg=targets();
     if(Math.hypot(m.x-ox,m.y-oy)<sp*.3){m.stuck=(m.stuck||0)+dt;if(m.stuck>.5){m.side=R()<.5?-1:1;m.sideT=.9;m.stuck=0}}else m.stuck=0}
    if(m.sideT>0){m.sideT-=dt;if(m.sideT<=0)m.side=0}
    if(m.inv&&!chase&&!tv&&d<72&&wallD(m.x,m.y)<1){G.vhp-=m.dm*dt*.7*(m.boss2?1.5:1)*INV_DMG*(cl("heal")>=6?.7:1);m.atkT=m.atkT>0?m.atkT:(R()<.05?.25:0);if(R()<.08)burst(cpX+(R()-.5)*30,cpY-24,pk(["#7ad8ff","#ffffff"]),3,.5,(R()-.5)*60,-40)}}
-  else{m.wt-=dt;if(m.wt<=0){m.wt=1+R()*2;const a=R()*6.28;m.wx=Math.cos(a)*.4;m.wy=Math.sin(a)*.4;const hd=Math.hypot(m.hx-m.x,m.hy-m.y);if(hd>9*T){m.wx=(m.hx-m.x)/hd*.8;m.wy=(m.hy-m.y)/hd*.8}}mv(m,m.wx*sp,m.wy*sp)}
+  /* v3.14: ronda constante perto de onde nasceu: vai de um ponto a outro (até 6 blocos da casa) sem ficar parado; se travar, escolhe outro ponto */
+  else{const hd=Math.hypot(m.hx-m.x,m.hy-m.y);m.wt-=dt;
+   if(m.rx===undefined||m.wt<=0||Math.hypot(m.rx-m.x,m.ry-m.y)<10||hd>9*T){m.wt=4+R()*4;if(hd>9*T){m.rx=m.hx;m.ry=m.hy}else{const a=R()*6.283,r=(1.5+R()*4.5)*T;m.rx=m.hx+Math.cos(a)*r;m.ry=m.hy+Math.sin(a)*r}}
+   const ex=m.rx-m.x,ey=m.ry-m.y,dd=Math.hypot(ex,ey)||1,k=t.boss||m.zb||m.vb?.35:.55;m.wx=ex/dd*k;m.wy=ey/dd*k;const ox=m.x,oy=m.y;mv(m,m.wx*sp,m.wy*sp);if(Math.abs(ex)>2)m.fl=ex<0;
+   if(Math.hypot(m.x-ox,m.y-oy)<sp*k*.25){m.stk2=(m.stk2||0)+dt;if(m.stk2>.4){m.stk2=0;m.wt=0}}else m.stk2=0}
   if(chase&&m.dash<=0)monAbil(m,t,near,nd)}}
 function lerpMons(dt){const k=Math.min(1,dt*10);for(const m of mons){const ox=m.x;m.x+=(m.tx-m.x)*k;m.y+=(m.ty-m.y)*k;if(Math.abs(m.x-ox)>.2)m.fl=m.x<ox;m.f-=dt;m.web-=dt;m.slow-=dt;m.pz-=dt;m.dash-=dt;m.wind-=dt;m.castT-=dt;m.atkT-=dt;m.haste-=dt;m.shield-=dt}}
 const BOSS_RESPAWN_S=300;

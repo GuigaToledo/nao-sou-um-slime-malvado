@@ -594,3 +594,7 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 - **Os slimes da cidade usam só skins que você já liberou**, com **o poder daquela skin** em combate (como o seu). Eles pegam **as mais fortes primeiro** e trocam sozinhos quando você libera uma mais forte. A ordem de força vem da simulação de vitórias. **Fones de DJ é só seu.**
 - **Botões de mudo** para a música e para os efeitos no menu de pausa. Agora o mudo (ou o volume no zero) silencia de verdade, inclusive o eco da reverberação.
 - **A cidade aparece no minimapa** (castelinho, ou seta dourada na borda quando está longe) **e no mapa do mundo**, com o nome dela.
+
+## v3.14.0
+
+- **Monstros em movimento constante:** quando não estão caçando, os monstros do mapa fazem uma ronda sem parar, de um ponto a outro, **perto de onde nasceram** (até 6 blocos). Se travam numa pedra ou árvore, escolhem outro caminho na hora. Chefes andam mais devagar.
