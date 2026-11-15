@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.9.0";
+const VERSION="v3.10.0";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -213,9 +213,10 @@ const TH={
  waves:{n:"Tambores de guerra",bpm:130,root:50,mode:"phr",prog:[0,0,1,0],k:"x..xx...x..xx...",s:"....x.......x.x.",j:".x.x.x.x.x.x.x.x",bass:"0 . 0 . _ 0 0 . 0 . 0 . _ 0 1 .",strum:"",lead:"shawm",drone:1,
   A:["0 . . 0 1 . 0 . 3 . . . 2 . 1 .","0 . . 0 1 . 0 . -1 . . . -2 . . .","0 . . 0 1 . 0 . 3 . . . 4 . 5 .","4 . 3 . 1 . . . 0 . . . . . . ."],
   B:["7 . . . 7 . 8 . 7 . 5 . 4 . . .","3 . . . 4 . 3 . 1 . . . 0 . . .","7 . . 7 8 . 7 . 5 . 4 . 3 . . .","1 . 0 . 1 . 3 . 0 . . . . . . ."]},
- dnb:{n:"Drum and Bass",bpm:172,root:40,mode:"aeo",prog:[0,0,5,3],k:"x.........x.....",s:"....x..x.x..x...",j:"x.x.x.x.x.x.x.x.",viol:1,arp:1,strum:"",lead:"fiddle",
-  A:["7 . . . 6 . 7 . 4 . . . . . . .","5 . . . 4 . 5 . 2 . . . . . . .","3 . . . 2 . 3 . 4 . 5 . 6 . 7 .","6 . . . 4 . . . 7 . . . . . . ."],
-  B:["9 . 8 . 7 . 8 . 9 . . . 11 . . .","10 . 9 . 8 . 9 . 7 . . . . . . .","9 . 8 . 7 . 6 . 5 . 6 . 7 . 4 .","5 . . . 6 . . . 7 . . . . . . ."]},
+ dnb:{n:"Drum and Breaks (UK)",bpm:136,root:45,mode:"aeo",prog:[0,0,5,6],k:"",s:"",j:"x.x.x.x.x.x.x.x.",lead:"fiddle",uk:1,
+  bass:"0 . . 0 . . 7 . _ _ 0 . . 3 4 .",
+  A:["7 . . 9 . . 10 . 9 . . 7 . . 5 .","7 . . 9 . . 10 . 12 . . . 11 . . .","10 . . 9 . . 7 . 9 . . 7 . . 5 .","4 . . . 5 . . . 7 . . . _ . . ."],
+  B:["12 . . . 11 . 10 . 9 . . . 7 . . .","10 . . . 9 . 7 . 5 . . . . . . .","7 . 9 . 10 . 12 . 14 . 12 . 11 . 9 .","11 . . . 9 . . . 7 . . . . . . ."]},
  jungle:{n:"Jungle",bpm:164,root:50,mode:"dor",prog:[0,0,6,3],k:"x.x.......xx....",s:"....x..x.x..x..x",j:"x.x.x.x.x.x.x.x.",sub:1,arp:1,strum:"",lead:"rec",
   A:["0 . 2 . 4 . 2 . 3 . . . 1 . . .","0 . 2 . 4 . 5 . 4 . . . . . . .","6 . 5 . 4 . 3 . 4 . 2 . 3 . 1 .","2 . . . 0 . . . . . . . . . . ."],
   B:["7 . . . 9 . . . 8 . 7 . 6 . . .","7 . . . 5 . . . 4 . . . . . . .","4 . 5 . 6 . 7 . 8 . 6 . 7 . 5 .","6 . 4 . 5 . 3 . 4 . . . . . . ."]},
@@ -225,7 +226,9 @@ const TH={
  party:{n:"Festa do DJ",bpm:124,root:48,mode:"ion",prog:[0,5,3,4],k:"x...x...x...x...",s:"....x.......x...",cl:1,j:"..X...X...X...X.",bass:"0 . _ . 0 . 4 _ 0 . _ . 0 . 4 _",strum:"..x...x...x...x.",lead:"rec",bells:1,
   A:["0 . 2 . 4 . 7 . 6 . 4 . 5 . 2 .","3 . 5 . 4 . 2 . 1 . . . . . . .","0 . 2 . 4 . 7 . 9 . 7 . 8 . 6 .","7 . 4 . 2 . 1 . 0 . . . . . . ."],
   B:["4 . 4 . 5 . 4 . 3 . 3 . 4 . 3 .","2 . 2 . 3 . 2 . 1 . . . 0 . . .","4 . 5 . 6 . 7 . 8 . 7 . 6 . 5 .","4 . 2 . 1 . . . 0 . . . . . . ."]}};
-for(const k in TH){const t=TH[k];t.key=k;t.Ae=melParse(t.A);t.Be=melParse(t.B);t.K=pat(t.k);t.S=pat(t.s||"");t.J=pat(t.j||"");t.ST=pat(t.strum||"");t.BE=t.bass?melParse([t.bass])[0]:[]}
+for(const k in TH){const t=TH[k];t.key=k;t.Ae=melParse(t.A);t.Be=melParse(t.B);t.K=pat(t.k);t.S=pat(t.s||"");t.J=pat(t.j||"");t.ST=pat(t.strum||"");t.BE=t.bass?melParse([t.bass])[0]:[];
+ /* forma da música (blocos de 4 compassos): 0 começo, 1 parte A, 2 parte B, 3 parte A com segunda voz, 4 virada; todas passam de 1 minuto e o fim é igual ao começo */
+ t.AR=t.bpm>144?[0,1,2,3,2,4,1,2,3,2,0]:[0,1,2,3,2,4,1,2,0]}
 const scN=(t,d)=>{const S=SC[t.mode],o=Math.floor(d/7),i=((d%7)+7)%7;return t.root+S[i]+12*o};
 const ACIDSQ=[0,0,7,0,2,0,0,4,0,7,0,6,0,2,3,4],ACIDAC=[1,0,1,0,0,1,0,0,1,0,1,0,0,1,0,1];
 /* ---------- base eletrônica (v3.8): bumbo, chimbal, palmas, baixo de sintetizador, pad e "sidechain" (o resto da música respira junto com o bumbo) ---------- */
@@ -249,10 +252,44 @@ const EKIT={minimal:{bp:"0 _ 0 _ _ _ 0 _ 0 _ 0 _ _ _ 0 _",cut:600,rim:1},dubtech
  techhouse:{bp:"_ _ 0 0 _ 0 _ 0 _ _ 0 0 _ 0 4 _",cut:700},acidhouse:{bp:"",cut:0},techno:{bp:"_ _ 0 _ _ _ 0 _ _ _ 0 _ _ _ 0 _",cut:500,rumble:1},
  waves:{bp:"0 _ 0 _ 0 _ 0 _ 0 _ 0 _ 0 _ 1 _",cut:800,rumble:1},dnb:{bp:"",cut:0,pad:1},jungle:{bp:"",cut:0,pad:1},breakbeat:{bp:"0 _ _ 0 _ _ 3 _ _ _ 0 4 _ _ 6 _",cut:1000},party:{bp:"_ _ 0 _ _ _ 0 _ _ _ 0 _ _ _ 0 7",cut:1000,pad:1}};
 for(const k in EKIT)EKIT[k].BP=EKIT[k].bp?melParse([EKIT[k].bp])[0]:[];
+/* virada: a batida some por 3 compassos (pad, baixo longo e a melodia B baixinha) e volta com rufar de caixa e subida de ruído */
+const crash=(at,v=.06)=>DRUMS(()=>nz({f:6000,ft:"highpass",at,d:1.5,v,rv:.35}));
+function fillStep(t,b,bar,at,st,chordN){const fb=bar%4;
+ if(fb<3){if(b===0&&fb===0)crash(at,.05);
+  if(b===0){pad([0,2,4].map(k=>chordN(k)-12),at,st*16,1.4);sbass(chordN(0)-24,at,st*15,.55,260)}
+  if(fb>=1&&t.J[b])ehat(at,.018);if(fb===2&&b%4===0)ekick(at,.35);
+  for(const[i,d,len]of t.Be[bar%4])if(i===b)INS[t.lead](scN(t,d)+12*(t.lead==="rec"?1:0),at,len*st,.38,.15);return}
+ if(b===0)riser(at,st*16,.05);if(b===0||b===8)ekick(at,.7);
+ if(b<8?b%2===0:1)esnare(at,.035+b*.009);if(b%2===0)ehat(at,.03)}
+/* "Drum and Breaks" (UK breakbeat): bateria quebrada com swing, baixo reese que ondula, acordes curtos e a rabeca medieval por cima */
+const reese=(n,at,d,cut)=>{const f=mf(n);for(const dt of[-14,14])osc({f,at,d,a:.008,s:d*.5,v:.25,w:"sawtooth",det:dt,lp:cut,lp2:cut*.45,q:3});osc({f:f/2,at,d,a:.006,s:d*.5,v:.44})};
+const stab=(ns,at,d,v)=>{ns.forEach((n,i)=>osc({f:mf(n),at,d,a:.003,v:v*.05,w:"sawtooth",lp:3200,lp2:500,q:2,rv:.35,pan:(i-1)*.35}))};
+function ukStep(t,s,at){pumpBus();const prevBus=BUS;if(PUMP)BUS=PUMP;try{
+ const st=60/t.bpm/4,b=s%16,bar=s>>4,sec=t.AR[(bar>>2)%t.AR.length],fb=bar%4,cr=t.prog[bar%4],chordN=k=>scN(t,cr+k);
+ if(b%2)at+=st*.14;
+ if(sec===4){fillStep(t,b,bar,at,st,chordN);return}
+ const full=sec>0,late=sec===0&&fb>=2;
+ if(b===0&&fb===0&&full)crash(at);
+ /* bateria quebrada: bumbo no 1 e no "e" do 3, caixa no 2 e no 4, caixas fantasmas e virada no fim de cada 4 compassos */
+ if(b===0||b===10||(b===7&&bar%2&&full)||(b===13&&fb===2&&full))ekick(at,b===0?1:.9,1);
+ if((full||late)&&(b===4||b===12)){esnare(at,.28);eclap(at,.08)}
+ if(full&&(b===9||b===15||(b===7&&!(bar%2))))esnare(at,.045);
+ if(full&&fb===3&&b>=13)esnare(at,.08+(b-13)*.03);
+ if(b%2===0)ehat(at,b%4===2?.055:.035,b===14&&fb!==3);else if(full&&!LOWFX)ehat(at,.014);
+ /* baixo reese */
+ if(full||late)for(const[i,d,len]of t.BE)if(i===b)reese(chordN(d)-24,at,len*st*.95,(sec===2?900:560)+260*Math.sin(s/23));
+ /* acordes curtos na parte B e pad no começo */
+ if(sec>=2&&(b===3||b===11))stab([0,2,4].map(k=>chordN(k)),at,st*1.6,1);
+ if((sec===0||sec===2)&&b===0&&bar%2===0)pad([0,2,4].map(k=>chordN(k)-12),at,st*32,sec?.8:1.3);
+ if(fb===3&&b===8&&!LOWFX)riser(at,st*8,.04);
+ /* melodia */
+ if(full){const M=(sec===2?t.Be:t.Ae)[bar%4];for(const[i,d,len]of M)if(i===b){INS[t.lead](scN(t,d),at,len*st,sec===3?.68:.58,-.15);if(sec===3&&!LOWFX)INS.shawm(scN(t,d-2),at,len*st,.28,.3)}
+  if(sec===1&&b%4===0&&!LOWFX)INS.harp(chordN([0,2,4,7][b>>2]),at,st*3,.18,.35)}}finally{BUS=prevBus}}
 /* um passo de 1/16 de qualquer tema: parte eletrônica embaixo, instrumentos medievais por cima; a cada 4 compassos muda a parte */
 function thStep(t,s,at){pumpBus();const prevBus=BUS;if(PUMP)BUS=PUMP;try{
- const st=60/t.bpm/4,b=s%16,bar=s>>4,sec=(bar>>2)%4,cr=t.prog[bar%4],sw=b%2&&t.swing?t.swing:0;at+=sw;
+ const st=60/t.bpm/4,b=s%16,bar=s>>4,sec=t.AR[(bar>>2)%t.AR.length],cr=t.prog[bar%4],sw=b%2&&t.swing?t.swing:0;at+=sw;
  const E=EKIT[t.key]||EKIT.minimal,chordN=k=>scN(t,cr+k),full=sec>=1,intro=sec===0&&bar%4<2;
+ if(sec===4){fillStep(t,b,bar,at,st,chordN);return}
  /* bateria eletrônica */
  if(t.K[b]&&!(intro&&b>0&&t.K[b]<2&&bar%4===0))ekick(at,t.K[b]>1?.95:.85,E.rumble&&full);
  if(t.S[b]&&(full||bar%2))(t.cl?eclap:esnare)(at,b===4||b===12?.18:.08);
@@ -280,7 +317,7 @@ function echoBus(){if(DLIN||!AC)return;try{DLIN=AC.createGain();DLIN.gain.value=
  DLIN.connect(DLY);DLY.connect(lp);lp.connect(fb);fb.connect(DLY);lp.connect(out);out.connect(MUSG||MG)}catch(e){DLIN=null}}
 function etone(f,d,type,v,at,cut){if(!AC||!SND)return;echoBus();try{const o=AC.createOscillator(),g=AC.createGain(),fl=AC.createBiquadFilter();o.type=type;o.frequency.setValueAtTime(f,at);fl.type="lowpass";fl.frequency.setValueAtTime(cut,at);fl.Q.value=2;
  g.gain.setValueAtTime(v,at);g.gain.exponentialRampToValueAtTime(.0001,at+d);o.connect(fl);fl.connect(g);g.connect(OUTB());if(DLIN)g.connect(DLIN);o.start(at);o.stop(at+d+.03)}catch(e){}}
-const MUS={};for(const k in TH)MUS[k]={bpm:TH[k].bpm,step:(s,at)=>thStep(TH[k],s,at)};
+const MUS={};for(const k in TH)MUS[k]={bpm:TH[k].bpm,step:TH[k].uk?(s,at)=>ukStep(TH[k],s,at):(s,at)=>thStep(TH[k],s,at)};
 const MNAME={};for(const k in TH)MNAME[k]=TH[k].n+" · medieval";
 /* explorando: troca de estilo a cada 4 minutos (sem repetir o anterior) */
 const ROT=["minimal","dubtechno","house","techhouse","acidhouse","techno"],ROT_S=240;
@@ -288,9 +325,15 @@ let rotI=0,rotT0=performance.now();
 function rotTheme(){if(performance.now()-rotT0>ROT_S*1000){let n;do n=Math.floor(Math.random()*ROT.length);while(n===rotI);rotI=n;rotT0=performance.now()}return ROT[rotI]}
 /* cada chefe tem a sua música */
 const BOSS_MUS={[QUEEN]:"jungle",[LORD]:"breakbeat",[ANCIENT]:"dnb"};
-let musNext=0,musStep=0,musTheme="minimal",musLbl="",musLblT=0;
+let musNext=0,musStep=0,musTheme="minimal",musLbl="",musLblT=0,musPrev=null;
+const BOSSTH=new Set(["dnb","jungle","breakbeat"]),loopSteps=k=>TH[k].AR.length*64;
 function music(theme){if(!AC||!SND||AC.state!=="running")return;
- if(theme!==musTheme&&(musStep%16===0||!(ROT.includes(theme)&&ROT.includes(musTheme)))){musTheme=theme;musStep=0;musNext=AC.currentTime+.05;musLbl=MNAME[theme]||"";musLblT=performance.now()+5000;
+ if(theme!==musTheme&&(musStep%loopSteps(musTheme)===0||!(ROT.includes(theme)&&ROT.includes(musTheme)))){
+  /* chefe à vista: guarda a música de antes (e onde ela estava) para voltar a ela depois */
+  if(BOSSTH.has(theme)&&!BOSSTH.has(musTheme)){musPrev={th:musTheme,st:musStep-musStep%64,t:performance.now()};musStep=0}
+  else if(musPrev&&theme===musPrev.th){musStep=musPrev.st;rotT0+=performance.now()-musPrev.t;musPrev=null}
+  else{if(!BOSSTH.has(theme))musPrev=null;musStep=0}
+  musTheme=theme;musNext=AC.currentTime+.05;musLbl=MNAME[theme]||"";musLblT=performance.now()+5000;
   echoBus();if(DLY)DLY.delayTime.setValueAtTime(60/MUS[theme].bpm*.75,AC.currentTime)}
  const m=MUS[musTheme],st=60/m.bpm/4;if(musNext<AC.currentTime)musNext=AC.currentTime+.05;
  BUS=MUSG;try{while(musNext<AC.currentTime+.2){m.step(musStep,musNext);musStep++;musNext+=st}}finally{BUS=null}}
@@ -2887,8 +2930,14 @@ function menus(mi){
  if(state==="tree"){const p=treeOwner,b=Math.floor(treeSel/8),r=treeSel%8;if(mi.l)treeSel=((b+3)%4)*8+r;if(mi.r)treeSel=((b+1)%4)*8+r;if(mi.u)treeSel=b*8+(r+7)%8;if(mi.d)treeSel=b*8+(r+1)%8;
   if(mi.ok)buySkill(p,treeSel);if(mi.back||mi.tree)state="play"}}
 function theme(){if(!PL.length)return"minimal";if(party&&Math.hypot(camx+VW/2-cpX,camy+VH/2-cpY)<20*T)return"party";
- const bs=mons.find(m=>MT[m.t].boss&&Math.abs(m.x-camx-VW/2)<VW&&Math.abs(m.y-camy-VH/2)<VH);if(bs)return BOSS_MUS[bs.t]||"dnb";if(G.ch===2&&G.wact)return"waves";
+ /* música de chefe assim que ele aparece na tela; só sai quando ele morre ou fica bem longe */
+ const onS=(m,k)=>Math.abs(m.x-camx-VW/2)<VW/2*k&&Math.abs(m.y-camy-VH/2)<VH/2*k;
+ if(bossM&&(!mons.includes(bossM)||bossM.hp<=0||!onS(bossM,1.9)))bossM=null;
+ if(!bossM)bossM=mons.find(m=>MT[m.t].boss&&m.hp>0&&onS(m,1.08))||null;
+ if(bossM)return BOSS_MUS[bossM.t]||"dnb";if(G.ch===2&&G.wact)return"waves";
+ if(musPrev&&ROT.includes(musPrev.th))return musPrev.th;
  return rotTheme()}
+let bossM=null;
 function update(dt){time+=dt;mt-=dt;bt-=dt;savedT-=dt;zoneT-=dt;pollPads();handlePads();
  for(const m of motes){m.x=(m.x+m.vx*dt+VW)%VW;m.y=(m.y+m.vy*dt+VH)%VH}
  if(AC)music(theme());

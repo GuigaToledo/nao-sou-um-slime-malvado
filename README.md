@@ -557,3 +557,10 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 - Cada construção tem seu tema: **Moradias** (casas), **Ferreiro** (forja, bigorna, armas expostas, segunda fornalha, roda de afiar e fogo mágico azul no máximo), **Guilda de Aventureiros** (antigo Quartel: espadas cruzadas, mural de missões, troféu de monstro, torres e brasão dourado), **Mercador** (barraca com toldo listrado que vira loja de dois andares com cúpula dourada) e **Templo** (tenda, capela, igreja com vitrais, torres, sino, cúpula dourada e aura sagrada).
 - A muralha ficou maior para caber a cidade nova (o fosso e as pontes acompanham).
 - Com **todas** as construções no nível 10, surge um pequeno **castelo de obsidiana** no norte da cidade.
+
+## Novidades da v3.10.0 (músicas de 1 minuto)
+- Todas as músicas agora têm forma completa e passam de 1 minuto antes de recomeçar: começo → A → B → A (com segunda voz) → B → **virada** (a batida some e volta com rufar de caixa) → A → B → final igual ao começo, para o loop emendar perfeito. As mais rápidas ganham mais um A e B.
+- O Minimal Techno ficou idêntico no começo; só ganhou as partes novas.
+- A antiga Drum and Bass foi refeita como **Drum and Breaks (UK)**: bateria quebrada com swing no estilo UK breakbeat, baixo reese ondulando, acordes curtos na parte B e a rabeca medieval por cima.
+- Música de chefe começa assim que o chefe aparece na tela; quando ele morre ou fica bem longe, volta a música que estava tocando antes, do ponto em que ela parou.
+- A troca automática de estilo enquanto você explora espera a música atual terminar.
