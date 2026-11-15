@@ -117,6 +117,15 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v3.4.0 (missões do Ancião)
+
+- **O Ancião agora dá missões de chefe**, do mais fraco ao mais forte: começa pela **Rainha Aranha (nível 12)** e vai até o **Dragão do Vendaval (nível 150)**, passando pelo chefe de cada área, o Lorde Orc e o Dragão Ancião. São 23 missões.
+- **Uma missão de cada vez:** fale com o Ancião para pegar a missão, derrote o chefe e **volte para falar com ele** para receber a recompensa (XP e ouro para a cidade). A próxima missão só aparece quando você fala com ele de novo.
+- **Seta da missão:** com uma missão ativa, uma **seta amarela na tela** aponta para o chefe, com a distância em metros. Quando o chefe aparece na tela, a seta fica pulando em cima dele. Depois de vencer, a seta aponta de volta para o Ancião. O alvo também aparece no minimapa.
+- Sobre o Ancião, **“!”** quer dizer que há missão nova e **“?”** que há recompensa para pegar.
+- Cada personagem tem o próprio progresso de missões, salvo junto com ele.
+- **As melhorias da cidade saíram do Ancião e agora ficam no cristal central.** Chegue perto do cristal e aperte o botão de agir. Um **“!”** ao lado do cristal avisa quando dá para construir algo.
+
 ## Novidades da v3.3.1
 
 - **Cavernas escuras de verdade:** o que ilumina são **os cristais e a luz do próprio slime** (cogumelos, baús e plantas não iluminam mais lá dentro).
@@ -306,14 +315,14 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 
 ## Novidades da v2.6.0
 
-- **Todos os jogadores podem construir na cidade:** fale com o Ancião. O ouro sai do tesouro da cidade, que é o mesmo para todos, e todos veem a construção nova na hora.
+- **Todos os jogadores podem construir na cidade:** use o cristal central. O ouro sai do tesouro da cidade, que é o mesmo para todos, e todos veem a construção nova na hora.
 - **Até 10 jogadores** online na mesma sala, tanto na conexão direta quanto no servidor dedicado.
-- **Cada jogador dá o próprio nome à cidade**, e só ele vê esse nome. O nome fica salvo no personagem e pode ser trocado em "Renomear a cidade", no menu do Ancião.
+- **Cada jogador dá o próprio nome à cidade**, e só ele vê esse nome. O nome fica salvo no personagem e pode ser trocado em "Renomear a cidade", no menu do cristal central.
 
 ## Novidades da v2.5.0 (cidade medieval)
 
 - **Ouro:** os monstros derrotados soltam moedas que voam até você e vão para o tesouro da vila. Monstros de nível maior dão mais ouro, elites dão o triplo e chefes 20 vezes mais.
-- **6 construções com 3 níveis cada**, que mudam o visual da cidade (fale com o Ancião):
+- **6 construções com 3 níveis cada**, que mudam o visual da cidade (use o cristal central):
 
   | Construção | Nível 1 | Nível 2 | Nível 3 |
   |---|---|---|---|
