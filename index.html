@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.15.0";
+const VERSION="v3.16.0";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -1676,7 +1676,7 @@ function updFx(dt){updAllyZ(dt);
 let party=0;
 function syncResidents(){const have=new Set(villagers.filter(v=>v.t).map(v=>v.t));for(let t=1;t<NF;t++){if(have.has(t)||!PL.some(p=>p.own[t]))continue;const a=R()*6.283,r=(4+R()*9)*T;
  const x=cpX+Math.cos(a)*r,y=cpY+Math.sin(a)*r*.8;villagers.push({t,x,y,hx:x,hy:y,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6,fly:!!MT[t].fl})}}
-function updVillagers(dt){regrowTick();for(const v of FARMERS)farmWork(v,dt);if((time*2|0)!==((time-dt)*2|0)){syncResidents();if(G.ch>=2){syncGuards();styleSlimes()}}if(G.ch>=2)applyCityTiles();updCoins(dt);
+function updVillagers(dt){regrowTick();if(G.ch>=2)baseHealTick(dt);for(const v of FARMERS)farmWork(v,dt);if((time*2|0)!==((time-dt)*2|0)){syncResidents();if(G.ch>=2){syncGuards();styleSlimes()}}if(G.ch>=2)applyCityTiles();updCoins(dt);
  const dj=e=>{const c=COS[e];return c&&c.dance};party=[...PL.filter(p=>p.dead<=0).map(p=>[p.x,p.y,p.skin]),...NET.remote.filter(r=>!r.dead).map(r=>[r.x,r.y,r.w])].some(([x,y,s])=>dj(s)&&Math.hypot(x-cpX,y-cpY)<16*T)?1:0;
  /* cidade: moradores passeiam em volta; com alerta de invasão correm para os postos ao redor do cristal e defendem; na festa, dançam perto do cristal */
  const alert=G.ch>=2&&G.wave>=5&&(G.inv||(G.it||0)<=INV_WARN);
@@ -1974,7 +1974,7 @@ function ringRoute(o,gx,gy){if(o.fly||!(cl("wall")||mo()))return[gx,gy];const oi
  return wallD(o.x,o.y)>wallD(g.ox,g.oy)+.05&&Math.hypot(o.x-g.ox,o.y-g.oy)>20?[g.ox,g.oy]:[g.ix,g.iy]}
 function invRoute(m,gx,gy){if(mo()>=3&&isGate(m.x,m.y)&&wallD(m.x,m.y)>1.05)m.slow=mo()>=9?.8:.5;return ringRoute(m,gx,gy)}
 /* ---- defensores: moradores, slimes e guardas, com vida e nível pelas invocações dos jogadores ---- */
-function syncGuards(){const want=guardsN();let have=villagers.filter(v=>v.g).length;if(have>want){let x=have-want;villagers=villagers.filter(v=>!(v.g&&x-->0));have=want}for(let i=have;i<want;i++){const a=i/12*6.283+.2,x=cpX+Math.cos(a)*7.5*T,y=cpY+Math.sin(a)*7.5*T*.75;villagers.push({g:1,col:6,cs:COS.findIndex(c=>c.n==="Capacete Viking"),x,y,hx:x,hy:y,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6})}}
+function syncGuards(){const want=guardsN();let have=villagers.filter(v=>v.g).length;if(have>want){let x=have-want;villagers=villagers.filter(v=>!(v.g&&x-->0));have=want}for(let i=have;i<want;i++){const a=i/12*6.283+.2,x=cpX+Math.cos(a)*7.5*T,y=cpY+Math.sin(a)*7.5*T*.75;slimeSig="";villagers.push({g:1,col:6,cs:-1,x,y,hx:x,hy:y,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6})}}
 const sumTop=()=>Math.max(1,...PL.map(p=>Math.max(p.sum>0?p.slv[p.sum]:0,p.sum2>0?p.slv[p.sum2]:0,Math.round(p.lv*.8))));
 const defLv=v=>v.t?Math.max(1,...PL.map(p=>p.own[v.t]?p.slv[v.t]||1:1)):sumTop();
 const guardM=()=>1.6+.08*cl("bar");
@@ -1996,15 +1996,25 @@ function roam(v,dt){v.rt=(v.rt||0)-dt;const far=v.rx===undefined||Math.hypot(v.x
 /* slimes da cidade: cada um com uma cor diferente e um visual diferente (só visuais que você já liberou) */
 let slimeSig="";
 /* slimes da cidade (v3.13): começa com 1; cada nível das Casas traz mais 1 */
-const slimesN=()=>1+Math.min(10,cl("house"));
+/* v3.16: na base fica só 1 slime; o resto são os cavaleiros da Guilda */
+const slimesN=()=>1;
 function syncSlimes(){const sl=villagers.filter(v=>!v.t&&!v.g);let n=sl.length;const want=slimesN();
  for(;n<want;n++){const h=HUTS[n%HUTS.length],x=(h[0]+1)*T,y=(h[1]+2)*T;villagers.push({x,y,hx:x,hy:y,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6,col:n%NCOL,cs:-1});slimeSig=""}
  if(n>want){let x=n-want;villagers=villagers.filter(v=>!(!v.t&&!v.g&&x-->0));slimeSig=""}}
 /* skins dos slimes: só as que você liberou (menos a de DJ), da mais forte para a mais fraca (SKRANK, pela simulação de vitórias) */
 const skOrder=own=>own.filter(i=>i>=0&&COS[i]&&!COS[i].dance).sort((a,b)=>skRankOf(a)-skRankOf(b));
 const skRankOf=i=>SKPW[i]??1;
-function styleSlimes(){const p=PL[0];if(!p)return;syncSlimes();const sl=villagers.filter(v=>!v.t&&!v.g),own=skOrder(cosList(p)),sig=sl.length+"|"+own.join(",")+"|"+p.col;if(sig===slimeSig)return;slimeSig=sig;
- const cols=[...Array(PCOL.length).keys()].filter(c=>c!==p.col);sl.forEach((v,k)=>{v.col=cols[k%cols.length];v.cs=k<own.length?own[k]:-1})}
+/* cavaleiros da Guilda primeiro, depois o slime: cada um com uma skin liberada diferente (a de cura das Asas de Anjo sempre primeiro,
+   depois da mais forte para a mais fraca, sem repetir) e uma cor diferente */
+function styleSlimes(){const p=PL[0];if(!p)return;syncSlimes();const gs=villagers.filter(v=>v.g),sl=villagers.filter(v=>!v.t&&!v.g);let own=skOrder(cosList(p));const holy=own.find(i=>COS[i].k==="holy");if(holy!==undefined)own=[holy,...own.filter(i=>i!==holy)];
+ const sig=gs.length+"|"+sl.length+"|"+own.join(",")+"|"+p.col;if(sig===slimeSig)return;slimeSig=sig;
+ const cols=[...Array(PCOL.length).keys()].filter(c=>c!==p.col);[...gs,...sl].forEach((v,k)=>{v.col=cols[k%cols.length];v.cs=k<own.length?own[k]:-1})}
+/* o cavaleiro com as Asas de Anjo cura todos os cavaleiros, moradores e invocações da base */
+function baseHeal(v){let any=0;const near=o=>Math.hypot(o.x-cpX,o.y-cpY)<WALL_RX*2.2*T;
+ for(const q of villagers)if(!q.ko&&q.mhp&&q.hp<q.mhp){q.hp=Math.min(q.mhp,q.hp+q.mhp*.2);any=1;num(q.x,q.y-30,"+"+Math.round(q.mhp*.2),"#7aff7a")}
+ for(const p of PL)for(const s of[p.su,p.su2])if(s&&s.dead<=0&&s.hp<s.mhp&&near(s)){s.hp=Math.min(s.mhp,s.hp+s.mhp*.2);any=1;num(s.x,s.y-30,"+"+Math.round(s.mhp*.2),"#7aff7a")}
+ if(any){rings.push({x:v.x,y:v.y,r0:6,r1:110,t:.5,m:.5,c:"#fff4b0"});flashes.push({x:v.x,y:v.y,r:160,c:"255,245,200",t:.3,m:.3});sfx("heal");for(const q of villagers)if(!q.ko&&Math.hypot(q.x-v.x,q.y-v.y)<900)burst(q.x,q.y-10,"#fff4b0",4,.6,0,-40)}return any}
+function baseHealTick(dt){if(NET.mode==="client")return;for(const v of villagers){if(v.ko||!v.g||v.cs<0||!COS[v.cs]||COS[v.cs].k!=="holy")continue;v.hcd=(v.hcd||0)-dt;if(v.hcd<=0){v.hcd=baseHeal(v)?6:1}}}
 /* botão de teleporte: só durante a invasão, leva você (e suas invocações) até o cristal */
 function teleCrystal(p){if(!G.inv||!p||p.dead>0)return;for(let i=0;i<20;i++)burst(p.x,p.y-8,pk(["#7ad8ff","#ffffff"]),4,.5,(R()-.5)*160,(R()-.5)*160);p.x=cpX+(R()-.5)*30;p.y=cpY+50;for(const s of[p.su,p.su2])if(s&&s.dead<=0){s.x=p.x+20;s.y=p.y}
  rings.push({x:p.x,y:p.y,r0:6,r1:60,t:.4,m:.4,c:"#7ad8ff"});sfx("summon");shake=4;updCam()}
@@ -2026,7 +2036,7 @@ function defend(v,dt){if(v.ko)return true;if(!v.mhp||v.hp===undefined){v.mhp=def
  if(!b)return false;
  const ex=b.x-v.x,ey=b.y-v.y,d=bd||1;v.fl=ex<0;
  /* slime com skin: usa o poder daquela skin (como o seu) */
- if(!v.t&&!v.g&&v.cs>=0&&COS[v.cs]&&COS[v.cs].k&&KD[COS[v.cs].k]&&NET.mode!=="client"){const k=COS[v.cs].k;v.scd=(v.scd||0)-dt;if(v.scd<=0&&d<KD[k][0]){v.fx=ex/d;v.fy=ey/d;try{cast(v,k,defDmg(v)*1.3*(SKPW[v.cs]||1),b,null,0)}catch(e){}v.scd=KD[k][1]*1.6}}
+ if(!v.t&&v.cs>=0&&COS[v.cs]&&COS[v.cs].k&&COS[v.cs].k!=="holy"&&KD[COS[v.cs].k]&&NET.mode!=="client"){const k=COS[v.cs].k;v.scd=(v.scd||0)-dt;if(v.scd<=0&&d<KD[k][0]){v.fx=ex/d;v.fy=ey/d;try{cast(v,k,defDmg(v)*1.3*(SKPW[v.cs]||1),b,null,0)}catch(e){}v.scd=KD[k][1]*1.6}}
  const AR=v.t?34:26;if(d>AR){walkTo(v,b.x,b.y,sp)}else{v.wx=v.wy=0;if(v.cd<=0){v.cd=.8;v.atkT=.25;swingAt(v.x,v.y,v.t||0);if(NET.mode!=="client")hurt(b,defDmg(v)*(.85+R()*.3),0,null,null);for(let i=0;i<3;i++)burst(b.x,b.y-8,"#ffffff",3,.2,(R()-.5)*100,(R()-.5)*100)}}
  return true}
 /* alvos dos invasores: voadores vão primeiro nas torres; quem anda, do lado de fora, quebra a muralha (ou uma torre) no caminho,
@@ -2659,7 +2669,16 @@ function hammer(v){const dir=v.fl?-1:1;let a=-.5;if(v.ham===2){const k=((v.hamT|
  X.save();X.translate(Math.round(v.x+dir*11+ox),Math.round(v.y+4+oy));X.scale(dir,1);X.rotate(a+1.57);
  X.fillStyle="#3a2412";X.fillRect(-2,-19,4,20);X.fillStyle="#7a4e28";X.fillRect(-1.2,-19,2.4,19);
  X.fillStyle="#2a2c34";X.fillRect(-7,-25,14,8);X.fillStyle="#8a8e98";X.fillRect(-6,-24,12,6);X.fillStyle="#d8dce6";X.fillRect(-6,-24,12,2);X.restore()}
-function drawElder(){const pt=party?Math.abs(Math.sin(time*8)):0;shadow(elder.x,elder.y+12,14);slimeDraw(6,COS.findIndex(c=>c.n==="Bigode"),elder.x,elder.y+12-pt*7,0,1.35,1.35,0,1);
+/* Ancião dourado com aura que sobe do chão (estilo guerreiro lendário) */
+function drawElder(){const pt=party?Math.abs(Math.sin(time*8)):0,ex=elder.x,ey=elder.y+12;
+ X.save();X.globalCompositeOperation="lighter";for(let i=0;i<9;i++){const a=i/9,ph=time*7+i*1.7,h=62+20*Math.sin(ph)+i%3*8,w=8+3*Math.sin(ph*1.3),xx=ex+(a-.5)*44+Math.sin(ph*.7)*3;
+  const g=X.createLinearGradient(0,ey+oy,0,ey-h+oy);g.addColorStop(0,"rgba(255,215,70,.75)");g.addColorStop(.6,"rgba(255,240,140,.45)");g.addColorStop(1,"rgba(255,255,220,0)");X.fillStyle=g;
+  X.beginPath();X.moveTo(xx-w+ox,ey+2+oy);X.quadraticCurveTo(xx-w*.4+ox,ey-h*.5+oy,xx+Math.sin(ph)*4+ox,ey-h+oy);X.quadraticCurveTo(xx+w*.4+ox,ey-h*.5+oy,xx+w+ox,ey+2+oy);X.closePath();X.fill()}
+ X.globalAlpha=.35+.15*Math.sin(time*6);X.fillStyle="#ffe680";X.beginPath();X.ellipse(ex+ox,ey+oy,30,9,0,0,6.283);X.fill();X.restore();
+ if(R()<.4)burst(ex+(R()-.5)*36,ey-R()*10,pk(["#ffe14a","#fff4b0","#ffffff"]),2,.7,(R()-.5)*10,-60-R()*50);
+ GL.push([ex,ey-18,46,"255,215,90",.35+.1*Math.sin(time*6)]);LT.push([ex,ey-18,170,.75]);
+ shadow(ex,ey,14);slimeDraw(3,COS.findIndex(c=>c.n==="Bigode"),ex,ey-pt*7,0,1.35,1.35,0,1);
+ X.save();X.globalCompositeOperation="lighter";X.globalAlpha=.25+.12*Math.sin(time*5);slimeDraw(3,-1,ex,ey-pt*7,0,1.4,1.4,0,1);X.restore();
  txt("Ancião",elder.x+ox,elder.y+oy+28,"#ffffff",14,"center");const p0=PL[0];if(G.ch>=2&&p0&&p0.vn&&p0.qi<NQ&&p0.qa!==1&&Math.sin(time*5)>-.4)txt(p0.qa===2?"?":"!",elder.x+ox,elder.y+oy-42,p0.qa===2?"#7aff7a":"#ffe14a",26,"center")}
 function magicCircle(x,y,c,k){X.save();X.translate(Math.round(x+ox),Math.round(y+oy));X.scale(1,.42);X.rotate(time*3);X.globalAlpha=.75*clamp(k,0,1);X.strokeStyle=c;X.lineWidth=2;
  X.beginPath();X.arc(0,0,30,0,6.283);X.stroke();X.beginPath();X.arc(0,0,22,0,6.283);X.stroke();for(let i=0;i<6;i++){const a=i/6*6.283;X.fillStyle="#ffffff";X.fillRect(Math.cos(a)*26-2,Math.sin(a)*26-2,4,4)}

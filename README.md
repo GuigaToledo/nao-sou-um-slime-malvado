@@ -607,3 +607,9 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 - **Ordem da Cura:** 1º **regeneração por segundo**; 2º **Cura Compartilhada** (suas invocações recebem 25% de toda cura que você recebe, até 100%). Depois vêm cura maior, recarga menor, Cura Potente (+2% em toda cura recebida), absorção, cura em área, bênção, XP e renascer.
 - **Efeitos novos que completam as trilhas:** Força Gosmenta (+1,5% de dano), Gosma Robusta (+1,5% de vida), Elo do Bando (+2% de vida e dano das invocações).
 - Saves antigos: os pontos que você tinha em cada grupo viram níveis na trilha correspondente.
+
+## v3.16.0 (cavaleiros da Guilda e Ancião dourado)
+
+- **Na base fica só 1 slime;** os outros moradores-slime são os **cavaleiros da Guilda** (1 por nível).
+- **Cada cavaleiro usa uma skin que você liberou, sem repetir**, da mais forte para a mais fraca, e **cada um tem uma cor diferente**. As **Asas de Anjo** têm prioridade: assim que você as libera, o primeiro cavaleiro já as equipa e **cura todos os cavaleiros, moradores e invocações da base** (20% da vida a cada 6 s, quando alguém está ferido). Os outros cavaleiros usam o poder da própria skin em combate.
+- **O Ancião agora é dourado e brilhante**, com uma **aura que sobe do chão**, como um guerreiro lendário.
