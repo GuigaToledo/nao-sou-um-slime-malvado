@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.12.0";
+const VERSION="v3.13.0";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -123,10 +123,13 @@ const NAMES=["Gosminha","Bolota","Geleia","Pudim","Gotinha","Blob","Mochi","Bolh
 const VNAMES=["Tempestópolis","Vila Gosma","Refúgio Azul","Nova Esperança","Bosque Livre","Pedra Lunar"];
 /* ===== Áudio (v3.7): música eletrônica "feita na Idade Média" (alaúde, harpa, flauta doce, charamela, rabeca,
    sanfona de roda e tambores) com reverberação de salão, compressor no final e sons para monstros, ataques e magias ===== */
-let AC=null,MG=null,SND=1,NB=null,MUSG=null,SFXG=null,BUS=null,REVIN=null,COMP=null,PANOK=1;
+let AC=null,MG=null,SND=1,NB=null,MUSG=null,SFXG=null,BUS=null,REVIN=null,REVM=null,COMP=null,PANOK=1;
 /* volume separado da música e dos efeitos (0 = mudo), salvo no navegador */
-const AUD=(()=>{try{const o=JSON.parse(localStorage.getItem("nsm-audio")||"{}");return{mus:clamp(+o.mus>=0?+o.mus:.8,0,1),sfx:clamp(+o.sfx>=0?+o.sfx:1,0,1)}}catch(e){return{mus:.8,sfx:1}}})();
-function applyVol(){if(MUSG)MUSG.gain.value=AUD.mus*.9;if(SFXG)SFXG.gain.value=AUD.sfx;try{localStorage.setItem("nsm-audio",JSON.stringify(AUD))}catch(e){}}
+const AUD=(()=>{try{const o=JSON.parse(localStorage.getItem("nsm-audio")||"{}");return{mus:clamp(+o.mus>=0?+o.mus:.8,0,1),sfx:clamp(+o.sfx>=0?+o.sfx:1,0,1),mm:o.mm?1:0,sm:o.sm?1:0}}catch(e){return{mus:.8,sfx:1,mm:0,sm:0}}})();
+/* mudo de verdade: a reverberação de cada um passa pelo próprio volume, e com os dois mudos o som geral fica em zero */
+const musOff=()=>AUD.mm||AUD.mus<=0,sfxOff=()=>AUD.sm||AUD.sfx<=0;
+function applyVol(){if(MUSG)MUSG.gain.value=musOff()?0:AUD.mus*.9;if(SFXG)SFXG.gain.value=sfxOff()?0:AUD.sfx;if(MG)MG.gain.value=musOff()&&sfxOff()?0:.62;try{localStorage.setItem("nsm-audio",JSON.stringify(AUD))}catch(e){}}
+function toggleMute(k){AUD[k]=AUD[k]?0:1;applyVol();if(k==="sm"&&!AUD.sm)sfx("ui")}
 /* setas: sobe/desce e para no 0% e no 100%; apertar o item: desce até mudo e volta para 100% */
 function stepVol(k,d,cyc){const v=Math.round(AUD[k]*5)+d;AUD[k]=cyc?(v<0?1:v/5):clamp(v,0,5)/5;applyVol()}
 const volTxt=v=>v<=0?"mudo":Math.round(v*100)+"%";
@@ -140,12 +143,12 @@ function ksBuf(f,sec,damp,bright){const r=AC.sampleRate,n=r*sec|0,b=AC.createBuf
 function ensureAudio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();MG.gain.value=.62;
   COMP=AC.createDynamicsCompressor();COMP.threshold.value=-16;COMP.knee.value=12;COMP.ratio.value=4;COMP.attack.value=.004;COMP.release.value=.22;MG.connect(COMP);COMP.connect(AC.destination);
   MUSG=AC.createGain();MUSG.connect(MG);SFXG=AC.createGain();SFXG.connect(MG);
-  const cv=AC.createConvolver();cv.buffer=mkIR(LOWFX?1.1:2.4,2.4);REVIN=AC.createGain();REVIN.gain.value=1;const ro=AC.createGain();ro.gain.value=.55;REVIN.connect(cv);cv.connect(ro);ro.connect(MG);
+  const cv=AC.createConvolver();cv.buffer=mkIR(LOWFX?1.1:2.4,2.4);REVIN=AC.createGain();REVIN.gain.value=1;const ro=AC.createGain();ro.gain.value=.55;REVIN.connect(cv);cv.connect(ro);ro.connect(SFXG);{const cv2=AC.createConvolver();cv2.buffer=cv.buffer;REVM=AC.createGain();const ro2=AC.createGain();ro2.gain.value=.55;REVM.connect(cv2);cv2.connect(ro2);ro2.connect(MUSG)}
   LUTEB=ksBuf(KSF,2.4,.9965,.55);HARPB=ksBuf(KSF,3.2,.9985,.85);PANOK=!!AC.createStereoPanner;applyVol()}catch(e){AC=null}}if(AC&&AC.state==="suspended")AC.resume().catch(()=>{})}
 const OUTB=()=>BUS||SFXG||MG;
 /* saída de uma nota: volume, lado (pan) e quanto vai para a reverberação */
 let MSES=null,MRV=null,INMUS=0;
-function outN(v,pan,rv,t){const g=AC.createGain();g.gain.value=v;let n=g;if(pan&&PANOK){const p=AC.createStereoPanner();p.pan.value=clamp(pan,-1,1);g.connect(p);n=p}n.connect(OUTB());if(rv&&REVIN){const s=AC.createGain();s.gain.value=rv;g.connect(s);s.connect(INMUS&&MRV?MRV:REVIN)}return g}
+function outN(v,pan,rv,t){const g=AC.createGain();g.gain.value=v;let n=g;if(pan&&PANOK){const p=AC.createStereoPanner();p.pan.value=clamp(pan,-1,1);g.connect(p);n=p}n.connect(OUTB());if(rv&&REVIN){const s=AC.createGain();s.gain.value=rv;g.connect(s);s.connect(INMUS?(MRV||REVM||REVIN):REVIN)}return g}
 function tone(f,d,type="square",v=.05,f2=0,del=0,at=0,cut=0){if(!AC||!SND)return;try{const t=at||AC.currentTime+del,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(Math.max(20,f2),t+d);
  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+d);let n=o;if(cut){const fl=AC.createBiquadFilter();fl.type="lowpass";fl.frequency.setValueAtTime(cut,t);fl.Q.value=2;o.connect(fl);n=fl}n.connect(g);g.connect(OUTB());o.start(t);o.stop(t+d+.03)}catch(e){}}
 function noise(d,v=.05,fq=1200,del=0,at=0,type="lowpass"){if(!AC||!SND)return;try{if(!NB){NB=AC.createBuffer(1,AC.sampleRate*1.2|0,AC.sampleRate);const a=NB.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1}
@@ -332,7 +335,7 @@ let musNext=0,musStep=0,musTheme="minimal",musLbl="",musLblT=0,musPrev=null;
 const BOSSTH=new Set(["dnb","jungle","breakbeat"]),loopSteps=k=>TH[k].AR.length*64;
 /* cada música toca no seu próprio canal; ao trocar, o canal antigo é cortado em 0,15 s (nada da música anterior fica tocando junto) */
 function newSession(){const old=[MSES,MRV],t=AC.currentTime;for(const g of old)if(g){try{g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+.15);setTimeout(()=>{try{g.disconnect()}catch(e){}},400)}catch(e){}}
- try{MSES=AC.createGain();MSES.connect(MUSG||MG);MRV=AC.createGain();if(REVIN)MRV.connect(REVIN)}catch(e){MSES=MRV=null}PUMP=null;DLIN=null;DLY=null}
+ try{MSES=AC.createGain();MSES.connect(MUSG||MG);MRV=AC.createGain();if(REVM||REVIN)MRV.connect(REVM||REVIN)}catch(e){MSES=MRV=null}PUMP=null;DLIN=null;DLY=null}
 function music(theme){if(!AC||!SND||AC.state!=="running")return;
  if(!MSES)newSession();
  if(theme!==musTheme&&(musStep%loopSteps(musTheme)===0||!(ROT.includes(theme)&&ROT.includes(musTheme)))){
@@ -1108,7 +1111,7 @@ function genWorld(){seed=11;const N=MW*MH;
  /* a cidade */
  HUTS=[[-6,-5],[6,-5],[-7,5],[7,5],[-9,-1],[9,-1],[0,7]].map(([a,b])=>[VCX+a,VCY+b]);TOW=[[VCX-5,VCY+9],[VCX+5,VCY+9]];
  elder={x:(VCX-3)*T+16,y:(VCY-1)*T+16};cpX=VCX*T+16;cpY=VCY*T+16;
- for(let k=0;k<10;k++){const h=HUTS[k%HUTS.length];villagers.push({x:(h[0]+1)*T,y:(h[1]+2)*T,hx:(h[0]+1)*T,hy:(h[1]+2)*T,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6,col:k%NCOL,cs:k%3?CHEST_COS[(k*5)%CHEST_COS.length]:-1})}
+ for(let k=0;k<0;k++){const h=HUTS[k%HUTS.length];villagers.push({x:(h[0]+1)*T,y:(h[1]+2)*T,hx:(h[0]+1)*T,hy:(h[1]+2)*T,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6,col:k%NCOL,cs:k%3?CHEST_COS[(k*5)%CHEST_COS.length]:-1})}
  N0=MID;reorgWorld();buildFarms();buildMines();CC.clear();seen.fill(0);MM32.fill(0xff120a0a);mmDirty=1}
 const VEND_LV=150;
 /* chefe gigante de cada região (a partir do monstro mais forte que mora nela) */
@@ -1242,6 +1245,8 @@ const mdmg=p=>(4+p.lv*1.6)*cosOf(p).fd*(1+.05*S(p,"atk1"))*formBonus(p)*(p.rally
 const critC=p=>.04*(S(p,"atk3")+S(p,"atk6"));
 /* invocação no nível dela: a vida cresce como o dano dos monstros e o dano cresce como a vida deles */
 /* v3.7: força de cada invocação e de cada skin, calibrada por simulação para todas serem boas escolhas */
+/* ordem de força das skins (da que mais venceu para a que menos venceu), medida por simulação */
+let SKRANK=[];
 const SUMF={1:1.414,2:1.513,3:1.11,4:0.979,5:0.862,6:1.575,7:1.782,8:1.491,9:0.932,10:1.06,11:0.965,12:0.772,13:0.599,14:0.748,15:0.881,16:1.118,17:0.59,18:0.572,19:0.769,20:0.823,21:0.808,22:0.785,23:0.657,24:0.686,25:0.945,26:0.979,27:0.793,28:1.158,29:0.973,30:0.868,31:0.754,32:0.981,33:0.913,34:0.745},SKPW={0:0.422,1:1.441,2:0.701,3:1.603,4:0.927,5:1.089,6:1.389,7:0.955,8:1.46,9:0.762,10:0.653,11:1.079,12:0.709,13:0.788,14:0.852,15:1.288,16:0.474,17:0.758,18:0.798,19:0.733,20:0.836,21:0.681,22:0.801,23:0.736,24:1.38,25:0.936,26:0.5,27:0.664,28:0.731,29:0.7,31:0.443,32:1.705,33:0.622,34:1.32,35:0.708,36:1.043,37:0.675,38:0.7,39:1.168,40:1.07,41:1.465,42:2.118,43:1.792,44:2.8,45:0.675,46:1.312,47:1.095,48:2.8,49:1.463,50:1.295,51:1.31,52:0.895,53:1.82,54:1.188,55:0.789,56:1.037,57:1.18,58:1.132,59:0.7,60:0.9,61:0.82,62:1.083,63:0.699,64:0.641,65:0.973,66:0.757,67:1.055,68:0.7,69:0.726,70:1.1,71:1.104,72:0.782,73:0.7,74:1.081,75:0.763,76:0.905};
 const sumHP=(p,t)=>{const l=p.slv[t];return Math.round(MT[t].hp*1.2*gL(l)/gL(LOLD(t))*(1+.15*S(p,"sum1")+.2*S(p,"sum5"))*Math.sqrt(SUMF[t]||1))};
 const sumDM=(p,t)=>{const l=p.slv[t];return(SUMF[t]||1)*MT[t].dm*1.1*fL(l)/fL(LOLD(t))*(1+.1*S(p,"sum2")+.14*S(p,"sum6"))*(1+.25*S(p,"sum8"))*(p.rally>0?1.4:1)};
@@ -1970,7 +1975,15 @@ function roam(v,dt){v.rt=(v.rt||0)-dt;const far=v.rx===undefined||Math.hypot(v.x
  if(v.rx===undefined)return;if(Math.hypot(v.x-v.rx,v.y-v.ry)>12)walkTo(v,v.rx,v.ry,(v.g?40:32)*dt);else{v.wx=v.wy=0}}
 /* slimes da cidade: cada um com uma cor diferente e um visual diferente (só visuais que você já liberou) */
 let slimeSig="";
-function styleSlimes(){const p=PL[0];if(!p)return;const sl=villagers.filter(v=>!v.t),own=cosList(p).filter(i=>i>=0),sig=sl.length+"|"+own.join(",")+"|"+p.col;if(sig===slimeSig)return;slimeSig=sig;
+/* slimes da cidade (v3.13): começa com 1; cada nível das Casas traz mais 1 */
+const slimesN=()=>1+Math.min(10,cl("house"));
+function syncSlimes(){const sl=villagers.filter(v=>!v.t&&!v.g);let n=sl.length;const want=slimesN();
+ for(;n<want;n++){const h=HUTS[n%HUTS.length],x=(h[0]+1)*T,y=(h[1]+2)*T;villagers.push({x,y,hx:x,hy:y,wx:0,wy:0,wt:R()*2,fl:0,ph:R()*6,col:n%NCOL,cs:-1});slimeSig=""}
+ if(n>want){let x=n-want;villagers=villagers.filter(v=>!(!v.t&&!v.g&&x-->0));slimeSig=""}}
+/* skins dos slimes: só as que você liberou (menos a de DJ), da mais forte para a mais fraca (SKRANK, pela simulação de vitórias) */
+const skOrder=own=>own.filter(i=>i>=0&&COS[i]&&!COS[i].dance).sort((a,b)=>skRankOf(a)-skRankOf(b));
+const skRankOf=i=>SKPW[i]??1;
+function styleSlimes(){const p=PL[0];if(!p)return;syncSlimes();const sl=villagers.filter(v=>!v.t&&!v.g),own=skOrder(cosList(p)),sig=sl.length+"|"+own.join(",")+"|"+p.col;if(sig===slimeSig)return;slimeSig=sig;
  const cols=[...Array(PCOL.length).keys()].filter(c=>c!==p.col);sl.forEach((v,k)=>{v.col=cols[k%cols.length];v.cs=k<own.length?own[k]:-1})}
 /* botão de teleporte: só durante a invasão, leva você (e suas invocações) até o cristal */
 function teleCrystal(p){if(!G.inv||!p||p.dead>0)return;for(let i=0;i<20;i++)burst(p.x,p.y-8,pk(["#7ad8ff","#ffffff"]),4,.5,(R()-.5)*160,(R()-.5)*160);p.x=cpX+(R()-.5)*30;p.y=cpY+50;for(const s of[p.su,p.su2])if(s&&s.dead<=0){s.x=p.x+20;s.y=p.y}
@@ -1992,6 +2005,8 @@ function defend(v,dt){if(v.ko)return true;if(!v.mhp||v.hp===undefined){v.mhp=def
  v.cd=(v.cd||0)-dt;v.atkT=(v.atkT||0)-dt;const sp=(v.g?80:65)*dt;
  if(!b)return false;
  const ex=b.x-v.x,ey=b.y-v.y,d=bd||1;v.fl=ex<0;
+ /* slime com skin: usa o poder daquela skin (como o seu) */
+ if(!v.t&&!v.g&&v.cs>=0&&COS[v.cs]&&COS[v.cs].k&&KD[COS[v.cs].k]&&NET.mode!=="client"){const k=COS[v.cs].k;v.scd=(v.scd||0)-dt;if(v.scd<=0&&d<KD[k][0]){v.fx=ex/d;v.fy=ey/d;try{cast(v,k,defDmg(v)*1.3*(SKPW[v.cs]||1),b,null,0)}catch(e){}v.scd=KD[k][1]*1.6}}
  const AR=v.t?34:26;if(d>AR){walkTo(v,b.x,b.y,sp)}else{v.wx=v.wy=0;if(v.cd<=0){v.cd=.8;v.atkT=.25;swingAt(v.x,v.y,v.t||0);if(NET.mode!=="client")hurt(b,defDmg(v)*(.85+R()*.3),0,null,null);for(let i=0;i<3;i++)burst(b.x,b.y-8,"#ffffff",3,.2,(R()-.5)*100,(R()-.5)*100)}}
  return true}
 /* alvos dos invasores: voadores vão primeiro nas torres; quem anda, do lado de fora, quebra a muralha (ou uma torre) no caminho,
@@ -2756,6 +2771,8 @@ function minimap(x,y,cxp,cyp){flushMM();const cx=x+85,cy=y+58,Rr=51,span=110,k=R
   X.beginPath();X.moveTo(sz,0);X.lineTo(-sz*.7,-sz*.75);X.lineTo(-sz*.3,0);X.lineTo(-sz*.7,sz*.75);X.closePath();X.stroke();X.fill();X.restore()};
 
  /* invasão (ou aviso de 1 minuto): seta vermelha piscando apontando para a cidade */
+ /* a cidade sempre aparece: castelinho dentro do círculo ou seta dourada na borda */
+ {const[a,b]=P(cpX,cpY),dd=Math.hypot(a-cx,b-cy);if(dd<Rr-6)cityIcon(a,b,.8);else mark(cpX,cpY,"#ffd84a",0)}
  if(G.ch>=2&&G.wave>=5&&(G.inv||(G.it||0)<=INV_WARN)&&Math.sin(time*10)>-.5)mark(cpX,cpY,"#ff3a3a",1);
  {const gq=goal();if(gq.ar)mark(gq.x,gq.y,"#ffe14a",1)}
  X.fillStyle="#c83a3a";X.beginPath();X.moveTo(cx,cy-Rr-11);X.lineTo(cx-5,cy-Rr-3);X.lineTo(cx+5,cy-Rr-3);X.closePath();X.fill();txt("N",cx,cy-Rr+9,"#ffffff",13,"center");
@@ -2870,9 +2887,12 @@ function controlsScreen(){win(30,124,580,350,"Controles");const CB=()=>closeBtn(
  txt("Ação",50,170,"#d8c8a0",17);txt("Teclado",350,170,"#d8c8a0",17);txt("Controle Xbox",460,170,"#d8c8a0",17);
  L.forEach((r,i)=>{const y=194+i*22;txt(r[0],50,y,"#ffffff",18);txt(r[1],350,y,"#ffe7a0",18);txt(r[2],460,y,"#ffe7a0",18)});
  txt("ENTER / A / clique para voltar",VW/2,464,"#a89878",17,"center");HIT.push({x:0,y:0,w:VW,h:VH,fn:()=>{state="title"}});CB()}
+/* ícone da cidade (castelinho) para o minimapa e o mapa do mundo */
+function cityIcon(x,y,s){X.save();X.translate(Math.round(x),Math.round(y));X.scale(s,s);X.fillStyle="#07050d";X.fillRect(-7,-7,14,12);X.fillStyle="#ffd84a";X.fillRect(-6,-3,12,7);X.fillRect(-6,-6,3,3);X.fillRect(-1.5,-6,3,3);X.fillRect(3,-6,3,3);X.fillStyle="#5a3a1e";X.fillRect(-1.5,0,3,4);X.restore()}
 function worldMap(){const k=Math.min((VW-60)/MW,(VH-96)/MH),mw=MW*k,mh=MH*k,mx=VW/2-mw/2,my=58;X.fillStyle="rgba(6,6,8,.85)";X.fillRect(0,0,VW,VH);win(mx-8,32,mw+16,mh+50,"Mapa do mundo");flushMM();X.imageSmoothingEnabled=false;X.drawImage(MM,mx,my,mw,mh);
  /* nome de cada região já visitada, no meio dela */
  ZONES.forEach((z,i)=>{const s=ZST[i];if(!s||!s.n||z.sea||z.lake||i===Z_COAST||!seen[s.cy*MW+s.cx])return;const x=mx+s.cx*k,y=my+s.cy*k;txt(z.n,x,y,"#f0e4c8",10,"center")});
+ cityIcon(mx+cpX/T*k,my+cpY/T*k,1);txt(cityName(),mx+cpX/T*k,my+cpY/T*k-12,"#ffe7a0",11,"center");
  for(const p of PL){X.fillStyle=PCOL[p.col];X.fillRect(mx+p.x/T*k-3,my+p.y/T*k-3,6,6)}for(const r of NET.remote){X.fillStyle=PCOL[r.c];X.fillRect(mx+r.x/T*k-2,my+r.y/T*k-2,4,4)}
  txt("Áreas escuras ainda não foram exploradas · B / Esc / clique para voltar",VW/2,my+mh+20,"#a89878",15,"center");HIT.push({x:0,y:0,w:VW,h:VH,fn:()=>{state="pause"}});closeBtn(VW/2+mw/2-10,35,()=>{state="play"})}
 function overlay(){if(state==="worldmap"){worldMap();return}X.fillStyle="rgba(8,6,4,.6)";X.fillRect(0,0,VW,VH);
@@ -2938,7 +2958,7 @@ const isLand=()=>innerWidth>innerHeight;
 function phoneFull(){if(isPhone()&&isLand()&&!isFull())toggleFull(true)}
 addEventListener("resize",()=>{if(isPhone()&&!isLand()&&isFull())toggleFull(false)});
 addEventListener("orientationchange",()=>{if(isPhone()&&!isLand()&&isFull())toggleFull(false)});
-function pauseItems(){return[{t:"Tela cheia: "+(isFull()?"ligada":"desligada"),act:()=>toggleFull()},{t:"Continuar",act:()=>{state="play"}},{t:"Mapa do mundo",act:()=>{state="worldmap"}},{t:"Salvar agora",act:()=>{writeSave();say("Jogo salvo.");state="play"}},{t:"Música: ◄ "+volTxt(AUD.mus)+" ►",act:()=>stepVol("mus",-1,1),adj:d=>stepVol("mus",d)},{t:"Efeitos: ◄ "+volTxt(AUD.sfx)+" ►",act:()=>stepVol("sfx",-1,1),adj:d=>stepVol("sfx",d)},{t:"Minimapa: "+(showMM?"ligado":"desligado"),act:()=>{showMM=showMM?0:1}},{t:"Gráficos: "+GFXN[GQ],act:toggleGfx},{t:"Jogar no: "+(MODE==="cel"?"Celular":"Computador"),act:toggleMode},{t:"Sair para o título",act:toTitle}]}
+function pauseItems(){return[{t:"Tela cheia: "+(isFull()?"ligada":"desligada"),act:()=>toggleFull()},{t:"Continuar",act:()=>{state="play"}},{t:"Mapa do mundo",act:()=>{state="worldmap"}},{t:"Salvar agora",act:()=>{writeSave();say("Jogo salvo.");state="play"}},{t:"Música: ◄ "+volTxt(AUD.mus)+" ►",act:()=>stepVol("mus",-1,1),adj:d=>stepVol("mus",d)},{t:"Música: "+(AUD.mm?"MUDA (aperte para ligar)":"ligada (aperte para mutar)"),act:()=>toggleMute("mm")},{t:"Efeitos: ◄ "+volTxt(AUD.sfx)+" ►",act:()=>stepVol("sfx",-1,1),adj:d=>stepVol("sfx",d)},{t:"Efeitos: "+(AUD.sm?"MUDOS (aperte para ligar)":"ligados (aperte para mutar)"),act:()=>toggleMute("sm")},{t:"Minimapa: "+(showMM?"ligado":"desligado"),act:()=>{showMM=showMM?0:1}},{t:"Gráficos: "+GFXN[GQ],act:toggleGfx},{t:"Jogar no: "+(MODE==="cel"?"Celular":"Computador"),act:toggleMode},{t:"Sair para o título",act:toTitle}]}
 /* (lista de construções movida para junto do nome da cidade) */
 /* o nome da cidade é de cada jogador (fica no personagem) e só ele vê */
 /* nomes aleatórios: começo + fim */

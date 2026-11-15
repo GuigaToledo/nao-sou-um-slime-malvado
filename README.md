@@ -587,3 +587,10 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 - **Cristais azuis coletáveis:** encoste num cristal do mapa (no chão ou nas cavernas) para ganhar **50 de ouro**. Ele volta a crescer em 5 minutos. No online, o ouro vai para o tesouro de quem hospeda.
 - **10 minas de cristal** espalhadas perto das montanhas, das rochas e da neve, cada uma com entrada na pedra, vigas, lanterna, carrinho e **7 cristais** para coletar.
 - **A magia de cura recarrega na metade do tempo** (6 s em vez de 12 s).
+
+## v3.13.0 (slimes da cidade, mudo e cidade no mapa)
+
+- **A cidade começa só com o Ancião e 1 slime.** Cada nível das **Casas** traz mais 1 slime, até 11.
+- **Os slimes da cidade usam só skins que você já liberou**, com **o poder daquela skin** em combate (como o seu). Eles pegam **as mais fortes primeiro** e trocam sozinhos quando você libera uma mais forte. A ordem de força vem da simulação de vitórias. **Fones de DJ é só seu.**
+- **Botões de mudo** para a música e para os efeitos no menu de pausa. Agora o mudo (ou o volume no zero) silencia de verdade, inclusive o eco da reverberação.
+- **A cidade aparece no minimapa** (castelinho, ou seta dourada na borda quando está longe) **e no mapa do mundo**, com o nome dela.
