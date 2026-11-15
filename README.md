@@ -117,6 +117,42 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v3.0.0 (parte 2: cidade, balanceamento e criaturas)
+
+- **Construções até o nível 10**, com efeitos de verdade (estilo tower defense):
+
+  | Construção | Níveis 4 a 10 |
+  |---|---|
+  | Muralha | mais vida no cristal, **espinhos no portão** (nv5), **reparo** do cristal entre as ondas (nv8), muralha encantada com -15% de dano nos defensores (nv10) |
+  | Torres | até 8 torres e 4 tipos: **flecha**, **gelo** que deixa lento (nv4), **canhão** em área (nv6) e **raio** em 3 inimigos (nv8); **meteoro** a cada 25 s (nv10) |
+  | Quartel | até 20 guardas, **arqueiros** (nv5), **clérigos** que curam (nv7), **capitão** com +25% de dano (nv10) |
+  | Templo | cura maior, **escudo sagrado** com -30% de dano no cristal (nv6), **pulso** que empurra (nv9), **explosão de luz** quando o cristal fica com menos de 25% (nv10) |
+  | Casas | até +200% de ouro, **juros** de 3% por onda (nv5), **mercado** com construções 15% mais baratas (nv8) |
+  | Ferreiro | dano dos defensores, **crítico** (nv6), armas lendárias (nv10) |
+  | Fosso | **armadilhas** na ponte (nv5/nv8), **óleo fervente** no portão (nv7), **água elétrica** contra voadores (nv10) |
+
+- **Balanceamento:** sem você, as invasões conseguem derrubar as defesas e quebrar o cristal. As invasões ficam mais fortes conforme a cidade evolui e a cada invasão vencida.
+  - Nas simulações sem o jogador, a cidade nível 3 caiu na 5ª onda.
+  - A cidade nível 10 perdeu todos os defensores na 5ª onda.
+  - Com você lá, dá para segurar.
+- Invasores atravessam a mata em volta da cidade. Quem fica parado longe do cristal é levado até a ponte, para a invasão nunca travar.
+- **10 criaturas novas e originais**, só nas invasões, cada uma com 5 magias próprias:
+
+  | Criatura | Algumas magias |
+  |---|---|
+  | Esqueleto Guerreiro | Golpe Ósseo, Escudo de Ossos, Tempestade de Ossos |
+  | Zumbi Pútrido | Mordida Infectada, Vômito Ácido, Despertar dos Mortos |
+  | Cavaleiro Negro | Investida Sombria, Lâmina Sombria, Execução |
+  | Mago Sombrio | Orbe Sombrio, Maldição, Corrente Negra |
+  | Demônio Menor | Sopro Infernal, Fúria Demoníaca, Anel de Fogo |
+  | Guerreiro de Gelo | Golpe Congelante, Nevasca, Estilhaços |
+  | Gigante Musgoso | Pisão Musgoso, Raízes, Terremoto |
+  | Druida Sombrio | Espinhos, Cura da Floresta, Enxame |
+  | Gárgula de Pedra | Mergulho, Grito de Pedra, Chuva de Pedras |
+  | Golem de Lava | Punho de Magma, Erupção, Terremoto Vulcânico |
+
+- **3 exércitos novos** com essas criaturas: Legião Morta-Viva, Hordas do Abismo e Exército do Inverno Eterno.
+
 ## Novidades da v3.0.0 (parte 1: visuais)
 
 - **Cartola:** deixa você **invisível por 5 segundos** (os monstros não te veem nem te acertam) e depois tem 5 segundos de recarga.
