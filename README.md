@@ -117,6 +117,13 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.8.0
+
+- **O jogo ocupa a tela inteira** no computador e no celular na horizontal. A altura é sempre a mesma, e a largura acompanha o formato da tela (4:3, 16:9, ultrawide), sem faixas pretas nas laterais. Em telas largas você vê mais do mapa dos lados.
+- Os menus e a tela de título ficam centralizados.
+- **Tela cheia de verdade** (sem as barras do navegador): pela opção "Tela cheia" no menu (Start/Esc) ou pela tecla F11 do navegador. No modo celular, o jogo entra em tela cheia e trava na horizontal no primeiro toque, quando o celular permite.
+- Ao mudar o tamanho da janela ou girar o celular, o jogo se ajusta sozinho.
+
 ## Novidades da v2.7.0
 
 - **Invasões a cada 10 minutos**, com aviso e contagem regressiva de 1 minuto.

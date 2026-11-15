@@ -11,17 +11,21 @@
 :root{--bg:#06050c;--fg:#d7e3ee;color-scheme:dark}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:'VT323',ui-monospace,monospace;overflow:hidden}
 body{display:flex;align-items:center;justify-content:center}
-canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-select:none;display:block;width:min(100vw,calc(100vh * 4 / 3));max-width:100%;aspect-ratio:4/3;height:auto;background:#000;outline:none;cursor:default}
+canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-select:none;display:block;width:min(100vw,calc(100vh * var(--ar,1.3333)));max-width:100%;aspect-ratio:var(--ar,1.3333);height:auto;background:#000;outline:none;cursor:default}
 </style>
 </head>
 <body>
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v2.7.0";
+const VERSION="v2.8.0";
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 let MODE=LSG("nsm-mode",(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?"cel":"pc"),GQ=LSG("nsm-gfx","auto"),Q=2;
-const C=document.getElementById("c"),X=C.getContext("2d"),VW=640,VH=480,FT="'VT323',ui-monospace,monospace";
+const C=document.getElementById("c"),X=C.getContext("2d"),VH=480,FT="'VT323',ui-monospace,monospace";
+/* tela cheia: a altura do jogo é sempre 480; a largura acompanha o formato da tela (de 4:3 até ultrawide) */
+let VW=640;
+function fitView(){const a=(innerWidth||640)/(innerHeight||480);VW=Math.max(640,Math.min(1280,Math.round(VH*a/2)*2));document.documentElement.style.setProperty("--ar",(VW/VH).toFixed(4))}
+fitView();
 let SMOOTH=true;/* arte em alta resolução: suavização ligada */
 const RS=GQ==="baixo"?2:3;function setQ(q){q=Math.max(1,Math.min(3,q));if(q===Q&&C.width===VW*q)return;Q=q;SMOOTH=true;C.width=VW*Q;C.height=VH*Q}
 const fitQ=()=>{const r=C.getBoundingClientRect(),px=(r.width||VW)*(window.devicePixelRatio||1);return Math.max(1,Math.min(3,Math.ceil(px/VW-.15)))};
@@ -559,8 +563,11 @@ const BLM=cv(160,120),blg=BLM.getContext("2d"),TN=vnoise();
 const LSPR=(()=>{const c=cv(128,128),g=c.getContext("2d"),r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,"rgba(0,0,0,1)");r.addColorStop(.55,"rgba(0,0,0,.55)");r.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=r;g.fillRect(0,0,128,128);return c})();
 const GLOWS=new Map();function glowSpr(col){let c=GLOWS.get(col);if(!c){c=cv(64,64);const g=c.getContext("2d"),r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,"rgba("+col+",1)");r.addColorStop(1,"rgba("+col+",0)");g.fillStyle=r;g.fillRect(0,0,64,64);GLOWS.set(col,c)}return c}
 const SHD=(()=>{const c=cv(8,16),g=c.getContext("2d"),r=g.createLinearGradient(0,0,0,16);r.addColorStop(0,"rgba(0,0,0,.55)");r.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=r;g.fillRect(0,0,8,16);return c})();
-const VG=cv(VW,VH);{const g=VG.getContext("2d"),r=g.createRadialGradient(VW/2,VH/2,VH*.42,VW/2,VH/2,VH*.9);r.addColorStop(0,"rgba(0,0,0,0)");r.addColorStop(1,"rgba(0,0,0,.4)");g.fillStyle=r;g.fillRect(0,0,VW,VH)}
-const LC=cv(160,120),lg=LC.getContext("2d"),MM=cv(MW,MH),mg=MM.getContext("2d"),MMI=mg.createImageData(MW,MH),MM32=new Uint32Array(MMI.data.buffer);
+let VG,LC,lg;
+/* refaz a vinheta e a camada de luz quando a tela muda de tamanho */
+function rebuildView(){VG=cv(VW,VH);const g=VG.getContext("2d"),r=g.createRadialGradient(VW/2,VH/2,VH*.42,VW/2,VH/2,VW*.62);r.addColorStop(0,"rgba(0,0,0,0)");r.addColorStop(1,"rgba(0,0,0,.4)");g.fillStyle=r;g.fillRect(0,0,VW,VH);LC=cv(Math.ceil(VW/4),120);lg=LC.getContext("2d")}
+rebuildView();
+const MM=cv(MW,MH),mg=MM.getContext("2d"),MMI=mg.createImageData(MW,MH),MM32=new Uint32Array(MMI.data.buffer);
 const motes=Array.from({length:40},()=>({x:R()*VW,y:R()*VH,vx:(R()-.5)*10,vy:-R()*8-2,ph:R()*6}));
 /* ===== Mundo: caverna dos insetos, o dragão, e depois o mundo aberto com cada monstro no seu habitat ===== */
 /* caverna linear (0-4) até o dragão; depois tudo é um mundo aberto contínuo, com a Vila Goblin como base logo na saída.
@@ -1069,7 +1076,7 @@ addEventListener("blur",()=>{for(const k in K)K[k]=0});
 let HIT=[],MX=-1,MY=-1;
 const cpos=e=>{const r=C.getBoundingClientRect();return[(e.clientX-r.left)*VW/r.width,(e.clientY-r.top)*VH/r.height]};
 C.addEventListener("pointermove",e=>{[MX,MY]=cpos(e);let over=0;for(const h of HIT)if(MX>=h.x&&MX<=h.x+h.w&&MY>=h.y&&MY<=h.y+h.h){over=1;if(h.hov)h.hov()}C.style.cursor=over?"pointer":"default"});
-C.addEventListener("pointerdown",e=>{ensureAudio();try{C.focus()}catch(x){}const[x,y]=cpos(e);for(const h of [...HIT].reverse())if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){sfx("ok");h.fn();break}});
+C.addEventListener("pointerdown",e=>{ensureAudio();if(MODE==="cel"&&!window.__fsTried&&!isFull()){window.__fsTried=1;toggleFull(true)}try{C.focus()}catch(x){}const[x,y]=cpos(e);for(const h of [...HIT].reverse())if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){sfx("ok");h.fn();break}});
 const padPrev=[[],[],[],[]],stickPrev=["","","",""];let padNow=[null,null,null,null];
 /* contra drift: guarda onde cada analógico descansa, desconta esse desvio e aplica zona morta de 30% */
 const padRest=[null,null,null,null],DZ=.3;
@@ -1609,9 +1616,9 @@ function fxDraw(){
  for(const q of pillars){const x=(q.tg?q.tg.x:q.x)+ox,y=(q.tg?q.tg.y:q.y)+oy+10,a=clamp(q.t/q.m,0,1),g=X.createLinearGradient(0,y-220,0,y);g.addColorStop(0,"rgba(255,230,120,0)");g.addColorStop(1,"rgba(255,230,120,"+.55*a+")");
   X.fillStyle=g;X.fillRect(x-18,y-220,36,220);X.fillStyle="rgba(255,255,220,"+.6*a+")";X.fillRect(x-4,y-220,8,220);if(R()<.5)burst(x-ox+(R()-.5)*30,y-oy-R()*40,"#fff4b0",3,.8,0,-120);
   txt(q.txt||"LEVEL UP!",x,y-90-(1-a)*30,"#ffe14a",26,"center");LT.push([x-ox,y-oy-60,150,.8*a])}}
-function lighting(amb){lg.globalCompositeOperation="source-over";lg.clearRect(0,0,160,120);lg.fillStyle="rgba(8,6,20,"+amb+")";lg.fillRect(0,0,160,120);lg.globalCompositeOperation="destination-out";
- for(const[x,y,r,a]of LT){const sx=(x+ox)/4,sy=(y+oy)/4,rr=r/4;if(sx<-rr||sy<-rr||sx>160+rr||sy>120+rr)continue;lg.globalAlpha=clamp(a,0,1);lg.drawImage(LSPR,sx-rr,sy-rr,rr*2,rr*2)}lg.globalAlpha=1;
- if(amb>.02){X.imageSmoothingEnabled=true;X.drawImage(LC,0,0,VW,VH);X.imageSmoothingEnabled=SMOOTH}
+function lighting(amb){const LW=LC.width;lg.globalCompositeOperation="source-over";lg.clearRect(0,0,LW,120);lg.fillStyle="rgba(8,6,20,"+amb+")";lg.fillRect(0,0,LW,120);lg.globalCompositeOperation="destination-out";
+ for(const[x,y,r,a]of LT){const sx=(x+ox)/4,sy=(y+oy)/4,rr=r/4;if(sx<-rr||sy<-rr||sx>LW+rr||sy>120+rr)continue;lg.globalAlpha=clamp(a,0,1);lg.drawImage(LSPR,sx-rr,sy-rr,rr*2,rr*2)}lg.globalAlpha=1;
+ if(amb>.02){X.imageSmoothingEnabled=true;X.drawImage(LC,0,0,LC.width*4,VH);X.imageSmoothingEnabled=SMOOTH}
  X.globalCompositeOperation="lighter";for(const[x,y,r,c,a]of GL){const sx=x+ox,sy=y+oy;if(sx<-r||sy<-r||sx>VW+r||sy>VH+r)continue;X.globalAlpha=clamp(a,0,1);X.drawImage(glowSpr(c),sx-r,sy-r,r*2,r*2)}X.globalAlpha=1;X.globalCompositeOperation="source-over"}
 /* ===== Interface (janelas azuladas no estilo dos MMOs clássicos) ===== */
 /* botão X para fechar janelas: funciona com mouse e toque no celular */
@@ -1779,9 +1786,9 @@ function worldMap(){const k=.8,mx=VW/2-MW*k/2,my=66;X.fillStyle="rgba(6,6,8,.85)
  const gl=goal();if(Math.sin(time*6)>0){X.fillStyle="#ffd84a";X.fillRect(mx+gl.x/T*k-3,my+gl.y/T*k-3,6,6)}
  txt("Áreas escuras ainda não foram exploradas · B / Esc / clique para voltar",VW/2,424,"#a89878",16,"center");HIT.push({x:0,y:0,w:VW,h:VH,fn:()=>{state="pause"}});closeBtn(VW/2+MW*.4-18,43,()=>{state="play"})}
 function overlay(){if(state==="worldmap"){worldMap();return}X.fillStyle="rgba(8,6,4,.6)";X.fillRect(0,0,VW,VH);
- if(state==="pause"){win(170,58,300,372,"Menu");closeBtn(444,61,()=>{state="play"});menuList(pauseItems(),VW/2,112,menuSel,240);
-  const im=ELN.filter((_,e)=>hasRes(PL[0],e));txt("Resistências ("+Math.round(Math.min(.75,.25+.1*S(PL[0],"def6"))*100)+"%): "+(im.length?im.join(", "):"nenhuma ainda"),VW/2,384,"#a8ffb8",15,"center");
-  let n=0;for(let k=0;k<secrets.length;k++)if(PL[0].sec&(1<<k))n++;txt("Segredos "+n+"/"+secrets.length+" · Visuais "+(cosList(PL[0]).length-1)+"/"+NSKIN,VW/2,406,"#a89878",15,"center")}
+ if(state==="pause"){win(170,46,300,414,"Menu");closeBtn(444,49,()=>{state="play"});menuList(pauseItems(),VW/2,98,menuSel,240);
+  const im=ELN.filter((_,e)=>hasRes(PL[0],e));txt("Resistências ("+Math.round(Math.min(.75,.25+.1*S(PL[0],"def6"))*100)+"%): "+(im.length?im.join(", "):"nenhuma ainda"),VW/2,416,"#a8ffb8",15,"center");
+  let n=0;for(let k=0;k<secrets.length;k++)if(PL[0].sec&(1<<k))n++;txt("Segredos "+n+"/"+secrets.length+" · Visuais "+(cosList(PL[0]).length-1)+"/"+NSKIN,VW/2,438,"#a89878",15,"center")}
  if(state==="tree")treeScreen();
  if(state==="upgrade"){win(70,60,500,380,"Slime Ancião · Construções");closeBtn(544,63,()=>{state="play"});txt("“O ouro dos monstros constrói "+cityName()+".” Ouro: "+G.cr,VW/2,106,"#ffd84a",17,"center");
   menuList(upgItems(),VW/2,146,menuSel,440);const u=CITY[menuSel];if(u){const l=G.vup[menuSel]|0;txt(l>=3?"Nível máximo: "+u.d[2]:"Próximo nível: "+u.d[l],VW/2,370,"#e8dcc0",16,"center");if(l)txt("Agora: "+u.d[l-1],VW/2,392,"#a89878",15,"center")}}
@@ -1826,7 +1833,10 @@ function buySkill(p,i){if(!canBuy(p,i)){sfx("hurt");return}const h0=mhp(p);p.sk[
  for(const s of[p.su,p.su2])if(s&&s.dead<=0){const r=s.hp/s.mhp;s.mhp=sumHP(p,s.t);s.hp=s.mhp*r}sfx("lvl");saveDirty=1}
 const CONF=[{t:"Sim, começar do zero",act:()=>{applyIdentity();const pr=fixProf(SAVE.prof[0]),np=newProf();np.nm=pr.nm;np.col=pr.col;startGame(null,[np]);writeSave()}},{t:"Não, voltar",act:()=>{state="title"}}];
 function onlineItems(){return[{t:"Tentar de novo",act:()=>{NET.tries=0;goOnline()}},{t:"Voltar",act:()=>{state="title";netMsg=""}}]}
-function pauseItems(){return[{t:"Continuar",act:()=>{state="play"}},{t:"Mapa do mundo",act:()=>{state="worldmap"}},{t:"Salvar agora",act:()=>{writeSave();say("Jogo salvo.");state="play"}},{t:"Música: ◄ "+volTxt(AUD.mus)+" ►",act:()=>stepVol("mus",-1,1),adj:d=>stepVol("mus",d)},{t:"Efeitos: ◄ "+volTxt(AUD.sfx)+" ►",act:()=>stepVol("sfx",-1,1),adj:d=>stepVol("sfx",d)},{t:"Minimapa: "+(showMM?"ligado":"desligado"),act:()=>{showMM=showMM?0:1}},{t:"Gráficos: "+GFXN[GQ],act:toggleGfx},{t:"Jogar no: "+(MODE==="cel"?"Celular":"Computador"),act:toggleMode},{t:"Sair para o título",act:toTitle}]}
+/* tela cheia de verdade (sem as barras do navegador) */
+const isFull=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+function toggleFull(on){try{if(on===undefined)on=!isFull();if(on){const el=document.documentElement;(el.requestFullscreen||el.webkitRequestFullscreen).call(el).then?.(()=>{try{screen.orientation.lock("landscape").catch(()=>{})}catch(e){}}).catch(()=>{})}else(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(e){}}
+function pauseItems(){return[{t:"Tela cheia: "+(isFull()?"ligada":"desligada"),act:()=>toggleFull()},{t:"Continuar",act:()=>{state="play"}},{t:"Mapa do mundo",act:()=>{state="worldmap"}},{t:"Salvar agora",act:()=>{writeSave();say("Jogo salvo.");state="play"}},{t:"Música: ◄ "+volTxt(AUD.mus)+" ►",act:()=>stepVol("mus",-1,1),adj:d=>stepVol("mus",d)},{t:"Efeitos: ◄ "+volTxt(AUD.sfx)+" ►",act:()=>stepVol("sfx",-1,1),adj:d=>stepVol("sfx",d)},{t:"Minimapa: "+(showMM?"ligado":"desligado"),act:()=>{showMM=showMM?0:1}},{t:"Gráficos: "+GFXN[GQ],act:toggleGfx},{t:"Jogar no: "+(MODE==="cel"?"Celular":"Computador"),act:toggleMode},{t:"Sair para o título",act:toTitle}]}
 /* (lista de construções movida para junto do nome da cidade) */
 /* o nome da cidade é de cada jogador (fica no personagem) e só ele vê */
 function confirmVillage(){const nm=nameBuf.trim().slice(0,16)||VNAMES[0];for(const p of PL)p.vn=nm;state="play";showBanner(nm.toUpperCase());sfx("lvl");saveDirty=1;
@@ -1880,8 +1890,13 @@ function update(dt){time+=dt;mt-=dt;bt-=dt;savedT-=dt;zoneT-=dt;pollPads();handl
  if(inWorld)play(dt);
  if(mi&&state!=="play")menus(mi);
  netTick(dt)}
-function draw(){HIT=[];X.setTransform(Q,0,0,Q,0,0);X.imageSmoothingEnabled=SMOOTH;X.fillStyle="#000";X.fillRect(0,0,VW,VH);
- if(!PL.length||["title","online","connecting","controls","confirmNew","confirmDel"].includes(state)){ox=oy=0;titleScreen();return}
+/* menus e telas de título são desenhados num espaço de 640 de largura, centralizado; os cliques são corrigidos pelo deslocamento */
+let UIX=0;
+function hitArr(){const a=[];a.push=function(...hs){for(const h of hs)h.x+=UIX;return Array.prototype.push.apply(this,hs)};return a}
+function ui640(fn,bg){const off=Math.round((VW-640)/2);if(off<=0){fn();return}const vw=VW;if(bg)bg();else{X.fillStyle="rgba(8,6,4,.6)";X.fillRect(0,0,off,VH);X.fillRect(VW-off,0,off,VH)}
+ X.save();X.translate(off,0);UIX=off;VW=640;try{fn()}finally{VW=vw;UIX=0;X.restore()}}
+function draw(){HIT=hitArr();X.setTransform(Q,0,0,Q,0,0);X.imageSmoothingEnabled=SMOOTH;X.fillStyle="#000";X.fillRect(0,0,VW,VH);
+ if(!PL.length||["title","online","connecting","controls","confirmNew","confirmDel"].includes(state)){ox=oy=0;ui640(titleScreen,titleBg);return}
  LT=[];GL=[];ox=-Math.round(camx+(R()-.5)*shake);oy=-Math.round(camy+(R()-.5)*shake);
  ground();barrier();seal();village();fortress();
  for(const p of plants){if(Math.abs(p.x-camx-VW/2)>VW||Math.abs(p.y-camy-VH/2)>VH)continue;const sw=Math.sin(time*2+p.x)*.06;spr(HERB,p.x,p.y+8,0,1+sw,1);LT.push([p.x,p.y,50,.35]);GL.push([p.x,p.y,18,"120,255,120",.18+.08*Math.sin(time*3+p.x)])}
@@ -1906,8 +1921,10 @@ function draw(){HIT=[];X.setTransform(Q,0,0,Q,0,0);X.imageSmoothingEnabled=SMOOT
  for(const n of nums){X.globalAlpha=Math.min(1,n.t*2);const sz=typeof n.v==="string"&&isNaN(parseInt(n.v))?17:n.big?30:24;X.font=sz+"px "+FT;X.textAlign="center";X.lineWidth=4;X.strokeStyle="#000";X.strokeText(String(n.v),n.x+ox,n.y+oy);X.fillStyle=n.c;X.fillText(String(n.v),n.x+ox,n.y+oy);X.textAlign="left";X.globalAlpha=1}
  nameAt();X.drawImage(VG,0,0);hud();
  /* nome da música que começou a tocar */
- if(state==="play"&&musLbl&&performance.now()<musLblT){const a=Math.min(1,(musLblT-performance.now())/800);X.globalAlpha=a;txt("♪ "+musLbl,VW-12,PL.length>1?VH-10:(showMM?114:24),"#d0b8ff",15,"right");X.globalAlpha=1}if(MODE==="cel"&&state==="play")touchUI();if(OVER.includes(state))overlay()}
+ if(state==="play"&&musLbl&&performance.now()<musLblT){const a=Math.min(1,(musLblT-performance.now())/800);X.globalAlpha=a;txt("♪ "+musLbl,VW-12,PL.length>1?VH-10:(showMM?114:24),"#d0b8ff",15,"right");X.globalAlpha=1}if(MODE==="cel"&&state==="play")touchUI();if(OVER.includes(state))ui640(overlay)}
 /* ===== Celular: joystick à esquerda, botões à direita ===== */
+/* ao mudar o tamanho da janela (ou girar o celular), o jogo se ajusta */
+addEventListener("resize",()=>{const w0=VW;fitView();if(VW!==w0){rebuildView();const q=Q;Q=0;setQ(q);try{TB.forEach(b=>{if(b.dx===undefined)b.dx=w0-b.x;b.x=VW-b.dx})}catch(e){}}});
 const TJ={id:null,cx:86,cy:VH-96,x:0,y:0},TB=[{k:"act",l:"AGIR",x:VW-74,y:VH-92,r:36,c:"#ffe14a"},{k:"dash",l:"DASH",x:VW-150,y:VH-56,r:27,c:"#7fe0ff"},{k:"heal",l:"CURA",x:VW-150,y:VH-130,r:25,c:"#7aff7a"},
  {k:"tree",l:"ÁRVORE",x:VW-46,y:VH-176,r:20,c:"#d0b8ff"},{k:"pause",l:"MENU",x:VW-104,y:VH-196,r:20,c:"#d8c8a0"}];
 const TP=new Map();
