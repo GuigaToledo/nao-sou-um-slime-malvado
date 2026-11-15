@@ -121,115 +121,141 @@ const lvTier=d=>d>=10?2:d>=5?1:0,TIER_MUL=[1,1.5,2],TIER_COL=["#7aff7a","#ffe14a
 const PCOL=["#4cc2f0","#f07ac8","#7ad85a","#f0c84a","#b48aff","#ff6a4a","#eef2f8","#3ad0b8"],PNAME=["Azul","Rosa","Verde","Ouro","Roxo","Vermelho","Branco","Turquesa"],NCOL=PCOL.length;
 const NAMES=["Gosminha","Bolota","Geleia","Pudim","Gotinha","Blob","Mochi","Bolhinha"];
 const VNAMES=["Tempestópolis","Vila Gosma","Refúgio Azul","Nova Esperança","Bosque Livre","Pedra Lunar"];
-/* ===== Áudio: efeitos e música (estilos eletrônicos que mudam a cada 4 min; cada chefe com a sua) ===== */
-let AC=null,MG=null,SND=1,NB=null,MUSG=null,SFXG=null,BUS=null;
+/* ===== Áudio (v3.7): música eletrônica "feita na Idade Média" (alaúde, harpa, flauta doce, charamela, rabeca,
+   sanfona de roda e tambores) com reverberação de salão, compressor no final e sons para monstros, ataques e magias ===== */
+let AC=null,MG=null,SND=1,NB=null,MUSG=null,SFXG=null,BUS=null,REVIN=null,COMP=null,PANOK=1;
 /* volume separado da música e dos efeitos (0 = mudo), salvo no navegador */
 const AUD=(()=>{try{const o=JSON.parse(localStorage.getItem("nsm-audio")||"{}");return{mus:clamp(+o.mus>=0?+o.mus:.8,0,1),sfx:clamp(+o.sfx>=0?+o.sfx:1,0,1)}}catch(e){return{mus:.8,sfx:1}}})();
-function applyVol(){if(MUSG)MUSG.gain.value=AUD.mus;if(SFXG)SFXG.gain.value=AUD.sfx;try{localStorage.setItem("nsm-audio",JSON.stringify(AUD))}catch(e){}}
+function applyVol(){if(MUSG)MUSG.gain.value=AUD.mus*.9;if(SFXG)SFXG.gain.value=AUD.sfx;try{localStorage.setItem("nsm-audio",JSON.stringify(AUD))}catch(e){}}
 /* setas: sobe/desce e para no 0% e no 100%; apertar o item: desce até mudo e volta para 100% */
 function stepVol(k,d,cyc){const v=Math.round(AUD[k]*5)+d;AUD[k]=cyc?(v<0?1:v/5):clamp(v,0,5)/5;applyVol()}
 const volTxt=v=>v<=0?"mudo":Math.round(v*100)+"%";
-function ensureAudio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();MG.gain.value=.55;MG.connect(AC.destination);MUSG=AC.createGain();MUSG.connect(MG);SFXG=AC.createGain();SFXG.connect(MG);applyVol()}catch(e){AC=null}}if(AC&&AC.state==="suspended")AC.resume().catch(()=>{})}
+/* resposta de sala (reverberação) gerada por código: ruído que some aos poucos, um pouco diferente em cada ouvido */
+function mkIR(sec,dec){const r=AC.sampleRate,n=r*sec|0,b=AC.createBuffer(2,n,r);for(let c=0;c<2;c++){const d=b.getChannelData(c);let lp=0;for(let i=0;i<n;i++){lp+=(Math.random()*2-1-lp)*(.35+.4*(1-i/n));d[i]=lp*Math.pow(1-i/n,dec)}}return b}
+/* corda dedilhada (Karplus-Strong): gera uma vez e toca em qualquer nota mudando a velocidade */
+let LUTEB=null,HARPB=null;const KSF=220;
+function ksBuf(f,sec,damp,bright){const r=AC.sampleRate,n=r*sec|0,b=AC.createBuffer(1,n,r),d=b.getChannelData(0),P=Math.max(2,Math.round(r/f)),L=new Float32Array(P);let pv=0;
+ for(let i=0;i<P;i++){pv+=(Math.random()*2-1-pv)*bright;L[i]=pv}let i=0,mx=0;for(let k=0;k<n;k++){const a=L[i],b2=L[(i+1)%P];d[k]=a;L[i]=(a+b2)*.5*damp;i=(i+1)%P;mx=Math.max(mx,Math.abs(a))}
+ for(let k=0;k<n;k++)d[k]/=mx||1;return b}
+function ensureAudio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();MG.gain.value=.62;
+  COMP=AC.createDynamicsCompressor();COMP.threshold.value=-16;COMP.knee.value=12;COMP.ratio.value=4;COMP.attack.value=.004;COMP.release.value=.22;MG.connect(COMP);COMP.connect(AC.destination);
+  MUSG=AC.createGain();MUSG.connect(MG);SFXG=AC.createGain();SFXG.connect(MG);
+  const cv=AC.createConvolver();cv.buffer=mkIR(2.6,2.4);REVIN=AC.createGain();REVIN.gain.value=1;const ro=AC.createGain();ro.gain.value=.55;REVIN.connect(cv);cv.connect(ro);ro.connect(MG);
+  LUTEB=ksBuf(KSF,2.4,.9965,.55);HARPB=ksBuf(KSF,3.2,.9985,.85);PANOK=!!AC.createStereoPanner;applyVol()}catch(e){AC=null}}if(AC&&AC.state==="suspended")AC.resume().catch(()=>{})}
 const OUTB=()=>BUS||SFXG||MG;
+/* saída de uma nota: volume, lado (pan) e quanto vai para a reverberação */
+function outN(v,pan,rv,t){const g=AC.createGain();g.gain.value=v;let n=g;if(pan&&PANOK){const p=AC.createStereoPanner();p.pan.value=clamp(pan,-1,1);g.connect(p);n=p}n.connect(OUTB());if(rv&&REVIN){const s=AC.createGain();s.gain.value=rv;g.connect(s);s.connect(REVIN)}return g}
 function tone(f,d,type="square",v=.05,f2=0,del=0,at=0,cut=0){if(!AC||!SND)return;try{const t=at||AC.currentTime+del,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(Math.max(20,f2),t+d);
- g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);let n=o;if(cut){const fl=AC.createBiquadFilter();fl.type="lowpass";fl.frequency.setValueAtTime(cut,t);fl.Q.value=6;o.connect(fl);n=fl}n.connect(g);g.connect(OUTB());o.start(t);o.stop(t+d+.03)}catch(e){}}
-function noise(d,v=.05,fq=1200,del=0,at=0,type="lowpass"){if(!AC||!SND)return;try{if(!NB){NB=AC.createBuffer(1,AC.sampleRate*.6|0,AC.sampleRate);const a=NB.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1}
- const t=at||AC.currentTime+del,s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=NB;f.type=type;f.frequency.value=fq;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(OUTB());s.start(t);s.stop(t+d+.03)}catch(e){}}
-const kick=(at,v=.32)=>tone(150,.28,"sine",v,42,0,at);
-const hat=(at,v=.03,d=.04)=>noise(d,v,7000,0,at,"highpass");
-const snare=(at,v=.12)=>{noise(.16,v,2200,0,at,"bandpass");tone(190,.1,"triangle",v*.6,120,0,at)};
-const rim=(at,v=.05)=>tone(1700,.03,"square",v,800,0,at);
-function reese(f,d,at,v=.07){tone(f,d,"sawtooth",v,0,0,at,520);tone(f*1.012,d,"sawtooth",v,0,0,at,520);tone(f/2,d,"sine",v*1.3,0,0,at)}
-const SFX={
- hit:()=>{tone(260,.07,"square",.035,120);noise(.05,.035,2400)},swing:()=>noise(.06,.02,3200),crit:()=>{tone(880,.08,"square",.04,1400);noise(.08,.05,5000)},
- devour:()=>{tone(180,.18,"sawtooth",.04,520);tone(520,.15,"triangle",.04,880,.12)},
- newform:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.16,"square",.04,0,i*.07)),
- lvl:()=>[392,523,659,784,1047].forEach((f,i)=>tone(f,.25,"triangle",.06,0,i*.08)),
- hurt:()=>{tone(140,.15,"square",.05,70);noise(.1,.04,900)},kill:()=>{noise(.18,.05,800);tone(110,.2,"triangle",.05,50)},
- fire:()=>noise(.35,.05,1400),frost:()=>{noise(.3,.035,4000);tone(1200,.2,"sine",.02,600)},
- bolt:()=>{noise(.12,.07,6000);tone(80,.2,"sawtooth",.045,40)},stomp:()=>{tone(70,.3,"sine",.1,35);noise(.25,.07,500)},
- shoot:()=>tone(600,.08,"square",.025,300),web:()=>tone(900,.12,"triangle",.03,1400),
- ui:()=>tone(660,.05,"square",.025),ok:()=>{tone(523,.08,"square",.035);tone(784,.1,"square",.035,0,.06)},
- chest:()=>[659,784,988,1319].forEach((f,i)=>tone(f,.18,"triangle",.05,0,i*.09)),
- crack:()=>{noise(.3,.08,700);tone(90,.25,"square",.045,45)},roar:()=>{tone(90,.8,"sawtooth",.07,45);noise(.8,.05,500)},
- wave:()=>[220,220,330].forEach((f,i)=>tone(f,.25,"sawtooth",.045,0,i*.28)),summon:()=>tone(300,.25,"sine",.05,900),
- heal:()=>[523,784,1047,1568].forEach((f,i)=>tone(f,.3,"sine",.045,0,i*.06)),dash:()=>{noise(.12,.04,2600);tone(400,.1,"sine",.03,900)},
- warn:()=>tone(330,.12,"square",.025,280),dodge:()=>tone(1200,.08,"sine",.03,1800),
- coin:()=>{tone(1320,.06,"square",.025);tone(1760,.09,"square",.025,0,.05)},
- dragon:()=>{tone(60,1.2,"sawtooth",.08,30);noise(.6,.08,6000,.1);[262,330,392,523].forEach((f,i)=>tone(f,.4,"triangle",.05,0,.3+i*.12))}};
-const sfxT={};function sfx(n){const now=performance.now();if(sfxT[n]&&now-sfxT[n]<70)return;sfxT[n]=now;if(SFX[n])SFX[n]()}
+ g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+d);let n=o;if(cut){const fl=AC.createBiquadFilter();fl.type="lowpass";fl.frequency.setValueAtTime(cut,t);fl.Q.value=2;o.connect(fl);n=fl}n.connect(g);g.connect(OUTB());o.start(t);o.stop(t+d+.03)}catch(e){}}
+function noise(d,v=.05,fq=1200,del=0,at=0,type="lowpass"){if(!AC||!SND)return;try{if(!NB){NB=AC.createBuffer(1,AC.sampleRate*1.2|0,AC.sampleRate);const a=NB.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1}
+ const t=at||AC.currentTime+del,s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=NB;s.loop=true;f.type=type;f.frequency.value=fq;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(OUTB());s.start(t,Math.random()*.5);s.stop(t+d+.03)}catch(e){}}
+/* ---------- síntese: oscilador e ruído com filtro, envelope, vibrato, lado e reverberação ---------- */
+function osc(o){if(!AC||!SND)return;try{const t=o.at||AC.currentTime,d=o.d||.2,a=o.a||.005,v=o.v||.05,x=AC.createOscillator(),g=AC.createGain();x.type=o.w||"sine";x.frequency.setValueAtTime(o.f,t);
+ if(o.f2)x.frequency.exponentialRampToValueAtTime(Math.max(20,o.f2),t+(o.fd||d));if(o.det)x.detune.value=o.det;
+ if(o.vib){const l=AC.createOscillator(),lg=AC.createGain();l.frequency.value=o.vr||5.5;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(o.f*o.vib,t+Math.min(.25,d*.5));l.connect(lg);lg.connect(x.frequency);l.start(t);l.stop(t+d+.1)}
+ g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+a);if(o.s)g.gain.setValueAtTime(v,t+Math.max(a,d-o.s));g.gain.exponentialRampToValueAtTime(.0001,t+d);
+ let n=x;if(o.lp){const f=AC.createBiquadFilter();f.type=o.ft||"lowpass";f.frequency.setValueAtTime(o.lp,t);if(o.lp2)f.frequency.exponentialRampToValueAtTime(o.lp2,t+d);f.Q.value=o.q||1;x.connect(f);n=f}
+ n.connect(g);g.connect(outN(1,o.pan||0,o.rv||0,t));x.start(t);x.stop(t+d+.05)}catch(e){}}
+function nz(o){if(!AC||!SND)return;try{if(!NB)noise(.01,0);const t=o.at||AC.currentTime,d=o.d||.2,v=o.v||.05,s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=NB;s.loop=true;f.type=o.ft||"bandpass";f.frequency.setValueAtTime(o.f||1200,t);if(o.f2)f.frequency.exponentialRampToValueAtTime(o.f2,t+d);f.Q.value=o.q||1;
+ g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+(o.a||.004));g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(outN(1,o.pan||0,o.rv||0,t));s.start(t,Math.random()*.8);s.stop(t+d+.05)}catch(e){}}
+/* corda dedilhada (alaúde ou harpa) */
+function pluck(f,at,d,v,harp,pan=0){if(!AC||!SND||!LUTEB)return;try{const s=AC.createBufferSource(),g=AC.createGain(),fl=AC.createBiquadFilter();s.buffer=harp?HARPB:LUTEB;s.playbackRate.value=f/KSF;fl.type="lowpass";fl.frequency.value=harp?5200:3200;
+ g.gain.setValueAtTime(v,at);g.gain.setValueAtTime(v,at+d*.8);g.gain.exponentialRampToValueAtTime(.0001,at+d+.35);s.connect(fl);fl.connect(g);g.connect(outN(1,pan,harp?.35:.22,at));s.start(at);s.stop(at+d+.4)}catch(e){}}
+/* ---------- instrumentos medievais ---------- */
 const mf=n=>440*2**((n-69)/12);
-/* eco (delay com retorno) para os acordes de dub techno e os gritos do jungle */
+const INS={
+ lute:(n,at,d,v,p)=>pluck(mf(n),at,Math.max(.25,d),v*1.4,0,p),
+ harp:(n,at,d,v,p)=>pluck(mf(n),at,Math.max(.5,d),v*1.2,1,p),
+ /* flauta doce: quase senoidal, sopro no começo e vibrato */
+ rec:(n,at,d,v,p)=>{const f=mf(n);osc({f,at,d:d+.06,a:.03,s:.05,v:v*.55,w:"triangle",lp:f*3.2,vib:.006,vr:5.2,pan:p,rv:.32});osc({f,at,d:d+.06,a:.03,s:.05,v:v*.35,pan:p,rv:.32});nz({f:f*2.2,at,d:.07,v:v*.12,q:2,pan:p})},
+ /* charamela: palheta anasalada */
+ shawm:(n,at,d,v,p)=>{const f=mf(n);osc({f,at,d:d+.05,a:.02,s:.04,v:v*.42,w:"sawtooth",lp:2400,ft:"lowpass",vib:.004,vr:6,pan:p,rv:.22});osc({f,at,d:d+.05,a:.02,s:.04,v:v*.16,w:"square",lp:1300,ft:"bandpass",q:3,pan:p,rv:.22})},
+ /* rabeca: arco com ataque macio */
+ fiddle:(n,at,d,v,p)=>{const f=mf(n);osc({f,at,d:d+.12,a:.06,s:.1,v:v*.4,w:"sawtooth",lp:2600,vib:.008,vr:5.8,pan:p,rv:.3});osc({f:f*1.003,at,d:d+.12,a:.06,s:.1,v:v*.2,w:"sawtooth",lp:1800,pan:p,rv:.3})},
+ /* sanfona de roda / gaita: bordão grave e contínuo */
+ drone:(n,at,d,v)=>{for(const[k,m]of[[0,1],[7,.6],[-12,.7]]){const f=mf(n+k);osc({f,at,d,a:.25,s:.3,v:v*.18*m,w:"sawtooth",lp:900,rv:.2});osc({f:f*1.004,at,d,a:.25,s:.3,v:v*.1*m,w:"sawtooth",lp:700,rv:.2})}nz({f:mf(n)*4,at,d:d*.9,a:.2,v:v*.02,q:6})},
+ /* viola de gamba grave (o "reese" das músicas rápidas) */
+ viol:(n,at,d,v)=>{const f=mf(n);osc({f,at,d:d+.05,a:.03,s:.06,v:v*.45,w:"sawtooth",lp:520,rv:.08});osc({f:f*1.012,at,d:d+.05,a:.03,s:.06,v:v*.32,w:"sawtooth",lp:480,rv:.08});osc({f:f/2,at,d:d+.05,a:.02,s:.06,v:v*.4,rv:.04})},
+ /* sino de igreja pequeno */
+ bell:(n,at,d,v,p)=>{const f=mf(n);for(const[k,m]of[[1,1],[2.76,.45],[5.4,.22],[8.9,.08]])osc({f:f*k,at,d:Math.max(.6,d)*(1.6-k*.1),a:.002,v:v*.28*m,pan:p,rv:.45})},
+ /* cromorno de filtro (o "ácido" da Idade Média) */
+ acid:(n,at,d,v,p,cut)=>{osc({f:mf(n),at,d:d+.02,a:.004,s:.02,v:v*.42,w:"sawtooth",lp:cut||900,lp2:Math.max(200,(cut||900)*.4),q:9,pan:p,rv:.12})}};
+/* tambores: tabor (grave), caixa com esteira, pandeiro e palmas */
+const tabor=(at,v=.3)=>{osc({f:118,f2:46,fd:.2,at,d:.32,a:.002,v:v*1.1,rv:.12});nz({f:180,ft:"lowpass",at,d:.09,v:v*.25})};
+const drumS=(at,v=.12)=>{nz({f:1700,q:.8,at,d:.18,v:v*1.2,rv:.18});osc({f:240,f2:170,at,d:.09,a:.002,v:v*.5,w:"triangle"})};
+const jingle=(at,v=.04,long)=>{for(let i=0;i<3;i++)nz({f:7600+i*900,q:4,at:at+i*.011,d:long?.22:.07,v:v,ft:"bandpass",rv:.15});osc({f:5200,at,d:long?.25:.08,v:v*.25,w:"square",lp:9000})};
+const clap=(at,v=.08)=>{for(let i=0;i<3;i++)nz({f:1500,q:1.2,at:at+i*.009,d:.1,v:v*.9,rv:.25})};
+const frameD=(at,v=.15)=>{osc({f:82,f2:60,at,d:.22,a:.002,v:v,rv:.1});nz({f:900,q:1,at,d:.05,v:v*.25})};
+/* ---------- temas: ritmo e baixo de cada estilo eletrônico, tocados com instrumentos antigos ----------
+   melodias: 16 posições por compasso; número = grau da escala (0 = tônica, 7 = oitava acima), "." segura a nota, "_" é pausa */
+const SC={dor:[0,2,3,5,7,9,10],aeo:[0,2,3,5,7,8,10],mix:[0,2,4,5,7,9,10],ion:[0,2,4,5,7,9,11],phr:[0,1,3,5,7,8,10]};
+function melParse(bars){return bars.map(b=>{const tk=b.trim().split(/\s+/),ev=[];for(let i=0;i<16;i++){const k=tk[i]||".";if(k==="."||k==="_")continue;let n=i+1;while(n<16&&(tk[n]||".")===".")n++;ev.push([i,+k,n-i])}return ev})}
+const pat=s=>{const a=[];for(let i=0;i<16;i++){const c=s[i]||".";a.push(c==="X"?2:c==="x"?1:0)}return a};
+const TH={
+ minimal:{n:"Minimal Techno",bpm:124,root:50,mode:"dor",prog:[0,0,3,4],k:"x...x...x...x...",s:"............x...",j:"..x...x...x...x.",bass:"0 . . _ . . 0 . . _ 4 . . _ 0 .",strum:"......x.......x.",lead:"rec",drone:1,
+  A:["4 . . . 3 . 4 . 5 . . . 4 . 3 .","2 . . . 1 . 2 . 3 . . . 2 . . .","4 . . . 3 . 4 . 5 . 7 . 6 . 5 .","4 . . . 2 . 3 . 1 . . . 0 . . ."],
+  B:["7 . . . 6 . 5 . 6 . . . 4 . . .","5 . . . 4 . 3 . 4 . . . 2 . . .","3 . 4 . 5 . 3 . 4 . 2 . 3 . 1 .","2 . 1 . 0 . . . _ . . . 0 . 1 ."]},
+ dubtechno:{n:"Dub Techno",bpm:118,root:45,mode:"aeo",prog:[0,0,5,3],k:"x...x...x...x...",s:"",j:"..x...x...x...x.",bass:"_ . 0 . . . _ . _ . 0 . . . _ .",strum:"...x.......x....",echo:1,lead:"fiddle",drone:1,
+  A:["0 . . . . . . . 2 . . . 4 . . .","3 . . . . . . . 2 . . . 0 . . .","4 . . . . . . . 5 . . . 6 . . .","7 . . . . . . . 6 . 5 . 4 . . ."],
+  B:["9 . . . . . . . 7 . . . 8 . . .","7 . . . . . . . 5 . . . 4 . . .","3 . . . 4 . . . 5 . . . 4 . . .","2 . . . . . . . 0 . . . . . . ."]},
+ house:{n:"House",bpm:122,root:43,mode:"mix",prog:[0,6,5,4],k:"x...x...x...x...",s:"....x.......x...",cl:1,j:"..X...X...X...X.",bass:"_ . 0 . _ . 0 7 _ . 0 . _ . 0 7",strum:"...x..x...x..x..",lead:"rec",bells:1,
+  A:["_ . 4 . 4 . 5 . 4 . 2 . 0 . . .","_ . 4 . 4 . 5 . 6 . 7 . 6 . . .","_ . 7 . 7 . 6 . 5 . 4 . 5 . . .","4 . 2 . 1 . 2 . 0 . . . _ . . ."],
+  B:["7 . . . 9 . . . 8 . 7 . 6 . . .","5 . . . 7 . . . 6 . 5 . 4 . . .","4 . 5 . 6 . 7 . 8 . 7 . 6 . 5 .","4 . . . 2 . . . 0 . . . . . . ."]},
+ techhouse:{n:"Tech House",bpm:125,root:40,mode:"dor",prog:[0,0,3,0],k:"x...x...x...x...",s:"....x.......x...",cl:1,j:"x.X.x.X.x.X.x.X.",swing:.022,bass:"_ . 0 0 _ 0 _ 0 _ . 0 0 _ 0 4 _",strum:"",lead:"fiddle",drone:1,
+  A:["0 . _ 0 . _ 2 . 3 . _ 2 . _ 0 .","_ . _ . 4 . 3 . 2 . 0 . _ . . .","0 . _ 0 . _ 2 . 3 . _ 4 . _ 5 .","4 . 3 . 2 . _ . 0 . . . _ . . ."],
+  B:["7 . _ 7 . _ 6 . 5 . _ 4 . _ 3 .","4 . . . 2 . . . 3 . . . 1 . . .","7 . _ 7 . _ 6 . 5 . _ 6 . _ 7 .","8 . . . 7 . . . 6 . . . 4 . . ."]},
+ acidhouse:{n:"Acid House",bpm:126,root:45,mode:"phr",prog:[0,0,0,1],k:"x...x...x...x...",s:"....x.......x...",cl:1,j:"..X...X...X...X.",acid:1,strum:"",lead:"shawm",
+  A:["0 . 1 . 0 . 3 . _ . 0 . 4 . 3 .","1 . 0 . _ . 6 . 7 . 6 . 4 . 3 .","0 . 1 . 0 . 3 . _ . 0 . 4 . 5 .","4 . 3 . 1 . 0 . _ . . . 0 . . ."],
+  B:["7 . 8 . 7 . 5 . 4 . 3 . 4 . 5 .","4 . 3 . 1 . 3 . 4 . . . . . . .","7 . 8 . 9 . 8 . 7 . 5 . 4 . 3 .","1 . . . 0 . . . _ . . . . . . ."]},
+ techno:{n:"Techno",bpm:132,root:48,mode:"aeo",prog:[0,0,5,6],k:"x...x...x...x...",s:"....x.......x...",j:"x.x.X.x.x.x.X.x.",bass:"0 0 _ 0 0 _ 0 0 _ 0 0 _ 0 0 3 .",strum:"",lead:"shawm",drone:1,
+  A:["0 . 0 . 3 . 0 . 4 . 0 . 3 . 2 .","0 . 0 . 3 . 0 . 5 . 4 . 3 . 2 .","0 . 0 . 3 . 0 . 4 . 0 . 6 . 5 .","4 . 3 . 2 . 3 . 0 . . . . . . ."],
+  B:["7 . . . 6 . . . 5 . . . 4 . . .","3 . . . 4 . . . 5 . . . 2 . . .","7 . 7 . 8 . 7 . 6 . 5 . 4 . 3 .","2 . . . 1 . . . 0 . . . . . . ."]},
+ waves:{n:"Tambores de guerra",bpm:130,root:50,mode:"phr",prog:[0,0,1,0],k:"x..xx...x..xx...",s:"....x.......x.x.",j:".x.x.x.x.x.x.x.x",bass:"0 . 0 . _ 0 0 . 0 . 0 . _ 0 1 .",strum:"",lead:"shawm",drone:1,
+  A:["0 . . 0 1 . 0 . 3 . . . 2 . 1 .","0 . . 0 1 . 0 . -1 . . . -2 . . .","0 . . 0 1 . 0 . 3 . . . 4 . 5 .","4 . 3 . 1 . . . 0 . . . . . . ."],
+  B:["7 . . . 7 . 8 . 7 . 5 . 4 . . .","3 . . . 4 . 3 . 1 . . . 0 . . .","7 . . 7 8 . 7 . 5 . 4 . 3 . . .","1 . 0 . 1 . 3 . 0 . . . . . . ."]},
+ dnb:{n:"Drum and Bass",bpm:172,root:40,mode:"aeo",prog:[0,0,5,3],k:"x.........x.....",s:"....x..x.x..x...",j:"x.x.x.x.x.x.x.x.",viol:1,arp:1,strum:"",lead:"fiddle",
+  A:["7 . . . 6 . 7 . 4 . . . . . . .","5 . . . 4 . 5 . 2 . . . . . . .","3 . . . 2 . 3 . 4 . 5 . 6 . 7 .","6 . . . 4 . . . 7 . . . . . . ."],
+  B:["9 . 8 . 7 . 8 . 9 . . . 11 . . .","10 . 9 . 8 . 9 . 7 . . . . . . .","9 . 8 . 7 . 6 . 5 . 6 . 7 . 4 .","5 . . . 6 . . . 7 . . . . . . ."]},
+ jungle:{n:"Jungle",bpm:164,root:50,mode:"dor",prog:[0,0,6,3],k:"x.x.......xx....",s:"....x..x.x..x..x",j:"x.x.x.x.x.x.x.x.",sub:1,arp:1,strum:"",lead:"rec",
+  A:["0 . 2 . 4 . 2 . 3 . . . 1 . . .","0 . 2 . 4 . 5 . 4 . . . . . . .","6 . 5 . 4 . 3 . 4 . 2 . 3 . 1 .","2 . . . 0 . . . . . . . . . . ."],
+  B:["7 . . . 9 . . . 8 . 7 . 6 . . .","7 . . . 5 . . . 4 . . . . . . .","4 . 5 . 6 . 7 . 8 . 6 . 7 . 5 .","6 . 4 . 5 . 3 . 4 . . . . . . ."]},
+ breakbeat:{n:"Breakbeat",bpm:135,root:43,mode:"aeo",prog:[0,0,5,6],k:"x..x......x.....",s:"....x..x....x.x.",j:"x.x.x.X.x.x.x.x.",bass:"0 . . 0 . . 3 . _ . 0 4 . . 6 .",strum:"x.........x.....",lead:"shawm",
+  A:["0 . . 3 . . 4 . 5 . . 4 . . 3 .","0 . . 3 . . 4 . 7 . . . 6 . . .","5 . . 4 . . 3 . 4 . . 3 . . 1 .","0 . . . . . . . _ . . . . . . ."],
+  B:["7 . . 7 . . 6 . 7 . . 9 . . 7 .","6 . . 5 . . 4 . 3 . . . . . . .","4 . . 5 . . 6 . 7 . . 6 . . 4 .","5 . . . 4 . . . 3 . . . . . . ."]},
+ party:{n:"Festa do DJ",bpm:124,root:48,mode:"ion",prog:[0,5,3,4],k:"x...x...x...x...",s:"....x.......x...",cl:1,j:"..X...X...X...X.",bass:"0 . _ . 0 . 4 _ 0 . _ . 0 . 4 _",strum:"..x...x...x...x.",lead:"rec",bells:1,
+  A:["0 . 2 . 4 . 7 . 6 . 4 . 5 . 2 .","3 . 5 . 4 . 2 . 1 . . . . . . .","0 . 2 . 4 . 7 . 9 . 7 . 8 . 6 .","7 . 4 . 2 . 1 . 0 . . . . . . ."],
+  B:["4 . 4 . 5 . 4 . 3 . 3 . 4 . 3 .","2 . 2 . 3 . 2 . 1 . . . 0 . . .","4 . 5 . 6 . 7 . 8 . 7 . 6 . 5 .","4 . 2 . 1 . . . 0 . . . . . . ."]}};
+for(const k in TH){const t=TH[k];t.Ae=melParse(t.A);t.Be=melParse(t.B);t.K=pat(t.k);t.S=pat(t.s||"");t.J=pat(t.j||"");t.ST=pat(t.strum||"");t.BE=t.bass?melParse([t.bass])[0]:[]}
+const scN=(t,d)=>{const S=SC[t.mode],o=Math.floor(d/7),i=((d%7)+7)%7;return t.root+S[i]+12*o};
+const ACIDSQ=[0,0,7,0,2,0,0,4,0,7,0,6,0,2,3,4],ACIDAC=[1,0,1,0,0,1,0,0,1,0,1,0,0,1,0,1];
+/* um passo de 1/16 de qualquer tema; a cada 4 compassos muda a parte: introdução, A, B, A com tudo */
+function thStep(t,s,at){const st=60/t.bpm/4,b=s%16,bar=s>>4,sec=(bar>>2)%4,cr=t.prog[bar%4],sw=b%2&&t.swing?t.swing:0;at+=sw;
+ const chordN=k=>scN(t,cr+k),full=sec>=1;
+ if(t.K[b])tabor(at,t.K[b]>1?.36:.3);
+ if(t.S[b]&&(full||bar%2))(t.cl&&b%8===4?clap:drumS)(at,b===4||b===12?.12:.06);
+ if(t.J[b])jingle(at,t.J[b]>1?.03:.014,t.J[b]>1);
+ if(b===0&&t.drone)INS.drone(chordN(0)-12,at,st*16+.1,full?.9:.7);
+ /* baixo */
+ if(t.viol){if(b===0)INS.viol(chordN(0)-24,at,st*14,1);if(b===10&&bar%2)INS.viol(chordN(0)-24,at,st*5,.7)}
+ else if(t.sub){if(b===0)osc({f:mf(chordN(0)-24),at,d:st*15,a:.01,s:.1,v:.16})}
+ else if(t.acid){const n=ACIDSQ[b];if(!(sec===0&&bar%4<2)&&(b%2===0||ACIDAC[b]))INS.acid(chordN(n)-12,at,st*.9,ACIDAC[b]?1.1:.8,0,320+1700*(.5+.5*Math.sin(s/44))+ACIDAC[b]*600)}
+ else for(const[i,d]of t.BE)if(i===b)INS.lute(chordN(d)-24,at,st*1.6,.9,0);
+ /* acordes de alaúde (com eco no dub) e arpejo de harpa */
+ if(t.ST[b]&&full){const ns=[0,2,4].map(k=>chordN(k)-12);ns.forEach((n,i)=>{if(t.echo)etone(mf(n),.4,"triangle",.016,at+i*.012,1400);INS.lute(n,at+i*.014,st*3,.42,(i-1)*.3)})}
+ if(t.arp&&full&&b%2===0){const a=[0,2,4,7,4,2,0,2][(b>>1)%8];INS.harp(chordN(a),at,st*2,.28,(b%4?.35:-.35))}
+ if(t.bells&&b===0&&sec===3)INS.bell(chordN(7),at,1.4,.5,.4);
+ /* melodia */
+ if(sec>=1){const M=(sec===2?t.Be:t.Ae)[bar%4];for(const[i,d,len]of M)if(i===b)INS[t.lead](scN(t,d)+12*(t.lead==="rec"?1:0),at,len*st,sec===3?.95:.8,-.15);
+  /* segunda voz uma terça abaixo na última parte */
+  if(sec===3)for(const[i,d,len]of t.Ae[bar%4])if(i===b)INS.fiddle(scN(t,d-2),at,len*st,.35,.3)}}
+/* eco (delay com retorno) para os acordes de dub */
 let DLIN=null,DLY=null;
-function echoBus(){if(DLIN||!AC)return;try{DLIN=AC.createGain();DLIN.gain.value=1;DLY=AC.createDelay(1.5);DLY.delayTime.value=.375;const fb=AC.createGain();fb.gain.value=.48;const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=1600;const out=AC.createGain();out.gain.value=.6;
+function echoBus(){if(DLIN||!AC)return;try{DLIN=AC.createGain();DLIN.gain.value=1;DLY=AC.createDelay(1.5);DLY.delayTime.value=.375;const fb=AC.createGain();fb.gain.value=.45;const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=1600;const out=AC.createGain();out.gain.value=.8;
  DLIN.connect(DLY);DLY.connect(lp);lp.connect(fb);fb.connect(DLY);lp.connect(out);out.connect(MUSG||MG)}catch(e){DLIN=null}}
-/* nota com eco: igual a tone(), mas também manda para o delay */
-function etone(f,d,type,v,at,cut){if(!AC||!SND)return;echoBus();try{const o=AC.createOscillator(),g=AC.createGain(),fl=AC.createBiquadFilter();o.type=type;o.frequency.setValueAtTime(f,at);fl.type="lowpass";fl.frequency.setValueAtTime(cut,at);fl.Q.value=3;
+function etone(f,d,type,v,at,cut){if(!AC||!SND)return;echoBus();try{const o=AC.createOscillator(),g=AC.createGain(),fl=AC.createBiquadFilter();o.type=type;o.frequency.setValueAtTime(f,at);fl.type="lowpass";fl.frequency.setValueAtTime(cut,at);fl.Q.value=2;
  g.gain.setValueAtTime(v,at);g.gain.exponentialRampToValueAtTime(.0001,at+d);o.connect(fl);fl.connect(g);g.connect(OUTB());if(DLIN)g.connect(DLIN);o.start(at);o.stop(at+d+.03)}catch(e){}}
-const clap=(at,v=.08)=>{noise(.12,v,1600,0,at,"bandpass");noise(.08,v*.6,1600,0,at+.012,"bandpass")};
-const ohat=(at,v=.035)=>noise(.16,v,8000,0,at,"highpass");
-const ride=(at,v=.015)=>noise(.35,v,9500,0,at,"highpass");
-const chord=(ns,d,type,v,at,cut)=>{for(const n of ns)tone(mf(n),d,type,v,0,0,at,cut)};
-/* cada tema: bpm e uma função que toca um passo de 1/16; a cada 8 compassos muda a parte (sec) */
-const MUS={
- /* Minimal Techno: o tema original das cavernas */
- minimal:{bpm:124,step(s,at){const b=s%16,bar=(s>>4)%8;if(b%4===0)kick(at,.3);if(b%4===2)hat(at,.035,.06);else hat(at,.012);if(b===12||(b===7&&bar%2))rim(at,.045);
-  const bl=[0,0,0,3,0,0,5,0,0,0,0,3,0,0,7,0],n=bl[b];if(n)tone(mf(33+(bar>=4?2:0)+(n===7?7:n===5?5:0)),.12,"sawtooth",.06,0,0,at,380+260*Math.sin(s/40));
-  if(b===10&&bar%2===0){tone(mf(57),.18,"square",.018,0,0,at,1400);tone(mf(64),.18,"square",.014,0,0,at+.37,1100);tone(mf(64),.18,"square",.008,0,0,at+.74,900)}}},
- /* Dub Techno: acordes abafados com eco longo, grave redondo e chiado */
- dubtechno:{bpm:118,step(s,at){const b=s%16,bar=s>>4,sec=(bar>>3)%4,ch=[[50,53,57,60],[50,53,57,60],[48,51,55,58],[46,50,53,57]][(bar>>1)%4];
-  if(b%4===0)kick(at,.27);if(b%4===2)hat(at,.022,.05);if(sec&&b%2)hat(at,.006);if(b===0)noise(.9,.004,4000,0,at,"highpass");
-  const cut=450+380*(1+Math.sin(s/90));if(b===3||(sec>=2&&b===11))for(const n of ch)etone(mf(n),.26,"sawtooth",.011,at,cut);
-  if(b===2||b===10||(sec===3&&b===14))tone(mf(ch[0]-24),.2,"sine",.12,0,0,at);if(sec>=1&&b===12)etone(1500,.03,"square",.02,at,3000)}},
- /* House: piano sincopado, baixo em oitavas e palmas */
- house:{bpm:122,step(s,at){const b=s%16,bar=s>>4,sec=(bar>>3)%4,ch=[[57,60,64,67],[55,59,62,65],[53,57,60,64],[52,55,59,62]][bar%4];
-  if(b%4===0)kick(at,.31);if(b===4||b===12)clap(at,.075);if(b%4===2)ohat(at,.03);else if(b%2)hat(at,.01);
-  if((b===3||b===6||b===10||b===13)&&!(sec===0&&bar%32<4)){chord(ch,.17,"triangle",.022,at,3000);chord(ch.slice(1),.12,"square",.006,at,2400)}
-  if(b%4===2)tone(mf(ch[0]-24+(b===6||b===14?12:0)),.14,"sawtooth",.06,0,0,at,650);
-  if(sec===2&&b===0&&bar%2===0)tone(mf(76),.5,"sine",.02,mf(79),0,at)}},
- /* Tech House: baixo rolando, chimbal com balanço e percussão */
- techhouse:{bpm:125,step(s,at){const b=s%16,bar=s>>4,sec=(bar>>3)%4,sw=b%2?.022:0,root=[36,36,39,34][(bar>>1)%4];
-  if(b%4===0)kick(at,.34);if(b===4||b===12)clap(at,.07);if(b===15&&bar%4===3)clap(at+sw,.04);
-  hat(at+sw,b%4===2?.035:.011,b%4===2?.07:.03);if(sec>=1&&b%4===2)ohat(at,.018);
-  const bp=[0,0,1,1,0,1,0,1,0,0,1,1,0,1,1,0];if(bp[b])tone(mf(root+(b===14?7:b===7?3:0)),.09,"sawtooth",.075,0,0,at+sw,260+220*(1+Math.sin(s/56)));
-  if(b===6||b===11)rim(at+sw,.035);if(b===14&&bar%2)tone(mf(50),.14,"sine",.06,mf(43),0,at);
-  if(sec===2&&b===10&&bar%2===0)chord([root+24,root+27,root+31],.1,"square",.014,at,1800)}},
- /* Acid House: a linha "squelch" com filtro ressonante que abre e fecha */
- acidhouse:{bpm:126,step(s,at){const b=s%16,bar=s>>4,sec=(bar>>3)%4;
-  if(b%4===0)kick(at,.32);if(b===4||b===12)clap(at,.07);if(b%4===2)ohat(at,.03);else hat(at,.009);
-  const sq=[36,0,48,36,39,36,0,43,36,48,36,46,0,39,41,43],ac=[1,0,1,0,0,1,0,0,1,0,1,0,0,1,0,1],n=sq[b];
-  if(n&&!(sec===0&&bar%32<2)){const cut=280+1500*(.5+.5*Math.sin(s/44))+ac[b]*700;tone(mf(n+(sec===3?5:0)),.13,sec===2?"square":"sawtooth",ac[b]?.075:.05,b===7||b===15?mf(n+12):0,0,at,cut)}
-  if(b===0&&bar%8===0)chord([60,64,67,71],.6,"square",.012,at,1600)}},
- /* Techno: bumbo pesado com ronco, chimbal rápido, prato e golpe industrial */
- techno:{bpm:132,step(s,at){const b=s%16,bar=s>>4,sec=(bar>>3)%4;
-  if(b%4===0)kick(at,.38);if(b%4===1)tone(mf(29),.16,"sine",.07,mf(26),0,at);if(b%4===3)tone(mf(29),.08,"sine",.04,0,0,at);
-  if(b%4===2){hat(at,.04,.08);ride(at,.012)}else if(sec>=1)hat(at,.012);if((sec===1||sec===3)&&(b===4||b===12))clap(at,.06);
-  if(b===0&&bar%2===1){tone(mf(45),.32,"sawtooth",.035,mf(33),0,at,1300);noise(.2,.03,900,0,at)}
-  if(sec===2){const ar=[57,60,64,60,57,62,65,62][b%8];tone(mf(ar),.08,"square",.012,0,0,at,900+600*Math.sin(s/30))}}},
- /* Ondas de orcs na vila */
- waves:{bpm:130,step(s,at){const b=s%16;if(b%4===0)kick(at,.32);if(b%2===1)hat(at,.025);if(b%4===2)hat(at,.04,.07);if(b===4||b===12)snare(at,.07);
-  const bl=[1,0,0,1,0,0,1,0,0,1,0,0,1,0,3,0];if(bl[b])tone(mf(38+(bl[b]===3?3:0)),.11,"sawtooth",.06,0,0,at,700)}},
- /* chefe: Dragão Ancião — Drum and Bass */
- dnb:{bpm:172,step(s,at){const b=s%16,bar=(s>>4)%4;if(b===0||b===10||(b===7&&bar%2))kick(at,.36);if(b===4||b===12)snare(at,.15);if(b===14&&bar===3)snare(at,.08);if(b===7||b===15)snare(at,.025);
-  if(b%2===0)hat(at,.03);else hat(at,.012);if(b===0){const rn=[38,38,41,36][bar];reese(mf(rn-12),60/172*4*.95,at,.055)}
-  if(b===8&&bar%2)tone(mf(74),.1,"square",.016,0,0,at,2000)}},
- /* chefe: Rainha Aranha — Jungle (quebrada estilo amen, subgrave longo e grito com eco) */
- jungle:{bpm:164,step(s,at){const b=s%16,bar=s>>4,two=bar%2,K=two?[0,10]:[0,2,10,11],S=two?[4,7,9,12,13,14,15]:[4,7,9,12,15];
-  if(K.includes(b))kick(at,.33);if(S.includes(b))snare(at,b===4||b===12?.14:.05);if(b%2===0)hat(at,.022);if(b===6&&two)ride(at,.02);
-  if(b===0){const n=[38,38,36,41][(bar>>1)%4];tone(mf(n-12),60/164*4*.98,"sine",.15,0,0,at);if(bar%4===3)tone(mf(n-12),.4,"sine",.1,mf(n-17),0,at+60/164*2)}
-  if(b===6&&bar%4===1)for(const n of[62,65,69])etone(mf(n),.12,"square",.012,at,2200);
-  if(b===0&&bar%8===0)for(const n of[50,53,57])tone(mf(n),2.2,"triangle",.012,0,0,at)}},
- /* chefe: Lorde Orc — Breakbeat (batida funk quebrada, baixo sincopado e sirene rave) */
- breakbeat:{bpm:135,step(s,at){const b=s%16,bar=s>>4,sec=(bar>>3)%2;
-  if(b===0||b===3||b===10)kick(at,b===3?.2:.35);if(b===4||b===12)snare(at,.13);if(b===7||b===14)snare(at,.035);
-  if(b%2===0)hat(at,b%4===2?.035:.018);if(b===6)ohat(at,.03);
-  const bp={0:0,3:0,6:3,10:0,11:5,14:7},root=[40,40,43,38][(bar>>1)%4];if(b in bp)tone(mf(root-12+bp[b]),.11,"sawtooth",.07,0,0,at,900);
-  if(b===0&&bar%2===0){tone(mf(root+12),.5,"sawtooth",.025,mf(root+7),0,at,2000);tone(mf(root+12)*1.01,.5,"sawtooth",.025,mf(root+7),0,at,2000)}
-  if(sec&&b%4===2)tone(mf([64,67,71,67][(b>>2)]),.09,"square",.014,0,0,at,1600)}},
- /* Festa do DJ na vila */
- party:{bpm:124,step(s,at){const b=s%16,bar=(s>>4)%4,ch=[[57,60,64],[53,57,60],[55,59,62],[52,55,59]][bar];if(b%4===0)kick(at,.34);if(b%4===2){hat(at,.05,.08);tone(mf(ch[0]-24),.16,"sawtooth",.07,0,0,at,600)}else if(b%2)hat(at,.015);
-  if(b===4||b===12)snare(at,.09);if(b===2||b===6||b===10||b===14)for(const n of ch)tone(mf(n),.16,"square",.014,0,0,at,2200)}}};
-const MNAME={minimal:"Minimal Techno",dubtechno:"Dub Techno",house:"House",techhouse:"Tech House",acidhouse:"Acid House",techno:"Techno",waves:"Ondas de batalha",dnb:"Drum and Bass",jungle:"Jungle",breakbeat:"Breakbeat",party:"Festa do DJ"};
+const MUS={};for(const k in TH)MUS[k]={bpm:TH[k].bpm,step:(s,at)=>thStep(TH[k],s,at)};
+const MNAME={};for(const k in TH)MNAME[k]=TH[k].n+" · medieval";
 /* explorando: troca de estilo a cada 4 minutos (sem repetir o anterior) */
 const ROT=["minimal","dubtechno","house","techhouse","acidhouse","techno"],ROT_S=240;
 let rotI=0,rotT0=performance.now();
@@ -238,11 +264,95 @@ function rotTheme(){if(performance.now()-rotT0>ROT_S*1000){let n;do n=Math.floor
 const BOSS_MUS={[QUEEN]:"jungle",[LORD]:"breakbeat",[ANCIENT]:"dnb"};
 let musNext=0,musStep=0,musTheme="minimal",musLbl="",musLblT=0;
 function music(theme){if(!AC||!SND||AC.state!=="running")return;
- /* entre dois estilos da rotação, a troca espera o fim do compasso */
  if(theme!==musTheme&&(musStep%16===0||!(ROT.includes(theme)&&ROT.includes(musTheme)))){musTheme=theme;musStep=0;musNext=AC.currentTime+.05;musLbl=MNAME[theme]||"";musLblT=performance.now()+5000;
   echoBus();if(DLY)DLY.delayTime.setValueAtTime(60/MUS[theme].bpm*.75,AC.currentTime)}
  const m=MUS[musTheme],st=60/m.bpm/4;if(musNext<AC.currentTime)musNext=AC.currentTime+.05;
- BUS=MUSG;try{while(musNext<AC.currentTime+.18){m.step(musStep,musNext);musStep++;musNext+=st}}finally{BUS=null}}
+ BUS=MUSG;try{while(musNext<AC.currentTime+.2){m.step(musStep,musNext);musStep++;musNext+=st}}finally{BUS=null}}
+/* ---------- efeitos de interface e do jogador ---------- */
+let QS=0;/* quando 1, os sons antigos de dentro das magias ficam quietos (a magia já tocou o som próprio) */
+const SFX={
+ hit:()=>{nz({f:2200,q:.7,d:.06,v:.05});osc({f:220,f2:110,d:.08,v:.05,w:"triangle"})},
+ swing:()=>nz({f:1800,f2:5200,q:1.4,d:.12,v:.05,a:.02}),
+ crit:()=>{nz({f:5000,q:1,d:.1,v:.06});osc({f:880,f2:1600,d:.1,v:.04,w:"triangle"});osc({f:140,f2:60,d:.15,v:.08})},
+ devour:()=>{osc({f:180,f2:420,d:.2,v:.06,w:"triangle",lp:1200});osc({f:520,f2:900,at:AC.currentTime+.1,d:.15,v:.04});nz({f:500,q:3,d:.18,v:.04})},
+ newform:()=>[0,4,7,12].forEach((k,i)=>INS.harp(72+k,AC.currentTime+i*.07,.6,.5)),
+ lvl:()=>{[0,4,7,12,16].forEach((k,i)=>INS.harp(67+k,AC.currentTime+i*.08,.8,.55));INS.bell(91,AC.currentTime+.4,1.2,.4)},
+ hurt:()=>{osc({f:320,f2:150,d:.14,v:.06,w:"square",lp:1400});nz({f:900,q:1,d:.1,v:.05})},
+ kill:()=>{nz({f:700,f2:200,q:1,d:.22,v:.06});osc({f:160,f2:50,d:.24,v:.07,w:"triangle"})},
+ fire:()=>castSnd("fire"),frost:()=>castSnd("frost"),bolt:()=>castSnd("bolt"),stomp:()=>castSnd("stomp"),web:()=>castSnd("web"),shoot:()=>castSnd("arc"),beat:()=>castSnd("beat"),
+ ui:()=>osc({f:880,d:.05,v:.03,w:"triangle"}),ok:()=>{INS.harp(72,AC.currentTime,.3,.4);INS.harp(79,AC.currentTime+.06,.3,.4)},
+ chest:()=>{[0,4,7,12].forEach((k,i)=>INS.harp(76+k,AC.currentTime+i*.09,.6,.5));INS.bell(88,AC.currentTime+.36,1,.35)},
+ crack:()=>{nz({f:600,q:.8,d:.3,v:.09});osc({f:90,f2:45,d:.3,v:.08,w:"square",lp:400})},
+ roar:()=>voice(24,"atk",camx+VW/2,camy+VH/2),
+ wave:()=>{const t=AC.currentTime;[0,0,7].forEach((k,i)=>INS.shawm(57+k,t+i*.28,.24,.9));frameD(t,.25);frameD(t+.28,.25);frameD(t+.56,.3)},
+ summon:()=>{osc({f:300,f2:900,d:.3,v:.05,lp:3000,rv:.3});INS.harp(84,AC.currentTime+.1,.6,.3)},
+ heal:()=>[0,4,7,12].forEach((k,i)=>INS.bell(79+k,AC.currentTime+i*.06,.9,.35)),
+ dash:()=>{nz({f:900,f2:4200,q:1.2,d:.16,v:.06,a:.02});osc({f:400,f2:900,d:.1,v:.03})},
+ warn:()=>{osc({f:440,f2:400,d:.14,v:.035,w:"square",lp:1500});osc({f:466,d:.14,v:.025,w:"square",lp:1500})},
+ dodge:()=>osc({f:1200,f2:1900,d:.09,v:.035}),
+ coin:()=>{osc({f:1320,d:.08,v:.03,w:"square",lp:4000});osc({f:1760,at:AC.currentTime+.05,d:.12,v:.03,w:"square",lp:4000});INS.bell(96,AC.currentTime+.05,.4,.15)},
+ dragon:()=>{voice(24,"die",camx+VW/2,camy+VH/2);[0,4,7,12].forEach((k,i)=>INS.harp(60+k,AC.currentTime+.4+i*.12,.8,.5))}};
+const sfxT={};function sfx(n){if(QS&&n!=="warn")return;if(!AC||!SND)return;const now=performance.now();if(sfxT[n]&&now-sfxT[n]<70)return;sfxT[n]=now;try{if(SFX[n])SFX[n]()}catch(e){}}
+/* ---------- som com lugar: mais baixo e de lado conforme a distância da câmera ---------- */
+function sp3(x,y){if(x===undefined)return{v:1,p:0};const dx=x-(camx+VW/2),dy=y-(camy+VH/2),d=Math.hypot(dx,dy);if(d>900)return null;return{v:Math.pow(1-d/900,1.4),p:clamp(dx/(VW*.6),-.9,.9)}}
+const sndT={};function okT(k,ms){const n=performance.now();if(sndT[k]&&n-sndT[k]<ms)return false;sndT[k]=n;return true}
+/* ---------- vozes dos monstros: cada família tem um jeito (grunhido, uivo, chiado, rugido...) ---------- */
+const VFAM={0:"slime",1:"bat",2:"gob",3:"spider",4:"bug",5:"bug",6:"wolf",7:"wolf",8:"wolf",9:"giant",10:"bull",11:"snake",12:"giant",13:"spider",14:"orc",15:"orc",16:"wolf",17:"orc",18:"dragon",19:"dragon",20:"dragon",21:"dragon",22:"dragon",23:"dragon",24:"dragon",
+ 25:"skel",26:"zombie",27:"knight",28:"mage",29:"demon",30:"knight",31:"giant",32:"mage",33:"stone",34:"stone"};
+/* fala com formantes (filtros que imitam a boca) */
+function growl(f0,f1,d,v,fm,pan,tr,at){if(!AC)return;const t=at||AC.currentTime;try{const x=AC.createOscillator(),g=AC.createGain(),o=outN(1,pan,.18,t);x.type="sawtooth";x.frequency.setValueAtTime(f0,t);x.frequency.exponentialRampToValueAtTime(Math.max(25,f1),t+d);
+ if(tr){const l=AC.createOscillator(),lg=AC.createGain();l.frequency.value=tr;lg.gain.value=f0*.08;l.connect(lg);lg.connect(x.frequency);l.start(t);l.stop(t+d+.05)}
+ g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.03);g.gain.setValueAtTime(v,t+d*.6);g.gain.exponentialRampToValueAtTime(.0001,t+d);x.connect(g);
+ for(const[ff,q,m]of fm){const b=AC.createBiquadFilter();b.type="bandpass";b.frequency.value=ff;b.Q.value=q;const bg=AC.createGain();bg.gain.value=m;g.connect(b);b.connect(bg);bg.connect(o)}x.start(t);x.stop(t+d+.05)}catch(e){}}
+function voice(t,ev,x,y){if(!AC||!SND)return;const P=sp3(x,y);if(!P||P.v<.04)return;const fam=VFAM[t]||"gob",big=MT[t]&&(MT[t].boss||MT[t].drg)?.7:1;if(!okT("v"+fam+ev,ev==="hurt"?160:90))return;
+ const v=P.v*(ev==="die"?1.1:ev==="hurt"?.6:.85),p=P.p,k=ev==="hurt"?1.35:ev==="die"?.8:1,d=ev==="die"?1.6:1,c=AC.currentTime;
+ switch(fam){
+  case"bat":for(let i=0;i<(ev==="die"?3:2);i++)osc({f:3200*k,f2:4400*k,at:c+i*.06,d:.045,v:v*.05,pan:p});break;
+  case"gob":growl(260*k,170*k,.2*d,v*.16,[[700,5,1],[1300,6,.6]],p,0);break;
+  case"orc":growl(140*k*big,95*k*big,.32*d,v*.2,[[520,5,1],[950,6,.5]],p,24);break;
+  case"giant":growl(85*k*big,55*k*big,.45*d,v*.24,[[380,4,1],[720,5,.5]],p,14);nz({f:250,ft:"lowpass",d:.25,v:v*.06,pan:p});break;
+  case"bull":nz({f:1400,q:1,d:.18,v:v*.06,pan:p});growl(120*k,70*k,.45*d,v*.22,[[420,4,1],[820,5,.5]],p,18,c+.12);break;
+  case"wolf":if(ev==="die")osc({f:420,f2:300,at:c,d:1,v:v*.07,w:"sawtooth",lp:1300,vib:.02,vr:6,pan:p,rv:.4});else growl(150*k,110*k,.32,v*.18,[[620,5,1],[1100,6,.5]],p,32);break;
+  case"spider":for(let i=0;i<5;i++)osc({f:(1900+i*130)*k,at:c+i*.028,d:.025,v:v*.035,w:"square",lp:4200,pan:p});nz({f:4200,ft:"highpass",d:.18,v:v*.025,pan:p});break;
+  case"bug":for(let i=0;i<4;i++)osc({f:(1300+i*90)*k,at:c+i*.035,d:.03,v:v*.03,w:"square",lp:3000,pan:p});break;
+  case"snake":nz({f:5200,ft:"highpass",d:.45*d,a:.05,v:v*.06,pan:p});break;
+  case"dragon":growl(75*k*big,42*k,.75*d,v*.3,[[380,3,1],[880,4,.6],[1800,5,.25]],p,9);nz({f:600,ft:"lowpass",d:.6*d,a:.08,v:v*.1,pan:p,rv:.3});break;
+  case"skel":for(let i=0;i<6;i++){nz({f:2600,q:5,at:c+i*.035,d:.03,v:v*.07,pan:p});osc({f:620+i*40,at:c+i*.035,d:.03,v:v*.02,w:"square",lp:2500,pan:p})}break;
+  case"zombie":growl(140*k,105*k,.7*d,v*.17,[[460,4,1],[820,5,.6]],p,4);break;
+  case"knight":osc({f:520,at:c,d:.4,v:v*.04,pan:p,rv:.3});osc({f:1340,at:c,d:.3,v:v*.025,pan:p});osc({f:2210,at:c,d:.2,v:v*.015,pan:p});growl(110*k,80*k,.25,v*.14,[[480,5,1]],p,0);break;
+  case"mage":nz({f:1500,f2:3200,q:3,d:.4*d,a:.06,v:v*.06,pan:p,rv:.4});osc({f:660*k,f2:990*k,d:.35,v:v*.03,pan:p,rv:.4});break;
+  case"demon":growl(70*k,48*k,.6*d,v*.24,[[300,4,1],[700,5,.6]],p,7);growl(72.5*k,49*k,.6*d,v*.12,[[1200,6,.5]],p,0);break;
+  case"stone":nz({f:260,ft:"lowpass",d:.5*d,a:.04,v:v*.14,pan:p});osc({f:70,f2:45,d:.3,v:v*.1,pan:p});break;
+  default:osc({f:300*k,f2:150*k,d:.18,v:v*.06,w:"triangle",pan:p,vib:.05,vr:14})}}
+/* golpe com som de lugar (invocações e defensores) */
+function swingAt(x,y,t){const P=sp3(x,y);if(!P||!okT("sw",70))return;nz({f:1600,f2:4200,q:1.4,d:.1,v:P.v*.04,pan:P.p,a:.015});if(t&&R()<.25)voice(t,"atk",x,y)}
+/* ---------- magias: um som para cada poder (do jogador, das invocações e dos monstros) ---------- */
+const ELSND=["fire","frost","bolt","cloud","acid","stomp","dark"];
+function castSnd(k,x,y,big=1){if(!AC||!SND)return;const P=sp3(x,y);if(!P||P.v<.04)return;if(!okT("c"+k,60))return;const v=P.v*big,p=P.p,c=AC.currentTime;
+ switch(k){
+  case"fire":case"fireball":nz({f:600,f2:2400,q:.8,d:.45,a:.04,v:v*.11,pan:p,rv:.2});nz({f:200,ft:"lowpass",d:.35,v:v*.06,pan:p});for(let i=0;i<4;i++)nz({f:3000,q:4,at:c+.05+i*.06,d:.03,v:v*.04,pan:p});break;
+  case"frost":case"iceshield":for(const[f,i]of[[1568,0],[2093,1],[2637,2]])osc({f,at:c+i*.04,d:.5,a:.002,v:v*.035,pan:p,rv:.4});nz({f:6000,ft:"highpass",d:.35,v:v*.04,pan:p});break;
+  case"bolt":case"chain5":nz({f:5000,ft:"highpass",d:.15,v:v*.1,pan:p});osc({f:1800,f2:90,d:.22,v:v*.07,w:"sawtooth",lp:4000,pan:p});osc({f:60,f2:35,at:c+.05,d:.35,v:v*.12,pan:p,rv:.3});break;
+  case"storm":for(let i=0;i<3;i++){nz({f:4500,ft:"highpass",at:c+i*.12,d:.12,v:v*.08,pan:p});osc({f:1500,f2:80,at:c+i*.12,d:.2,v:v*.05,w:"sawtooth",lp:3500,pan:p})}osc({f:50,f2:30,d:.9,v:v*.14,pan:p,rv:.5});break;
+  case"cloud":case"bees":case"vbite":if(k==="bees")for(let i=0;i<3;i++)osc({f:220+i*13,d:.6,v:v*.03,w:"sawtooth",lp:900,vib:.02,vr:30,pan:p});else{nz({f:3000,ft:"highpass",d:.5,a:.08,v:v*.05,pan:p});for(let i=0;i<4;i++)osc({f:180+i*60,f2:340+i*60,at:c+i*.07,d:.08,v:v*.04,pan:p})}break;
+  case"acid":nz({f:4500,ft:"highpass",d:.3,v:v*.07,pan:p});osc({f:300,f2:900,d:.12,v:v*.04,w:"square",lp:2000,pan:p});break;
+  case"web":osc({f:900,f2:1500,d:.15,v:v*.04,w:"triangle",pan:p});nz({f:2400,q:3,d:.15,v:v*.04,pan:p});break;
+  case"stomp":case"roots":case"garden":osc({f:90,f2:38,d:.4,v:v*.18,pan:p,rv:.2});nz({f:350,ft:"lowpass",d:.35,v:v*.12,pan:p});if(k!=="stomp")INS.harp(79,c+.1,.6,.25*v,p);break;
+  case"charge":case"dash":case"gust":case"tornado":case"spin":case"boomerang":nz({f:500,f2:k==="tornado"?1800:3200,q:1.4,d:k==="tornado"?.8:.3,a:.05,v:v*.09,pan:p,rv:.2});break;
+  case"gaze":case"dark":case"invis":case"blink":case"charm":osc({f:220,f2:660,d:.4,v:v*.05,w:"triangle",lp:1600,pan:p,rv:.5});osc({f:225,f2:670,d:.4,v:v*.04,w:"triangle",lp:1600,pan:p,rv:.5});nz({f:1200,f2:300,q:3,d:.35,v:v*.04,pan:p});break;
+  case"holy":case"heal":case"smite":case"gift":case"rally":[0,4,7].forEach((q,i)=>INS.bell(79+q,c+i*.05,.9,.5*v,p));if(k==="smite")osc({f:80,f2:40,at:c+.1,d:.3,v:v*.14,pan:p});if(k==="rally")INS.shawm(62,c,.4,v,p);break;
+  case"haste":case"fury":osc({f:300,f2:1200,d:.25,v:v*.05,w:"square",lp:2500,pan:p});if(k==="fury")growl(120,90,.3,v*.2,[[600,5,1]],p,20);break;
+  case"missiles":case"arc":case"shot":nz({f:2000,f2:600,q:2,d:.14,v:v*.06,pan:p});osc({f:700,f2:350,d:.1,v:v*.03,w:"triangle",pan:p});break;
+  case"bomb":osc({f:900,f2:300,d:.25,v:v*.03,pan:p});osc({f:70,f2:30,at:c+.25,d:.5,v:v*.2,pan:p,rv:.4});nz({f:500,ft:"lowpass",at:c+.25,d:.5,v:v*.15,pan:p});break;
+  case"beat":tabor(c,.4*v);jingle(c+.1,.03*v,1);break;
+  case"confetti":for(let i=0;i<5;i++)osc({f:1200+i*300,at:c+i*.03,d:.08,v:v*.03,w:"square",lp:5000,pan:p});break;
+  case"summon":INS.shawm(62,c,.25,.8*v,p);INS.shawm(69,c+.12,.35,.8*v,p);break;
+  default:nz({f:1200,f2:3000,q:1.2,d:.2,v:v*.06,pan:p})}}
+/* magia do monstro: som pela forma do ataque e pelo elemento */
+function abSnd(ab,x,y){const e=ab.el>=0?ELSND[ab.el]:null,k=ab.k;
+ if(k==="heal")return castSnd("heal",x,y);if(k==="haste"||k==="shield")return castSnd(k==="haste"?"haste":"iceshield",x,y);if(k==="frenzy")return castSnd("fury",x,y);if(k==="blink")return castSnd("blink",x,y);if(k==="summon")return castSnd("summon",x,y);
+ if(k==="chain")return castSnd("chain5",x,y);if(k==="drain")return castSnd("dark",x,y);if(k==="hold")return castSnd("web",x,y);
+ castSnd(e||(k==="shot"||k==="multi"?"shot":"charge"),x,y,k==="nova"||k==="area"?1.2:1)}
 /* ===== Arte em alta resolução: tudo desenhado por código, com sombreamento ===== */
 const HR=1;
 const hx3=h=>h[0]==="#"?[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)):(h.match(/\d+/g)||[0,0,0]).slice(0,3).map(Number);
@@ -935,7 +1045,7 @@ function hurt(m,d,eff,el,src,crit){if(m.gone)return;
  if(src&&src.sk&&MT[m.t].boss)d*=1+.1*S(src,"atk8");
  if(m.shield>0&&NET.mode!=="client")d*=.6;
  d=Math.max(0,Math.round(d));
- if(d>0){m.f=.12;num(m.x+(R()-.5)*10,m.y-30,crit?d+"!":d,crit?"#ffe14a":"#ffffff",crit);for(let i=0;i<4;i++)burst(m.x,m.y-6,pk(["#fff","#ffe14a"]),3,.25,(R()-.5)*170,(R()-.5)*170);sfx(crit?"crit":"hit");
+ if(d>0){m.f=.12;voice(m.t,"hurt",m.x,m.y);num(m.x+(R()-.5)*10,m.y-30,crit?d+"!":d,crit?"#ffe14a":"#ffffff",crit);for(let i=0;i<4;i++)burst(m.x,m.y-6,pk(["#fff","#ffe14a"]),3,.25,(R()-.5)*170,(R()-.5)*170);sfx(crit?"crit":"hit");
   if(src&&src.ow&&S(src.ow,"sum7"))src.ow.hp=Math.min(mhp(src.ow),src.ow.hp+d*.04*S(src.ow,"sum7"))}
  if(eff)applyEff(m,eff);
  if(NET.mode==="client"){if(d>0||eff)netHit(m.id,d,eff||0);m.hp-=d;return}
@@ -950,7 +1060,7 @@ function kill(m){if(m.gone)return;m.gone=1;const i=mons.indexOf(m);if(i>=0)mons.
  NET.kills.push([++NET.kseq,m.t,m.x|0,m.y|0,ek,m.lv]);if(NET.kills.length>14)NET.kills.shift();
  G.cr+=Math.round(goldOf(m.t,m.lv,ek)*GOLD_M[cl("house")]);if(m.t===QUEEN){G.mb=1}if(m.t===LORD){G.ld=1;if(G.ch===2&&G.wave>=5)G.ch=3}
  onKill(m.t,m.x,m.y,ek,m.lv,ek)}
-function onKill(t,x,y,el,lv,ek){sfx("kill");dropCoins(x,y,Math.round(goldOf(t,lv,el)*GOLD_M[cl("house")]));for(let i=0;i<14;i++)burst(x,y-6,pk(["#d8d0c0","#8a8090","#5a5060"]),4,.6,(R()-.5)*140,-R()*120,null,260);
+function onKill(t,x,y,el,lv,ek){sfx("kill");voice(t,"die",x,y);dropCoins(x,y,Math.round(goldOf(t,lv,el)*GOLD_M[cl("house")]));for(let i=0;i<14;i++)burst(x,y-6,pk(["#d8d0c0","#8a8090","#5a5060"]),4,.6,(R()-.5)*140,-R()*120,null,260);
  for(const p of PL)if(p.dead<=0&&Math.hypot(p.x-x,p.y-y)<420)devourGain(p,t,x,y,el,lv);
  /* missão: o chefe pedido pelo Ancião caiu perto do jogador */
  for(const p of PL)if(p.qa===1&&Math.hypot(p.x-x,p.y-y)<700&&qMatch(QUESTS[p.qi],t,ek|0)){p.qa=2;saveDirty=1;showBanner("MISSÃO CUMPRIDA!");sfx("lvl");say(pn(p)+" derrotou "+MT[t].n+"! Volte ao Ancião para receber a recompensa.")}}
@@ -992,7 +1102,8 @@ function attack(p){p.cd=.4;p.af=.15;p.aseq++;sfx("swing");const cr=R()<critC(p),
  hitCrack(p.x+p.fx*30,p.y+p.fy*30,1)}
 const inCone=(s,m,r)=>{const ex=m.x-s.x,ey=m.y-s.y,d=Math.hypot(ex,ey)||1;return d<r&&(ex*s.fx+ey*s.fy)/d>.6};
 function spray(s,cols,spd,n){const a=Math.atan2(s.fy,s.fx);for(let i=0;i<n;i++){const b=a+(R()-.5)*.8,v=spd*(.5+R()*.6);burst(s.x+s.fx*14,s.y-6+s.fy*14,pk(cols),6,.35,Math.cos(b)*v,Math.sin(b)*v)}}
-function cast(s,k,d,tg,src,cr){const E=CAST_EL[k],H=(m,dd,eff)=>hurt(m,dd,eff,E,src,cr);s.cast=.35;
+function cast(s,k,d,tg,src,cr){castSnd(k,s.x,s.y);QS++;try{return cast0(s,k,d,tg,src,cr)}finally{QS--}}
+function cast0(s,k,d,tg,src,cr){const E=CAST_EL[k],H=(m,dd,eff)=>hurt(m,dd,eff,E,src,cr);s.cast=.35;
  if(k==="arc"){shots.push({x:s.x,y:s.y-6,dx:s.fx,dy:s.fy,t:1.1,d,kd:s.ft===5?"acid":s.ft===12||s.ft===23?"rock":"spear",src,cr});sfx("shoot")}
  else if(k==="fireball"){shots.push({x:s.x,y:s.y-6,dx:s.fx,dy:s.fy,t:1.2,d:d*1.2,kd:"fireball",src,cr});sfx("shoot")}
  else if(k==="bolt"){const px=-s.fy,py=s.fx,pts=[[s.x,s.y-8]];for(let i=1;i<=9;i++){const j=(R()-.5)*18;pts.push([s.x+s.fx*i*20+px*j,s.y-8+s.fy*i*20+py*j])}bolts.push({pts,t:.2,m:.2});
@@ -1162,7 +1273,7 @@ function runSum(p,dt,K,E,side){if(p[K]<1||!p.own[p[K]]){p[E]=null;return}
  if(s.stk>5||Math.hypot(p.x-s.x,p.y-s.y)>520){s.x=p.x;s.y=p.y;s.stk=0;s.bd=1e9;s.wp=null;for(let i=0;i<12;i++)burst(s.x,s.y-8,pk(["#b48aff","#fff"]),3,.4,(R()-.5)*120,(R()-.5)*120);sfx("summon")}
  const hs=s.haste>0?1.5:1;s.cd-=dt*hs;s.scd-=dt*hs;
  /* ataque básico (investida na animação) */
- if(tg&&bd<34&&s.cd<=0){s.cd=.55;s.atkT=.25;s.ax=ex/d;s.ay=ey/d;hurt(tg,sumDM(p,s.t)*(.8+R()*.4),0,null,s);for(let i=0;i<4;i++)burst((s.x+tg.x)/2,(s.y+tg.y)/2-6,PCOL[p.col],3,.2,(R()-.5)*120,(R()-.5)*120)}
+ if(tg&&bd<34&&s.cd<=0){s.cd=.55;s.atkT=.25;swingAt(s.x,s.y,s.t);s.ax=ex/d;s.ay=ey/d;hurt(tg,sumDM(p,s.t)*(.8+R()*.4),0,null,s);for(let i=0;i<4;i++)burst((s.x+tg.x)/2,(s.y+tg.y)/2-6,PCOL[p.col],3,.2,(R()-.5)*120,(R()-.5)*120)}
  /* magias pelo nível da invocação: lança depois do círculo mágico */
  if(s.castT>0){s.castT-=dt;if(s.castT<=0&&s.pab){const ab=s.pab;s.pab=null;sumDo(p,s,ab)}}else sumAbil(p,s,tg,bd);
  doDash(s,dt,sumDM(p,s.t)*1.5,s)}
@@ -1181,7 +1292,7 @@ function hurtEnt(e,d,ps,el,ml){if(ml){const lv=e.ow?e.ow.slv[e.t]:e.lv;if(lv)d*=
  if(p.hp<=0)die(p)}
 /* ataque básico dos monstros: encostou, morde/golpeia (com investida na animação) */
 function contact(dt){const es=localEnts();for(const m of mons){m.ccd-=dt*(m.haste>0?1.6:1);m.imT-=dt;if(m.web>0||m.ccd>0||m.wind>0||m.castT>0)continue;const r=MT[m.t].boss?38:MT[m.t].drg?32:22;
- for(const e of es){const dx=e.x-m.x,dy=e.y-m.y;if(dx<r&&dx>-r&&dy<r&&dy>-r&&Math.hypot(dx,dy)<r){m.ccd=.85;const dd=Math.hypot(dx,dy)||1;m.ax=dx/dd;m.ay=dy/dd;m.atkT=.25;if(Math.abs(dx)>2)m.fl=dx<0;hurtEnt(e,m.dm*(m.dash>0?1.6:1),MT[m.t].ps,mElem(m),m.lv);break}}}}
+ for(const e of es){const dx=e.x-m.x,dy=e.y-m.y;if(dx<r&&dx>-r&&dy<r&&dy>-r&&Math.hypot(dx,dy)<r){m.ccd=.85;const dd=Math.hypot(dx,dy)||1;m.ax=dx/dd;m.ay=dy/dd;m.atkT=.25;voice(m.t,"atk",m.x,m.y);if(Math.abs(dx)>2)m.fl=dx<0;hurtEnt(e,m.dm*(m.dash>0?1.6:1),MT[m.t].ps,mElem(m),m.lv);break}}}}
 /* ===== Monstros: IA e ataques especiais (quem hospeda simula) ===== */
 function targets(){const a=localEnts();for(const r of NET.remote){if(r.dead)continue;if(!r.invis)a.push(r);if(r.s)a.push(r.s);if(r.s2)a.push(r.s2)}return a}
 const EKL=["spear","acid","rock","fireball","webshot","poison","ring","cone","line","ice","dark","hold","zone","chain","fx"];
@@ -1405,9 +1516,10 @@ function monCanUse(m,ab,nd){
 function monAbil(m,t,tg,nd){if(m.scd>0)return;const L=AB[m.t];if(!L)return;const n=abilN(m.lv,t.boss&&!t.friend);if(!n)return;
  for(let i=0;i<n;i++){const j=((m.ai||0)+i)%n,ab=L[j];if(!monCanUse(m,ab,nd))continue;m.ai=(j+1)%n;m.scd=ab.cd*(.85+R()*.3);
   if(ab.k==="dash"){const a=aimAt(m,tg);m.dx=a.dx;m.dy=a.dy;m.wind=.45;sfx("warn");return}
-  m.pab=ab;m.castT=m.castM=.4;return}}
+  m.pab=ab;m.castT=m.castM=.4;voice(m.t,"cast",m.x,m.y);return}}
 function fxShot(m,x,y,R,type){eshot(m,"fx",{x,y,R,t:.6,sp:type,d:0,el:-1})}
-function monDo(m,ab){const ts=targets();let tg=null,bd=1e9;for(const e of ts){const d=Math.hypot(e.x-m.x,e.y-m.y);if(d<bd){bd=d;tg=e}}
+function monDo(m,ab){abSnd(ab,m.x,m.y);QS++;try{monDo0(m,ab)}finally{QS--}}
+function monDo0(m,ab){const ts=targets();let tg=null,bd=1e9;for(const e of ts){const d=Math.hypot(e.x-m.x,e.y-m.y);if(d<bd){bd=d;tg=e}}
  const d=m.dm*ab.m,el=ab.el;
  if(["shot","multi","cone","line","drain","hold","area","blink"].includes(ab.k)&&(!tg||bd>ab.r*1.4))return;
  if(tg){const ex=tg.x-m.x;if(Math.abs(ex)>2)m.fl=ex<0}
@@ -1438,7 +1550,8 @@ function sumCanUse(p,s,ab,tg,bd){
 function allyList(p,s){const a=[];for(const q of PL){if(q.dead>0)continue;if(Math.hypot(q.x-s.x,q.y-s.y)<240)a.push({e:q,hp:q.hp,mx:mhp(q)});for(const u of[q.su,q.su2])if(u&&u.dead<=0&&Math.hypot(u.x-s.x,u.y-s.y)<240)a.push({e:u,hp:u.hp,mx:u.mhp})}return a}
 function sumAbil(p,s,tg,bd){if(s.scd>0||s.castT>0)return;const L=AB[s.t];if(!L)return;const n=sumAbilN(s.t,p.slv[s.t]);if(!n)return;
  for(let i=0;i<n;i++){const j=((s.ai||0)+i)%n,ab=L[j];if(!sumCanUse(p,s,ab,tg,bd))continue;s.ai=(j+1)%n;s.scd=ab.cd;s.pab=ab;s.ptg=tg;s.castT=s.castM=.3;return}}
-function sumDo(p,s,ab){let tg=s.ptg;if(!tg||tg.gone)tg=nearMon(s,ab.r*1.3);const d=sumDM(p,s.t)*1.2*ab.m,el=ab.el,H=(m,dd,eff)=>hurt(m,dd,eff,el>=0?el:null,s,0);
+function sumDo(p,s,ab){abSnd(ab,s.x,s.y);QS++;try{sumDo0(p,s,ab)}finally{QS--}}
+function sumDo0(p,s,ab){let tg=s.ptg;if(!tg||tg.gone)tg=nearMon(s,ab.r*1.3);const d=sumDM(p,s.t)*1.2*ab.m,el=ab.el,H=(m,dd,eff)=>hurt(m,dd,eff,el>=0?el:null,s,0);
  if(tg){face(s,tg)}else if(!["heal","haste","shield","frenzy"].includes(ab.k))return;
  const effOf=k=>k==="acid"||k==="poison"?3:k==="ice"?2:k==="webshot"?1:0;
  switch(ab.k){
@@ -1600,7 +1713,7 @@ function defend(v,dt){if(v.ko)return true;if(!v.mhp||v.hp===undefined){v.mhp=def
  v.cd=(v.cd||0)-dt;v.atkT=(v.atkT||0)-dt;const sp=(v.g?80:65)*dt;
  if(!b)return false;
  const ex=b.x-v.x,ey=b.y-v.y,d=bd||1;v.fl=ex<0;
- const AR=v.t?34:26;if(d>AR){walkTo(v,b.x,b.y,sp)}else{v.wx=v.wy=0;if(v.cd<=0){v.cd=.8;v.atkT=.25;if(NET.mode!=="client")hurt(b,defDmg(v)*(.85+R()*.3),0,null,null);for(let i=0;i<3;i++)burst(b.x,b.y-8,"#ffffff",3,.2,(R()-.5)*100,(R()-.5)*100)}}
+ const AR=v.t?34:26;if(d>AR){walkTo(v,b.x,b.y,sp)}else{v.wx=v.wy=0;if(v.cd<=0){v.cd=.8;v.atkT=.25;swingAt(v.x,v.y,v.t||0);if(NET.mode!=="client")hurt(b,defDmg(v)*(.85+R()*.3),0,null,null);for(let i=0;i<3;i++)burst(b.x,b.y-8,"#ffffff",3,.2,(R()-.5)*100,(R()-.5)*100)}}
  return true}
 /* alvos dos invasores: voadores vão primeiro nas torres; quem anda, do lado de fora, quebra a muralha (ou uma torre) no caminho,
    a não ser que um portão ou buraco esteja perto; lá dentro atacam os defensores e, só no fim, o cristal */
@@ -1623,7 +1736,7 @@ function hitStruct(m,s){const dm=m.dm*(m.boss2?1.5:1)*INV_DMG;
  if(s.str==="w"){const mx=segMax(),f=wsOf(s.i);if(f<=0)return;const nd=dm*(1-wallRes());G.ws[s.i]=Math.max(0,f-nd/mx);if(R()<.4)burst(s.x,s.y-14,MATS[cl("wall")].top,3,.4,(R()-.5)*80,-40);
   if(G.ws[s.i]<=0){shake=Math.max(shake,6);for(let k=0;k<16;k++)burst(s.x,s.y-12,pk([MATS[cl("wall")].c,MATS[cl("wall")].top]),4,.8,(R()-.5)*160,-R()*120);if(time>wallMsgT){wallMsgT=time+8;say("A muralha foi rompida! Os invasores abriram um buraco.")}sfx("stomp")}}
  else{const mx=towMax(),f=G.th[s.i]||0;if(f<=0)return;G.th[s.i]=Math.max(0,f-dm*(1-wallRes()*.8)/mx);if(G.th[s.i]<=0){shake=Math.max(shake,8);for(let k=0;k<20;k++)burst(s.x,s.y-30,pk(["#8a8478","#5a3a1e","#ff8a1f"]),4,.9,(R()-.5)*180,-R()*140);say("Uma torre de defesa caiu!");sfx("stomp")}}}
-function invHitDefender(m,v){m.st2=0;m.bd2=undefined;if(m.ccd>0)return;if(v.str){m.ccd=.85;m.atkT=.25;hitStruct(m,v);return}m.ccd=.85;m.atkT=.25;v.hp-=m.dm*(m.boss2?1.5:1)*INV_DMG*(cl("wall")>=10?.85:1);num(v.x,v.y-30,Math.round(m.dm),"#ffb08a");
+function invHitDefender(m,v){m.st2=0;m.bd2=undefined;if(m.ccd>0)return;voice(m.t,"atk",m.x,m.y);if(v.str){m.ccd=.85;m.atkT=.25;hitStruct(m,v);return}m.ccd=.85;m.atkT=.25;v.hp-=m.dm*(m.boss2?1.5:1)*INV_DMG*(cl("wall")>=10?.85:1);num(v.x,v.y-30,Math.round(m.dm),"#ffb08a");
  if(v.hp<=0){v.ko=1;v.hp=0;for(let i=0;i<12;i++)burst(v.x,v.y-6,"#cfd8e8",3,.6,(R()-.5)*120,(R()-.5)*120);if(!villagers.some(q=>!q.ko))say("Todos os defensores caíram! Os invasores vão atacar o cristal!")}}
 /* torres fazem parte da muralha; em cima delas ficam atiradores (moradores que atacam à distância, ou slimes arqueiros) */
 /* 6 torres: 2 em cada portão (oeste e leste), uma ao norte e uma ao sul; cada nível até o 6 põe mais uma */
@@ -1827,7 +1940,7 @@ function applySnap(w){if(!w||typeof w!=="object")return;
   m.boss2=s&2048?1:0;m.vb=s&4096?1:0;if(m.boss2||m.vb){const k=m.vb?2:5;if(!m._bk){m._bk=1;m.mhp=Math.round(m.mhp*k)}}
   m.tx=+e[2]||0;m.ty=+e[3]||0;m.hp=+e[4]||0;m.web=s&1?.25:0;m.slow=s&2?.25:0;m.pz=s&4?.25:0;if(s&8)m.f=.1;m.dash=s&16?.25:0;m.wind=s&32?.25:0;m.miss=0;
   /* animações e reforços vistos de quem hospeda */
-  if(s&128&&!m._sa)m.atkT=.25;m._sa=s&128;if(s&256&&!m._sc)m.castT=m.castM=.4;m._sc=s&256;m.haste=s&512?.3:0;m.shield=s&1024?.3:0}
+  if(s&128&&!m._sa){m.atkT=.25;voice(m.t,"atk",m.x,m.y)}m._sa=s&128;if(s&256&&!m._sc){m.castT=m.castM=.4;voice(m.t,"cast",m.x,m.y)}m._sc=s&256;m.haste=s&512?.3:0;m.shield=s&1024?.3:0}
  if(Array.isArray(w.d))for(const id of w.d){const m=MIDX.get(id|0);if(m&&!seenIds.has(m.id)){m.gone=1;mons.splice(mons.indexOf(m),1);MIDX.delete(m.id)}}
  const ents=[...PL,...NET.remote];
  for(const m of [...mons]){if(seenIds.has(m.id))continue;if(ents.some(e=>Math.abs(e.x-m.x)<520&&Math.abs(e.y-m.y)<420)){m.miss=(m.miss||0)+1;if(m.miss>4){m.gone=1;mons.splice(mons.indexOf(m),1);MIDX.delete(m.id)}}}
