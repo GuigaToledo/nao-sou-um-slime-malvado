@@ -117,6 +117,25 @@ Em **Gráficos: Automático**, o jogo usa a resolução da sua tela (até 3 veze
 
 O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora** no menu. O progresso fica no navegador de cada jogador.
 
+## Novidades da v2.5.0 (cidade medieval)
+
+- **Ouro:** os monstros derrotados soltam moedas que voam até você e vão para o tesouro da vila. Monstros de nível maior dão mais ouro, elites dão o triplo e chefes 20 vezes mais.
+- **6 construções com 3 níveis cada**, que mudam o visual da cidade (fale com o Ancião):
+
+  | Construção | Nível 1 | Nível 2 | Nível 3 |
+  |---|---|---|---|
+  | Muralha | paliçada (+700 de vida da vila) | pedra (+2.200) | castelo com ameias, tochas e portões (+5.200) |
+  | Torres | 2 com arqueiros | 4 | 4 de pedra com bestas (dano x2) |
+  | Quartel | 4 guardas | 8 | 12 cavaleiros |
+  | Templo | tenda (cura 5/s) | capela (10/s) | catedral com vitrais (20/s e a vila se reconstrói) |
+  | Casas | madeira (+20% de ouro) | pedra com telhado e postes de luz (+40%) | sobrados com bandeiras e praça de pedra (+70%) |
+  | Ferreiro | forja (+25% de dano dos defensores) | armas de aço (+50%) | armas encantadas (+100%) |
+
+- **Todos defendem:** na invasão, os moradores (um de cada monstro devorado), os slimes da vila e os guardas atacam os invasores, e as torres atiram.
+- **Invasões a cada 30 minutos depois da missão das 4 ondas**, com 7 tipos de exército vindo de lados diferentes: Horda Orc, Matilha Sombria, Tribo Goblin, Gigantes das Colinas, Enxame do Ninho, Feras de Fogo e Gelo, e Revoada de Dragões.
+  - Aviso 5 minutos antes, com contagem regressiva na tela em qualquer lugar do mapa.
+  - Vencer dá ouro extra. Se a cidade cair, perde 25% do ouro.
+
 ## Novidades da v2.4.0
 
 - **Animação de corpo inteiro:** cada criatura tem 10 poses (parada, 6 de caminhada e 3 de ataque).
