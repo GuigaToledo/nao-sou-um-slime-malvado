@@ -629,3 +629,7 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 ## v3.18.1
 
 - **Árvores só deixam passar quem voa.** O slime atravessava as árvores enquanto estava invencível (depois do dash ou de levar dano); agora, andando, ele sempre para nelas, e só passa por cima com uma skin de asas.
+
+## v3.18.2
+
+- **O dash atravessa árvores.** Andando, o slime continua parando nas árvores; voando ou dando dash, passa. Se o dash terminar no meio de uma árvore, dá para sair andando normalmente.
