@@ -625,3 +625,7 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 
 - **Slime sem skin:** solta **uma magia diferente a cada segundo**, sorteada entre as dos monstros que você já devorou e sem repetir a anterior; se a sorteada não alcança o inimigo, troca na hora por outra. O dano de cada uma é um pouco menor (60%) para compensar a velocidade.
 - **Gráficos baixos sem quadrados no chão:** cada bloco é desenhado 1px maior (sem frestas quando a tela é reduzida) e, no modo baixo, o chão usa uma única textura que encaixa nas bordas, então a divisão dos blocos não aparece mais.
+
+## v3.18.1
+
+- **Árvores só deixam passar quem voa.** O slime atravessava as árvores enquanto estava invencível (depois do dash ou de levar dano); agora, andando, ele sempre para nelas, e só passa por cima com uma skin de asas.

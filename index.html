@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.18.0";
+const VERSION="v3.18.1";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -1326,7 +1326,7 @@ const tileAt=(x,y)=>map[Math.floor(y/T)]?.[Math.floor(x/T)];
 /* quem voa passa por cima de árvores, da muralha da cidade e do fosso (mas não pelas paredes das cavernas) */
 const solid=(x,y,o)=>{const tx=Math.floor(x/T),ty=Math.floor(y/T),t=map[ty]?.[tx];if(t===undefined)return true;
  if(o.fly&&(t===5||t===15||t===16||(t===1&&ZONES[zoneAt(tx,ty)].out)))return false;
- if(o.inv&&(t===5||(t===1&&ZONES[zoneAt(tx,ty)].out)))return false;/* invasores atravessam a mata */return t===1||t===3||t===5||t===10||t===14||((t===2||t===15||t===16)&&!o.fly)||(t===9&&!o.fly&&!(o.sm&&o.slot===undefined))};/* v3.17: pedras bloqueiam quem anda (o jogador também); quem voa passa */
+ if(o.inv&&o.id!==undefined&&MIDX.get(o.id)===o&&(t===5||(t===1&&ZONES[zoneAt(tx,ty)].out)))return false;/* invasores atravessam a mata */return t===1||t===3||t===5||t===10||t===14||((t===2||t===15||t===16)&&!o.fly)||(t===9&&!o.fly&&!(o.sm&&o.slot===undefined))};/* v3.17: pedras bloqueiam quem anda (o jogador também); quem voa passa */
 function mv(o,dx,dy){const r=9,h=(x,y)=>solid(x-r,y-r,o)||solid(x+r,y-r,o)||solid(x-r,y+r,o)||solid(x+r,y+r,o);if(!h(o.x+dx,o.y))o.x+=dx;if(!h(o.x,o.y+dy))o.y+=dy}
 const u32=h=>{const[r,g,b]=hx3(h);return(0xff000000|(b<<16)|(g<<8)|r)>>>0};
 const MMC={15:u32("#9aa0aa"),16:u32("#3a7ac8"),wall:u32("#1a1e2a"),out:u32("#143018"),0:u32("#4a5068"),2:u32("#000000"),3:u32("#a35bff"),4:u32("#3a7a30"),5:u32("#1e4a22"),6:u32("#2f6a3a"),7:u32("#f06a20"),9:u32("#9aa0aa"),14:u32("#8a8a9a"),17:u32("#5aa8d8")};
