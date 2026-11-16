@@ -25,7 +25,7 @@ canvas{image-rendering:auto;touch-action:none;-webkit-user-select:none;user-sele
 <canvas id="c" width="640" height="480" tabindex="0" aria-label="Não sou um Slime Malvado"></canvas>
 <script>
 "use strict";
-const VERSION="v3.18.2";
+const VERSION="v3.19.0";
 /* v3.5: funciona sem internet depois da primeira visita (o navegador guarda o jogo) */
 if("serviceWorker"in navigator&&window.isSecureContext&&/^https?:$/.test(location.protocol))addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 const LSG=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},LSS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -111,12 +111,11 @@ SK.push(["atk9","Ataque","Força Gosmenta","+1,5% de dano",30],["def9","Defesa",
 SK.forEach(s=>{if(s[1]==="Magia")s[1]="Cura"});
 const SKI={};SK.forEach((s,i)=>SKI[s[0]]=i);const NSK=SK.length,SKMAX=SK.map(s=>s[4]),SKTOT=SKMAX.reduce((a,b)=>a+b,0);
 /* 4 trilhas (Ataque, Defesa, Invocação, Cura) de 50 níveis: cada nível libera o próximo efeito da lista */
-const TRK=(()=>{const A=["atk1","atk9","atk2","atk1","atk3","atk9","atk4","atk1","atk5","atk9","atk2","atk3","atk1","atk6","atk9","atk4","atk7","atk1","atk8","atk9","atk5","atk2","atk3","atk6","atk9","atk7","atk4","atk8","atk9","atk5","atk6","atk7","atk8"],
- D=["def1","def2","def6","def1","def5","def9","def4","def2","def1","def6","def9","def3","def7","def1","def5","def4","def6","def9","def2","def1","def8","def3","def6","def5","def9","def4","def7","def6","def3","def9"],
- U=["sum2","sum1","sum3","sum9","sum4","sum2","sum3","sum1","sum6","sum9","sum3","sum5","sum7","sum2","sum4","sum9","sum3","sum6","sum8","sum1","sum5","sum7","sum9","sum3","sum4","sum6","sum5","sum7","sum8","sum9"],
- C=["mag6","mag9","mag1","mag2","mag6","mag9","mag10","mag5","mag1","mag3","mag2","mag9","mag7","mag6","mag10","mag1","mag4","mag5","mag9","mag2","mag8","mag3","mag7","mag10","mag4","mag5","mag8","mag7","mag4","mag8"];
- const f=(a,g)=>{const r=a.slice();while(r.length<50)r.push(g);return r};return[f(A,"atk9"),f(D,"def9"),f(U,"sum9"),f(C,"mag10")]})();
-const TRMAX=50,TRN=["Ataque","Defesa","Invocação","Cura"],TRC=["#ff8a6a","#6ac8ff","#c89aff","#7aff9a"];
+const TRK=(()=>{const A=["atk1","atk3","atk2","atk1","atk4","atk5","atk1","atk6","atk7","atk8","atk2","atk3","atk1","atk4","atk5","atk6","atk7","atk8","atk1","atk2","atk3","atk9","atk7","atk8","atk9"],
+ D=["def1","def2","def6","def3","def1","def5","def4","def6","def2","def1","def7","def3","def6","def5","def4","def1","def8","def2","def6","def3","def5","def4","def1","def6","def7"],
+ U=["sum2","sum1","sum3","sum4","sum2","sum3","sum1","sum6","sum5","sum7","sum3","sum2","sum4","sum6","sum8","sum1","sum5","sum7","sum3","sum4","sum6","sum5","sum7","sum8","sum3"],
+ C=["mag6","mag9","mag1","mag2","mag6","mag9","mag10","mag5","mag1","mag3","mag2","mag9","mag7","mag6","mag1","mag4","mag5","mag9","mag2","mag8","mag3","mag7","mag10","mag5","mag8"];return[A,D,U,C]})();
+const TRMAX=25,TRN=["Ataque","Defesa","Invocação","Cura"],TRC=["#ff8a6a","#6ac8ff","#c89aff","#7aff9a"];
 function ctApply(p){if(!p.ct)p.ct=[0,0,0,0];p.sk=Array(NSK).fill(0);for(let c=0;c<4;c++)for(let i=0;i<p.ct[c];i++)p.sk[SKI[TRK[c][i]]]++}
 /* níveis: máximo 100; cada tipo de monstro tem um nível natural (o da sua casa) */
 const MAXLV=100;
@@ -1265,15 +1264,15 @@ function applySecrets(mask){secrets.forEach((s,i)=>{if(mask&(1<<i)){if(s.wx>=0)m
 /* ===== Perfis e salvamento ===== */
 const PF=["vn","tv","lv","xp","own","sp","sk","ct","sum","sum2","sec","reg","res","nm","col","slv","sxp","cos","skin","qi","qa","mp"];
 const cleanName=s=>String(s||"").replace(/[^\p{L}\p{N} '-]/gu,"").replace(/^\s+/,"").slice(0,12);
-function newProf(){const own=Array(NF).fill(0);own[0]=1;return{vn:"",tv:2,lv:1,xp:0,own,sp:0,sk:Array(NSK).fill(0),ct:[0,0,0,0],form:0,sum:-1,sum2:-1,sec:0,reg:0,res:0,nm:"",col:0,slv:Array(NF).fill(1),sxp:Array(NF).fill(0),cos:Array(NSKIN).fill(0),skin:-1,qi:0,qa:0,mp:MAPV}}
+function newProf(){const own=Array(NF).fill(0);own[0]=1;return{vn:"",tv:2,lv:1,xp:0,own,sp:1,sk:Array(NSK).fill(0),ct:[0,0,0,0],form:0,sum:-1,sum2:-1,sec:0,reg:0,res:0,nm:"",col:0,slv:Array(NF).fill(1),sxp:Array(NF).fill(0),cos:Array(NSKIN).fill(0),skin:-1,qi:0,qa:0,mp:MAPV}}
 /* visual liberado: os de monstro vêm de devorar aquele monstro; os especiais vêm de baús e chefes */
 const cosOwned=(p,i)=>i>=0&&i<NSKIN&&(COS[i].t?!!p.own[COS[i].t]:!!p.cos[i]);
 function fixProf(o){const p=newProf();if(!o||typeof o!=="object")return p;p.lv=clamp(o.lv|0,1,MAXLV);p.xp=p.lv>=MAXLV?0:Math.max(0,+o.xp||0);
  if(Array.isArray(o.own))o.own.forEach((v,i)=>{if(i<NF&&v)p.own[i]=1});p.own[0]=1;p.sp=Math.max(0,o.sp|0);
  /* árvore nova (pontos por habilidade): salvamentos antigos recebem os pontos de volta, 1 por nível */
  /* v3.15: trilhas de 50 níveis; saves antigos viram níveis na trilha de cada grupo (os mesmos pontos) */
- if(Array.isArray(o.ct)&&o.ct.length===4)p.ct=o.ct.map(v=>clamp(v|0,0,TRMAX));else if(o.tv===2&&Array.isArray(o.sk))p.ct=[0,1,2,3].map(c=>clamp(o.sk.slice(c*8,c*8+8).reduce((a,v)=>a+(v|0),0),0,TRMAX));
- ctApply(p);const spent=p.ct.reduce((a,b)=>a+b,0);p.sp=o.tv===2?clamp(p.sp,0,Math.max(0,p.lv-1-spent)):Math.max(0,p.lv-1-spent);
+ if(Array.isArray(o.ct)&&o.ct.length===4){p.ct=o.ct.map(v=>clamp(v|0,0,TRMAX));p.sp+=o.ct.reduce((a,v)=>a+Math.max(0,(v|0)-TRMAX),0)}else if(o.tv===2&&Array.isArray(o.sk))p.ct=[0,1,2,3].map(c=>clamp(o.sk.slice(c*8,c*8+8).reduce((a,v)=>a+(v|0),0),0,TRMAX));
+ ctApply(p);const spent=p.ct.reduce((a,b)=>a+b,0);p.sp=Math.max(0,p.lv-spent);/* v3.19: 1 ponto no nível 1 e 1 por nível: 100 pontos no nível 100 (25 em cada trilha) */
  const s=o.sum|0,s2=o.sum2|0;p.sum=s>=1&&s<NF&&p.own[s]?s:-1;p.sum2=s2>=1&&s2<NF&&p.own[s2]&&s2!==p.sum?s2:-1;p.sec=o.sec|0;p.reg=o.reg?1:0;
  p.res=(o.res|0)&127;if(o.imm)p.res|=1<<EV;for(let i=1;i<NF;i++)if(p.own[i]&&EL_OF[i]!==undefined)p.res|=1<<EL_OF[i];
  p.nm=cleanName(o.nm).trim();p.vn=String(o.vn||"").replace(/[^\p{L}\p{N} '-]/gu,"").slice(0,16).trim();p.col=clamp(o.col|0,0,NCOL-1);
@@ -3106,7 +3105,7 @@ function treeScreen(){const p=treeOwner;if(treeTab===1){skinScreen();return}win(
   if(can){const a=.5+.5*Math.sin(time*6);X.save();X.globalAlpha=sel?1:.6+.3*a;rr(x+w-30,y+8,22,22,11);X.fillStyle="#2a8a3a";X.fill();X.strokeStyle="#a8ffb8";X.lineWidth=1.5;X.stroke();txt("+",x+w-19,y+25,"#ffffff",18,"center");X.restore()}
   HIT.push({x,y,w,h,fn:()=>{if(treeSel===c)buySkill(p,c);else{treeSel=c;sfx("ui")}},hov:()=>{treeSel=c}})}
  const c=treeSel,lv=p.ct[c]|0;if(lv<TRMAX){const s=SK[SKI[TRK[c][lv]]];txt("Próximo nível ("+(lv+1)+"): "+s[2]+" — "+s[3],VW/2,388,"#ffffff",15,"center")}else txt(TRN[c]+" completa!",VW/2,388,"#a8ffb8",16,"center");
- txt(p.sp<=0?"Sem pontos: ganhe 1 ponto a cada nível":"Clique de novo / ENTER / A para evoluir "+TRN[c],VW/2,410,p.sp<=0?"#c8b898":"#ffe7a0",15,"center");
+ txt(p.sp<=0?"Sem pontos: ganhe 1 ponto a cada nível (100 no nível 100)":"Clique de novo / ENTER / A para evoluir "+TRN[c],VW/2,410,p.sp<=0?"#c8b898":"#ffe7a0",15,"center");
  txt("Setas: escolher · Select / K / B: fechar",VW/2,440,"#a89878",15,"center")}
 const canBuy=(p,c)=>p.sp>0&&(p.ct[c]|0)<TRMAX;
 let trPop=[0,0,0,0];

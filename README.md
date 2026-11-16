@@ -633,3 +633,9 @@ O jogo salva a cada 5 minutos, ao fechar ou trocar de aba, e em **Salvar agora**
 ## v3.18.2
 
 - **O dash atravessa árvores.** Andando, o slime continua parando nas árvores; voando ou dando dash, passa. Se o dash terminar no meio de uma árvore, dá para sair andando normalmente.
+
+## v3.19.0
+
+- **Trilhas de habilidade com 25 níveis cada** (Ataque, Defesa, Invocação e Cura): como o slime vai até o nível 100, agora você ganha **1 ponto já no nível 1 e mais 1 por nível — 100 pontos**, o suficiente para completar as 4 trilhas (25/25 em cada).
+- As listas de efeitos foram reorganizadas para caber todos os efeitos principais em 25 níveis. A Cura continua com **regeneração no 1º nível** e **cura compartilhada com as invocações no 2º**.
+- Saves antigos: níveis acima de 25 numa trilha viram pontos de volta, e os pontos livres são recalculados (nível − pontos usados).
